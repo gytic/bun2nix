@@ -47,6 +47,34 @@ pub struct Workspace {
 #[serde(rename_all = "camelCase", default)]
 pub struct Package(String, String, Peers, String);
 
+impl Package {
+    /// # NPM url converter
+    ///
+    /// Takes a package in the form:
+    /// ```jsonc
+    /// ["@alloc/quick-lru@5.2.0", "", {}, ""]
+    /// ```
+    ///
+    /// And builds a prefetchable npm url like:
+    /// ```bash
+    /// https://registry.npmjs.org/@alloc/quick-lru/-/quick-lru-5.2.0.tgz
+    /// ```
+    pub fn to_npm_url(&self) -> Result<String> {
+        let Some((user, name_and_ver)) = self.0.split_once("/") else {
+            return Err(Error::NoSlashInPackageIdentifier);
+        };
+
+        let Some((name, ver)) = name_and_ver.split_once("@") else {
+            return Err(Error::NoAtInPackageIdentifier);
+        };
+
+        Ok(format!(
+            "https://registry.npmjs.org/{}/{}/-/{}-{}.tgz",
+            user, name, name, ver
+        ))
+    }
+}
+
 #[derive(Default, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", default)]
 pub struct Peers {
@@ -127,4 +155,18 @@ fn test_from_str_with_data() {
     assert!(value.lockfile_version == 1);
     assert!(value.workspaces[""].name == Some(String::from("examples")));
     assert!(value.packages["@types/bun"].0 == "@types/bun@1.2.4");
+}
+
+#[test]
+fn test_to_npm_url() {
+    let package = Package(
+        "@alloc/quick-lru@5.2.0".to_owned(),
+        "".to_owned(),
+        Peers::default(),
+        "".to_owned(),
+    );
+
+    let out = package.to_npm_url().unwrap();
+
+    assert!(out == "https://registry.npmjs.org/@alloc/quick-lru/-/quick-lru-5.2.0.tgz");
 }

@@ -12,4 +12,8 @@ pub enum Error {
     ParseRustType(#[from] serde_json::Error),
     #[error("Failed to parse empty lockfile")]
     NoJsoncValue,
+    #[error("Missing / for package user and name declaration")]
+    NoSlashInPackageIdentifier,
+    #[error("Missing @ for package name and version declaration")]
+    NoAtInPackageIdentifier,
 }
