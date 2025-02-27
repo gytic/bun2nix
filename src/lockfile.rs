@@ -7,6 +7,10 @@ use crate::error::{Error, Result};
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+/// # Bun Lockfile
+///
+/// A model of the fields that exist in a bun lockfile in order to serve as a deserialization
+/// target
 pub struct Lockfile {
     lockfile_version: u8,
     #[serde(default)]
@@ -59,7 +63,7 @@ fn test_parse_to_value_with_sample() {
             "age": 43,
         }"#;
 
-    let value = Lockfile::parse_to_value(&sample).unwrap();
+    let value = Lockfile::parse_to_value(sample).unwrap();
 
     assert!(value["name"] == "John Doe");
     assert!(value["age"] == 43);
@@ -69,7 +73,7 @@ fn test_parse_to_value_with_sample() {
 fn test_parse_to_value_empty() {
     let sample = "";
 
-    let value = Lockfile::parse_to_value(&sample).unwrap_err();
+    let value = Lockfile::parse_to_value(sample).unwrap_err();
 
     assert!(value.to_string() == "Failed to parse empty lockfile");
 }
