@@ -16,12 +16,15 @@
     in {
       devShells.default = pkgs.mkShell {
         packages = with pkgs; [
+          # Rust dependencies
           rustc
           cargo
           rustfmt
           clippy
-          rust-analyzer
           mold
+
+          # Javascript dependencies
+          bun
         ];
 
         env = {
