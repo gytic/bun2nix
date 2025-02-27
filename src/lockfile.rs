@@ -1,9 +1,13 @@
-use std::{collections::HashMap, str::FromStr};
+use std::{collections::HashMap, process::Command, str::FromStr};
 
+use rayon::iter::{ParallelBridge, ParallelIterator};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use crate::error::{Error, Result};
+use crate::{
+    error::{Error, Result},
+    PrefetchOutput,
+};
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -23,6 +27,25 @@ impl Lockfile {
     fn parse_to_value(lockfile: &str) -> Result<Value> {
         jsonc_parser::parse_to_serde_value(lockfile, &Default::default())?
             .ok_or(Error::NoJsoncValue)
+    }
+
+    /// Use the lockfile's packages to produce prefetched sha256s for each
+    pub fn prefetch_packages(&self) -> Result<Vec<PrefetchOutput>> {
+        self.packages
+            .values()
+            .par_bridge()
+            .map(|p| -> Result<PrefetchOutput> {
+                let url = p.to_npm_url()?;
+
+                let output = Command::new("nix")
+                    .args(["flake", "prefetch", &url, "--json"])
+                    .output()?;
+
+                let stdout = String::from_utf8(output.stdout)?;
+
+                Ok(serde_json::from_str(&stdout)?)
+            })
+            .collect()
     }
 }
 
@@ -61,7 +84,14 @@ impl Package {
     /// ```
     pub fn to_npm_url(&self) -> Result<String> {
         let Some((user, name_and_ver)) = self.0.split_once("/") else {
-            return Err(Error::NoSlashInPackageIdentifier);
+            let Some((name, ver)) = self.0.split_once("@") else {
+                return Err(Error::NoAtInPackageIdentifier);
+            };
+
+            return Ok(format!(
+                "https://registry.npmjs.org/{}/-/{}-{}.tgz",
+                name, name, ver
+            ));
         };
 
         let Some((name, ver)) = name_and_ver.split_once("@") else {
@@ -119,7 +149,7 @@ fn test_from_str_version_only() {
 }
 
 #[test]
-fn test_from_str_with_data() {
+fn test_prefetch_packages() {
     let lockfile = r#"
         {
           "lockfileVersion": 1,
@@ -155,10 +185,28 @@ fn test_from_str_with_data() {
     assert!(value.lockfile_version == 1);
     assert!(value.workspaces[""].name == Some(String::from("examples")));
     assert!(value.packages["@types/bun"].0 == "@types/bun@1.2.4");
+
+    let prefetched = value.prefetch_packages().unwrap();
+
+    assert!(!prefetched.is_empty());
 }
 
 #[test]
 fn test_to_npm_url() {
+    let package = Package(
+        "bun-types@1.2.4".to_owned(),
+        "".to_owned(),
+        Peers::default(),
+        "".to_owned(),
+    );
+
+    let out = package.to_npm_url().unwrap();
+
+    assert!(out == "https://registry.npmjs.org/bun-types/-/bun-types-1.2.4.tgz");
+}
+
+#[test]
+fn test_to_npm_url_with_namespace() {
     let package = Package(
         "@alloc/quick-lru@5.2.0".to_owned(),
         "".to_owned(),

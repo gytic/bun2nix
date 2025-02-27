@@ -5,9 +5,11 @@
 
 mod error;
 mod lockfile;
+mod prefetch;
 
 pub use error::Result;
 pub use lockfile::Lockfile;
+pub use prefetch::PrefetchOutput;
 
 /// # Convert Bun Lockfile to a Nix expression
 ///
@@ -17,4 +19,3 @@ pub fn convert_lockfile_to_nix_expression(lockfile: String) -> Result<String> {
 
     Ok(String::new())
 }
-
