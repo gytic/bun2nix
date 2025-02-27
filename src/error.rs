@@ -15,7 +15,7 @@ pub enum Error {
     #[error("Missing @ for package name and version declaration")]
     NoAtInPackageIdentifier,
     #[error("Error occurred in prefetch command: {}", 0)]
-    PrefetchError(#[from] std::io::Error),
+    Prefetch(#[from] std::io::Error),
     #[error("Error parsing UTF8: {}", 0)]
-    UTF8ParseError(#[from] std::string::FromUtf8Error),
+    UTF8Parse(#[from] std::string::FromUtf8Error),
 }
