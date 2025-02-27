@@ -9,13 +9,14 @@ mod prefetch;
 
 pub use error::Result;
 pub use lockfile::Lockfile;
-pub use prefetch::PrefetchOutput;
+pub use prefetch::{DumpNixExpression, PrefetchOutput};
 
 /// # Convert Bun Lockfile to a Nix expression
 ///
 /// Takes a string input of the contents of a bun lockfile and converts it into a ready to use Nix expression which fetches the packages
-pub fn convert_lockfile_to_nix_expression(lockfile: String) -> Result<String> {
-    let _parsed: Lockfile = lockfile.parse()?;
-
-    Ok(String::new())
+pub fn convert_lockfile_to_nix_expression(contents: String) -> Result<String> {
+    Ok(contents
+        .parse::<Lockfile>()?
+        .prefetch_packages()?
+        .dump_nix_expression())
 }
