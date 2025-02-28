@@ -38,7 +38,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: /target/doc/bun2nix/
+          path: ./target/doc/bun2nix/
 
   deploy:
     needs: build-config
