@@ -1,5 +1,5 @@
 //! Library for implementing parsing and conversion of [Bun](https://bun.sh/) lock files into a
-//! [Nix](https://en.wikipedia.org/wiki/Nix_(package_manager) expression
+//! [Nix](https://en.wikipedia.org/wiki/Nix_(package_manager)) expression.
 
 #![warn(missing_docs)]
 
