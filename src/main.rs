@@ -15,8 +15,8 @@ struct Args {
     #[arg(short, long, default_value_t = String::from("./bun.lock"))]
     lock_file: String,
 
-    // The output file to write to
-    // If no file location is provided, print to stdout instead
+    /// The output file to write to -
+    /// if no file location is provided, print to stdout instead
     #[arg(short, long)]
     output_file: Option<String>,
 }
@@ -25,7 +25,7 @@ fn main() {
     let args = Args::parse();
 
     let lockfile = fs::read_to_string(&args.lock_file)
-        .unwrap_or_else(|_| panic!("Could not find lockfile at {}. Try changing the file path to point to one, or create one with `bun install` on a version of bun above v1.2. See https://bun.sh/docs/install/lockfile to find out more information about the textual lockfile.", args.lock_file));
+        .unwrap_or_else(|_| panic!("\nCould not find lockfile at {}.\nTry changing the file path to point to one, or create one with `bun install` on a version of bun above v1.2.\nSee https://bun.sh/docs/install/lockfile to find out more information about the textual lockfile.\n\nTry `bun2nix -h` for help.\n", args.lock_file));
 
     let nix = convert_lockfile_to_nix_expression(lockfile).unwrap();
 

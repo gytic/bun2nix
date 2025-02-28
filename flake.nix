@@ -19,7 +19,16 @@
   }:
     flake-utils.lib.eachDefaultSystem (system: let
       pkgs = import nixpkgs {inherit system;};
+
+      bun2nix = pkgs.callPackage ./default.nix {};
     in {
+      defaultPackage = bun2nix;
+
+      defaultApp = {
+        type = "app";
+        program = "${bun2nix}/bin/bun2nix";
+      };
+
       checks = {
         pre-commit-check = pre-commit-hooks.lib.${system}.run {
           src = ./.;
