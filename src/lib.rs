@@ -9,7 +9,7 @@ mod prefetch;
 
 pub use error::Result;
 pub use lockfile::Lockfile;
-pub use prefetch::{DumpNixExpression, PrefetchOutput};
+pub use prefetch::{DumpNixExpression, PrefetchedPackage};
 
 /// # Convert Bun Lockfile to a Nix expression
 ///

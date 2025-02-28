@@ -2,33 +2,16 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Default, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-/// # Prefetch Output
+/// # Prefetched Package
 ///
-/// A model of the results returned by `nix flake prefetch <url> --json`
-pub struct PrefetchOutput {
+/// A model of the results returned by `nix-flake-prefetch <url>`
+pub struct PrefetchedPackage {
     /// The prefetched hash of the package
     pub hash: String,
-    locked: Lock,
-    original: Original,
-    store_path: String,
-}
-
-#[derive(Default, Debug, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct Lock {
-    last_modified: u32,
-    nar_hash: String,
-    #[serde(rename = "type")]
-    flake_type: String,
-    url: String,
-}
-
-#[derive(Default, Debug, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct Original {
-    #[serde(rename = "type")]
-    flake_type: String,
-    url: String,
+    /// The url to fetch the package from
+    pub url: String,
+    /// The name of the package in npm
+    pub name: String,
 }
 
 /// # Nix Expression Conversion Trait
@@ -41,7 +24,7 @@ pub trait DumpNixExpression {
     fn dump_nix_expression(&self) -> String;
 }
 
-impl DumpNixExpression for PrefetchOutput {
+impl DumpNixExpression for PrefetchedPackage {
     fn dump_nix_expression(&self) -> String {
         format!(
 "    {{
@@ -52,12 +35,12 @@ impl DumpNixExpression for PrefetchOutput {
             sha1 = \"{}\";
         }};
     }}",
-            self.original.url, self.original.url, self.original.url, self.hash
+            self.name, self.name, self.url, self.hash
         )
     }
 }
 
-impl DumpNixExpression for Vec<PrefetchOutput> {
+impl DumpNixExpression for Vec<PrefetchedPackage> {
     fn dump_nix_expression(&self) -> String {
         let packages_section = self
             .iter()
@@ -80,20 +63,17 @@ impl DumpNixExpression for Vec<PrefetchOutput> {
 
 #[test]
 fn test_dump_nix_expression_file_single() {
-    let output = PrefetchOutput {
+    let output = PrefetchedPackage {
         hash: "0294eb3dee05028d31ee1a5fa2c556a6aaf10a1b".to_owned(),
-        original: Original {
-            url: "https://registry.npmjs.org/@alloc/quick-lru/-/quick-lru-5.2.0.tgz".to_owned(),
-            ..Default::default()
-        },
-        ..Default::default()
+        url: "https://registry.npmjs.org/@alloc/quick-lru/-/quick-lru-5.2.0.tgz".to_owned(),
+        name: "@alloc/quick-lru".to_owned()
     };
 
     let expected = 
 "    {
-        name = \"https://registry.npmjs.org/@alloc/quick-lru/-/quick-lru-5.2.0.tgz\";
+        name = \"@alloc/quick-lru\";
         path = fetchurl {
-            name = \"https://registry.npmjs.org/@alloc/quick-lru/-/quick-lru-5.2.0.tgz\";
+            name = \"@alloc/quick-lru\";
             url  = \"https://registry.npmjs.org/@alloc/quick-lru/-/quick-lru-5.2.0.tgz\";
             sha1 = \"0294eb3dee05028d31ee1a5fa2c556a6aaf10a1b\";
         };
@@ -105,22 +85,16 @@ fn test_dump_nix_expression_file_single() {
 #[test]
 fn test_dump_nix_expression_file_vec() {
     let out = vec![
-        PrefetchOutput {
+        PrefetchedPackage {
             hash: "0294eb3dee05028d31ee1a5fa2c556a6aaf10a1b".to_owned(),
-            original: Original {
-                url: "https://registry.npmjs.org/@alloc/quick-lru/-/quick-lru-5.2.0.tgz".to_owned(),
-                ..Default::default()
-            },
-            ..Default::default()
+            url: "https://registry.npmjs.org/@alloc/quick-lru/-/quick-lru-5.2.0.tgz".to_owned(),
+            name: "@alloc/quick-lru".to_owned()
         },
-        PrefetchOutput {
-            hash: "0294eb3dee05028d31ee1a5fa2c556a6aaf10a1b".to_owned(),
-            original: Original {
-                url: "https://registry.npmjs.org/@alloc/quick-lru/-/quick-lru-5.2.0.tgz".to_owned(),
-                ..Default::default()
-            },
-            ..Default::default()
-        },
+        PrefetchedPackage {
+            hash: "149134391104193904109309431984918439183b".to_owned(),
+            url: "https://registry.npmjs.org/@alloc/quick-lru/-/quick-lru-5.2.0.tgz".to_owned(),
+            name: "@alloc/quick-lru".to_owned()
+        }
     ];
 
     let expected = 
@@ -130,19 +104,19 @@ fn test_dump_nix_expression_file_vec() {
   offline_cache = linkFarm \"offline\" packages;
   packages = [
     {
-        name = \"https://registry.npmjs.org/@alloc/quick-lru/-/quick-lru-5.2.0.tgz\";
+        name = \"@alloc/quick-lru\";
         path = fetchurl {
-            name = \"https://registry.npmjs.org/@alloc/quick-lru/-/quick-lru-5.2.0.tgz\";
+            name = \"@alloc/quick-lru\";
             url  = \"https://registry.npmjs.org/@alloc/quick-lru/-/quick-lru-5.2.0.tgz\";
             sha1 = \"0294eb3dee05028d31ee1a5fa2c556a6aaf10a1b\";
         };
     }
     {
-        name = \"https://registry.npmjs.org/@alloc/quick-lru/-/quick-lru-5.2.0.tgz\";
+        name = \"@alloc/quick-lru\";
         path = fetchurl {
-            name = \"https://registry.npmjs.org/@alloc/quick-lru/-/quick-lru-5.2.0.tgz\";
+            name = \"@alloc/quick-lru\";
             url  = \"https://registry.npmjs.org/@alloc/quick-lru/-/quick-lru-5.2.0.tgz\";
-            sha1 = \"0294eb3dee05028d31ee1a5fa2c556a6aaf10a1b\";
+            sha1 = \"149134391104193904109309431984918439183b\";
         };
     }
   ];

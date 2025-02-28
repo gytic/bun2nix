@@ -6,7 +6,7 @@ use serde_json::Value;
 
 use crate::{
     error::{Error, Result},
-    PrefetchOutput,
+    PrefetchedPackage,
 };
 
 #[derive(Serialize, Deserialize)]
@@ -35,20 +35,25 @@ impl Lockfile {
     }
 
     /// Use the lockfile's packages to produce prefetched sha256s for each
-    pub fn prefetch_packages(&self) -> Result<Vec<PrefetchOutput>> {
+    pub fn prefetch_packages(self) -> Result<Vec<PrefetchedPackage>> {
         self.packages
-            .values()
+            .into_iter()
             .par_bridge()
-            .map(|p| -> Result<PrefetchOutput> {
-                let url = p.to_npm_url()?;
+            .map(|(_, package)| -> Result<PrefetchedPackage> {
+                let url = package.to_npm_url()?;
 
-                let output = Command::new("nix")
-                    .args(["flake", "prefetch", &url, "--json"])
-                    .output()?;
+                let output = Command::new("nix-prefetch-url").arg(&url).output()?;
 
-                let stdout = String::from_utf8(output.stdout)?;
+                let mut stdout = String::from_utf8(output.stdout)?;
 
-                Ok(serde_json::from_str(&stdout)?)
+                // Strip the trailing newline from stdout
+                _ = stdout.pop();
+
+                Ok(PrefetchedPackage {
+                    url,
+                    name: package.0,
+                    hash: stdout,
+                })
             })
             .collect()
     }
