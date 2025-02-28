@@ -18,4 +18,9 @@ pub enum Error {
     Prefetch(#[from] std::io::Error),
     #[error("Error parsing UTF8: {}", 0)]
     UTF8Parse(#[from] std::string::FromUtf8Error),
+    #[error(
+        "Unsupported lockfile version: '{}'. Consider updating your local package or contributing to `bun2nix` if this version hasn't been supported yet.",
+        0
+    )]
+    UnsupportedLockfileVersion(u8),
 }
