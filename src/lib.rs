@@ -15,8 +15,9 @@ pub use prefetch::{DumpNixExpression, PrefetchOutput};
 ///
 /// Takes a string input of the contents of a bun lockfile and converts it into a ready to use Nix expression which fetches the packages
 pub fn convert_lockfile_to_nix_expression(contents: String) -> Result<String> {
-    Ok(contents
-        .parse::<Lockfile>()?
-        .prefetch_packages()?
-        .dump_nix_expression())
+    let mut pkgs = contents.parse::<Lockfile>()?.prefetch_packages()?;
+
+    pkgs.sort_by(|a, b| a.hash.cmp(&b.hash));
+
+    Ok(pkgs.dump_nix_expression())
 }

@@ -6,7 +6,8 @@ use serde::{Deserialize, Serialize};
 ///
 /// A model of the results returned by `nix flake prefetch <url> --json`
 pub struct PrefetchOutput {
-    hash: String,
+    /// The prefetched hash of the package
+    pub hash: String,
     locked: Lock,
     original: Original,
     store_path: String,

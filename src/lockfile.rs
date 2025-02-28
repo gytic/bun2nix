@@ -16,9 +16,14 @@ use crate::{
 /// A model of the fields that exist in a bun lockfile in order to serve as a deserialization
 /// target
 pub struct Lockfile {
+    /// The version field of the bun lockfile
     pub lockfile_version: u8,
+
+    /// The workspaces declaration in the bun lockfile
     #[serde(default)]
     pub workspaces: HashMap<String, Workspace>,
+
+    /// The list of all packages needed by the lockfile
     #[serde(default)]
     pub packages: HashMap<String, Package>,
 }
@@ -62,13 +67,14 @@ impl FromStr for Lockfile {
 #[derive(Default, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", default)]
 pub struct Workspace {
-    name: Option<String>,
+    /// The name of the workspace
+    pub name: Option<String>,
     dependencies: HashMap<String, String>,
 }
 
 #[derive(Default, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", default)]
-pub struct Package(String, String, Peers, String);
+pub struct Package(pub String, String, Peers, String);
 
 impl Package {
     /// # NPM url converter
