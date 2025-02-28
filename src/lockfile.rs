@@ -144,7 +144,7 @@ fn test_parse_to_value_empty() {
 
     let value = Lockfile::parse_to_value(sample).unwrap_err();
 
-    assert!(value.to_string() == "Failed to parse empty lockfile");
+    assert!(value.to_string() == "Failed to parse empty lockfile, make sure you are providing a file with text contents.");
 }
 
 #[test]
