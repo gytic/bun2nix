@@ -43,14 +43,14 @@ pub trait DumpNixExpression {
 impl DumpNixExpression for PrefetchOutput {
     fn dump_nix_expression(&self) -> String {
         format!(
-"{{
-    name = \"{}\";
-    path = fetchurl {{
+"    {{
         name = \"{}\";
-        url  = \"{}\";
-        sha1 = \"{}\";
-    }};
-}}",
+        path = fetchurl {{
+            name = \"{}\";
+            url  = \"{}\";
+            sha1 = \"{}\";
+        }};
+    }}",
             self.original.url, self.original.url, self.original.url, self.hash
         )
     }
@@ -89,14 +89,14 @@ fn test_dump_nix_expression_file_single() {
     };
 
     let expected = 
-"{
-    name = \"https://registry.npmjs.org/@alloc/quick-lru/-/quick-lru-5.2.0.tgz\";
-    path = fetchurl {
+"    {
         name = \"https://registry.npmjs.org/@alloc/quick-lru/-/quick-lru-5.2.0.tgz\";
-        url  = \"https://registry.npmjs.org/@alloc/quick-lru/-/quick-lru-5.2.0.tgz\";
-        sha1 = \"0294eb3dee05028d31ee1a5fa2c556a6aaf10a1b\";
-    };
-}";
+        path = fetchurl {
+            name = \"https://registry.npmjs.org/@alloc/quick-lru/-/quick-lru-5.2.0.tgz\";
+            url  = \"https://registry.npmjs.org/@alloc/quick-lru/-/quick-lru-5.2.0.tgz\";
+            sha1 = \"0294eb3dee05028d31ee1a5fa2c556a6aaf10a1b\";
+        };
+    }";
 
     assert_eq!(expected.trim(), output.dump_nix_expression().trim());
 }
@@ -128,22 +128,22 @@ fn test_dump_nix_expression_file_vec() {
 { fetchurl, fetchgit, linkFarm, runCommand, gnutar }: rec {
   offline_cache = linkFarm \"offline\" packages;
   packages = [
-{
-    name = \"https://registry.npmjs.org/@alloc/quick-lru/-/quick-lru-5.2.0.tgz\";
-    path = fetchurl {
+    {
         name = \"https://registry.npmjs.org/@alloc/quick-lru/-/quick-lru-5.2.0.tgz\";
-        url  = \"https://registry.npmjs.org/@alloc/quick-lru/-/quick-lru-5.2.0.tgz\";
-        sha1 = \"0294eb3dee05028d31ee1a5fa2c556a6aaf10a1b\";
-    };
-}
-{
-    name = \"https://registry.npmjs.org/@alloc/quick-lru/-/quick-lru-5.2.0.tgz\";
-    path = fetchurl {
+        path = fetchurl {
+            name = \"https://registry.npmjs.org/@alloc/quick-lru/-/quick-lru-5.2.0.tgz\";
+            url  = \"https://registry.npmjs.org/@alloc/quick-lru/-/quick-lru-5.2.0.tgz\";
+            sha1 = \"0294eb3dee05028d31ee1a5fa2c556a6aaf10a1b\";
+        };
+    }
+    {
         name = \"https://registry.npmjs.org/@alloc/quick-lru/-/quick-lru-5.2.0.tgz\";
-        url  = \"https://registry.npmjs.org/@alloc/quick-lru/-/quick-lru-5.2.0.tgz\";
-        sha1 = \"0294eb3dee05028d31ee1a5fa2c556a6aaf10a1b\";
-    };
-}
+        path = fetchurl {
+            name = \"https://registry.npmjs.org/@alloc/quick-lru/-/quick-lru-5.2.0.tgz\";
+            url  = \"https://registry.npmjs.org/@alloc/quick-lru/-/quick-lru-5.2.0.tgz\";
+            sha1 = \"0294eb3dee05028d31ee1a5fa2c556a6aaf10a1b\";
+        };
+    }
   ];
 }";
 
