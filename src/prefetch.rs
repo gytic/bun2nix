@@ -1,7 +1,7 @@
 use base64::{engine::general_purpose, Engine};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
-use crate::Result;
+use crate::{error::Error, Result};
 
 #[derive(Default, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -43,6 +43,14 @@ impl PrefetchedPackage {
             hash
         })
     }
+
+    fn get_name_strip_version(&self) -> Result<&str> {
+        match self.name.matches("@").count() {
+            1 => Ok(self.name.split_once('@').ok_or(Error::NoAtInPackageIdentifier)?.0),
+            2 => self.name.rsplitn(2, '@').last().ok_or(Error::NoAtInPackageIdentifier),
+            _ => Err(Error::NoAtInPackageIdentifier)
+        }
+    }
 }
 
 /// # Nix Expression Conversion Trait
@@ -69,7 +77,7 @@ impl DumpNixExpression for PrefetchedPackage {
         hash = \"{}\";
       }};
     }}",
-            self.name, self.name, self.url, self.hash
+            self.get_name_strip_version().unwrap_or(&self.name), self.name, self.url, self.hash
         )
     }
 }
@@ -117,18 +125,35 @@ in {{
 }
 
 #[test]
+fn test_get_name_strip_version() {
+    let a = PrefetchedPackage {
+        name: "quick-lru@5.2.0".to_owned(),
+        ..Default::default()
+    };
+
+    assert_eq!(a.get_name_strip_version().unwrap(), "quick-lru");
+
+    let b = PrefetchedPackage {
+        name: "@alloc/quick-lru@5.2.0".to_owned(),
+        ..Default::default()
+    };
+
+    assert_eq!(b.get_name_strip_version().unwrap(), "@alloc/quick-lru");
+}
+
+#[test]
 fn test_dump_nix_expression_file_single() {
     let output = PrefetchedPackage {
         hash: "sha256-w/Huz4+crTzdiSyQVAx0h3lhtTTrtPyKp3xpQD5EG9g=".to_owned(),
         url: "https://registry.npmjs.org/@alloc/quick-lru/-/quick-lru-5.2.0.tgz".to_owned(),
-        name: "@alloc/quick-lru".to_owned()
+        name: "@alloc/quick-lru@5.2.0".to_owned()
     };
 
     let expected = 
 "    {
       name = \"@alloc/quick-lru\";
       path = fetchurl {
-        name = \"@alloc/quick-lru\";
+        name = \"@alloc/quick-lru@5.2.0\";
         url  = \"https://registry.npmjs.org/@alloc/quick-lru/-/quick-lru-5.2.0.tgz\";
         hash = \"sha256-w/Huz4+crTzdiSyQVAx0h3lhtTTrtPyKp3xpQD5EG9g=\";
       };
@@ -143,12 +168,12 @@ fn test_dump_nix_expression_file_vec() {
         PrefetchedPackage {
             hash: "sha256-w/Huz4+crTzdiSyQVAx0h3lhtTTrtPyKp3xpQD5EG9g=".to_owned(),
             url: "https://registry.npmjs.org/@alloc/quick-lru/-/quick-lru-5.2.0.tgz".to_owned(),
-            name: "@alloc/quick-lru".to_owned()
+            name: "@alloc/quick-lru@5.2.0".to_owned()
         },
         PrefetchedPackage {
             hash: "sha256-w/Huz4+crTzdiSyQVAx0h3lhtTTrtPyKp3xpQD5EG9g=".to_owned(),
             url: "https://registry.npmjs.org/@alloc/quick-lru/-/quick-lru-5.2.0.tgz".to_owned(),
-            name: "@alloc/quick-lru".to_owned()
+            name: "@alloc/quick-lru@5.2.0".to_owned()
         }
     ];
 
@@ -167,7 +192,7 @@ fn test_dump_nix_expression_file_vec() {
     {
       name = \"@alloc/quick-lru\";
       path = fetchurl {
-        name = \"@alloc/quick-lru\";
+        name = \"@alloc/quick-lru@5.2.0\";
         url  = \"https://registry.npmjs.org/@alloc/quick-lru/-/quick-lru-5.2.0.tgz\";
         hash = \"sha256-w/Huz4+crTzdiSyQVAx0h3lhtTTrtPyKp3xpQD5EG9g=\";
       };
@@ -175,7 +200,7 @@ fn test_dump_nix_expression_file_vec() {
     {
       name = \"@alloc/quick-lru\";
       path = fetchurl {
-        name = \"@alloc/quick-lru\";
+        name = \"@alloc/quick-lru@5.2.0\";
         url  = \"https://registry.npmjs.org/@alloc/quick-lru/-/quick-lru-5.2.0.tgz\";
         hash = \"sha256-w/Huz4+crTzdiSyQVAx0h3lhtTTrtPyKp3xpQD5EG9g=\";
       };
