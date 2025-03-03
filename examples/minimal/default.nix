@@ -15,13 +15,11 @@ in
 
     nativeBuildInputs = [gnutar bun];
 
-    # Build node_modules based on the lockfile generated bun.nix
-    postUnpack = ''
-      ln -s ${bunDeps.nodeModules} ./node_modules
-    '';
-
     # Compile a bun binary with all settings for production
     buildPhase = ''
+      # Load node_modules based on the lockfile generated bun.nix
+      cp -rL ${bunDeps.nodeModules} ./node_modules
+
       bun build \
         --compile \
         --minify \
