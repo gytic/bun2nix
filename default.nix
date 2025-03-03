@@ -1,6 +1,8 @@
 {
   lib,
   rustPlatform,
+  pkg-config,
+  openssl,
 }: let
   cargoTOML = builtins.fromTOML (builtins.readFile ./Cargo.toml);
 in
@@ -9,6 +11,16 @@ in
     version = cargoTOML.package.version;
 
     src = ./.;
+
+    nativeBuildInputs = [
+      pkg-config
+      openssl
+    ];
+
+    buildInputs = [
+      pkg-config
+      openssl
+    ];
 
     # Disable network using tests
     checkFlags = [

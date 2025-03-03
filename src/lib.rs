@@ -16,14 +16,14 @@ use error::Error;
 /// # Convert Bun Lockfile to a Nix expression
 ///
 /// Takes a string input of the contents of a bun lockfile and converts it into a ready to use Nix expression which fetches the packages
-pub fn convert_lockfile_to_nix_expression(contents: String) -> Result<String> {
+pub async fn convert_lockfile_to_nix_expression(contents: String) -> Result<String> {
     let lockfile = contents.parse::<Lockfile>()?;
 
     if lockfile.lockfile_version != 1 {
         return Err(Error::UnsupportedLockfileVersion(lockfile.lockfile_version));
     };
 
-    let mut pkgs = lockfile.prefetch_packages()?;
+    let mut pkgs = lockfile.prefetch_packages().await?;
 
     pkgs.sort_by(|a, b| a.hash.cmp(&b.hash));
 

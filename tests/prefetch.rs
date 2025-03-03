@@ -1,7 +1,7 @@
 use bun2nix::Lockfile;
 
-#[test]
-fn test_prefetch_packages() {
+#[tokio::test]
+async fn test_prefetch_packages() {
     let lockfile = r#"
         {
           "lockfileVersion": 1,
@@ -38,7 +38,7 @@ fn test_prefetch_packages() {
     assert!(value.workspaces[""].name == Some(String::from("examples")));
     assert!(value.packages["@types/bun"].0 == "@types/bun@1.2.4");
 
-    let prefetched = value.prefetch_packages().unwrap();
+    let prefetched = value.prefetch_packages().await.unwrap();
 
     assert!(!prefetched.is_empty());
 }

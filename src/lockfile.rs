@@ -1,6 +1,6 @@
-use std::{collections::HashMap, process::Command, str::FromStr};
+use std::{collections::HashMap, str::FromStr};
 
-use rayon::iter::{ParallelBridge, ParallelIterator};
+use futures::{stream, StreamExt, TryStreamExt};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
@@ -35,29 +35,14 @@ impl Lockfile {
     }
 
     /// Use the lockfile's packages to produce prefetched sha256s for each
-    pub fn prefetch_packages(self) -> Result<Vec<PrefetchedPackage>> {
-        self.packages
-            .into_iter()
-            .par_bridge()
-            .map(|(_, package)| -> Result<PrefetchedPackage> {
+    pub async fn prefetch_packages(self) -> Result<Vec<PrefetchedPackage>> {
+        stream::iter(self.packages)
+            .then(|(_, package)| async move {
                 let url = package.to_npm_url()?;
-
-                let output = Command::new("nix-prefetch-url")
-                    .args(["--type", "sha256", &url])
-                    .output()?;
-
-                let mut stdout = String::from_utf8(output.stdout)?;
-
-                // Strip the trailing newline from stdout
-                _ = stdout.pop();
-
-                Ok(PrefetchedPackage {
-                    url,
-                    name: package.0,
-                    hash: format!("sha256-{}", stdout),
-                })
+                PrefetchedPackage::prefetch(package.0, url).await
             })
-            .collect()
+            .try_collect()
+            .await
     }
 }
 

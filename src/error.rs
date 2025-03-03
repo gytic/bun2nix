@@ -25,4 +25,6 @@ pub enum Error {
         0
     )]
     UnsupportedLockfileVersion(u8),
+    #[error("Network error occurred while prefetching package: {}", 0)]
+    NetworkError(#[from] reqwest::Error),
 }

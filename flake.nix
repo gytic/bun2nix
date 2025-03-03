@@ -49,12 +49,17 @@
           clippy
           mold
 
+          # SSL
+          pkg-config
+          openssl
+
           # Javascript dependencies
           bun
         ];
 
-        env = {
+        env = with pkgs; {
           RUSTFLAGS = "-C link-arg=-fuse-ld=mold";
+          LD_LIBRARY_PATH = lib.makeLibraryPath [openssl];
         };
       };
     });

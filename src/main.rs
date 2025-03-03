@@ -21,13 +21,14 @@ struct Args {
     output_file: Option<String>,
 }
 
-fn main() {
+#[tokio::main]
+async fn main() {
     let args = Args::parse();
 
     let lockfile = fs::read_to_string(&args.lock_file)
         .unwrap_or_else(|_| panic!("\nCould not find lockfile at {}.\nTry changing the file path to point to one, or create one with `bun install` on a version of bun above v1.2.\nSee https://bun.sh/docs/install/lockfile to find out more information about the textual lockfile.\n\nTry `bun2nix -h` for help.\n", args.lock_file));
 
-    let nix = convert_lockfile_to_nix_expression(lockfile).unwrap();
+    let nix = convert_lockfile_to_nix_expression(lockfile).await.unwrap();
 
     match args.output_file {
         Some(output_file) => {
