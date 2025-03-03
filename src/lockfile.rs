@@ -42,7 +42,9 @@ impl Lockfile {
             .map(|(_, package)| -> Result<PrefetchedPackage> {
                 let url = package.to_npm_url()?;
 
-                let output = Command::new("nix-prefetch-url").arg(&url).output()?;
+                let output = Command::new("nix-prefetch-url")
+                    .args(["--type", "sha256", &url])
+                    .output()?;
 
                 let mut stdout = String::from_utf8(output.stdout)?;
 
@@ -52,7 +54,7 @@ impl Lockfile {
                 Ok(PrefetchedPackage {
                     url,
                     name: package.0,
-                    hash: stdout,
+                    hash: format!("sha256-{}", stdout),
                 })
             })
             .collect()

@@ -32,7 +32,7 @@ impl DumpNixExpression for PrefetchedPackage {
         path = fetchurl {{
             name = \"{}\";
             url  = \"{}\";
-            sha1 = \"{}\";
+            hash = \"{}\";
         }};
     }}",
             self.name, self.name, self.url, self.hash
@@ -64,7 +64,7 @@ impl DumpNixExpression for Vec<PrefetchedPackage> {
 #[test]
 fn test_dump_nix_expression_file_single() {
     let output = PrefetchedPackage {
-        hash: "0294eb3dee05028d31ee1a5fa2c556a6aaf10a1b".to_owned(),
+        hash: "sha256-0294eb3dee05028d31ee1a5fa2c556a6aaf10a1b".to_owned(),
         url: "https://registry.npmjs.org/@alloc/quick-lru/-/quick-lru-5.2.0.tgz".to_owned(),
         name: "@alloc/quick-lru".to_owned()
     };
@@ -75,7 +75,7 @@ fn test_dump_nix_expression_file_single() {
         path = fetchurl {
             name = \"@alloc/quick-lru\";
             url  = \"https://registry.npmjs.org/@alloc/quick-lru/-/quick-lru-5.2.0.tgz\";
-            sha1 = \"0294eb3dee05028d31ee1a5fa2c556a6aaf10a1b\";
+            hash = \"sha256-0294eb3dee05028d31ee1a5fa2c556a6aaf10a1b\";
         };
     }";
 
@@ -86,12 +86,12 @@ fn test_dump_nix_expression_file_single() {
 fn test_dump_nix_expression_file_vec() {
     let out = vec![
         PrefetchedPackage {
-            hash: "0294eb3dee05028d31ee1a5fa2c556a6aaf10a1b".to_owned(),
+            hash: "sha256-0294eb3dee05028d31ee1a5fa2c556a6aaf10a1b".to_owned(),
             url: "https://registry.npmjs.org/@alloc/quick-lru/-/quick-lru-5.2.0.tgz".to_owned(),
             name: "@alloc/quick-lru".to_owned()
         },
         PrefetchedPackage {
-            hash: "149134391104193904109309431984918439183b".to_owned(),
+            hash: "sha256-149134391104193904109309431984918439183b".to_owned(),
             url: "https://registry.npmjs.org/@alloc/quick-lru/-/quick-lru-5.2.0.tgz".to_owned(),
             name: "@alloc/quick-lru".to_owned()
         }
@@ -108,7 +108,7 @@ fn test_dump_nix_expression_file_vec() {
         path = fetchurl {
             name = \"@alloc/quick-lru\";
             url  = \"https://registry.npmjs.org/@alloc/quick-lru/-/quick-lru-5.2.0.tgz\";
-            sha1 = \"0294eb3dee05028d31ee1a5fa2c556a6aaf10a1b\";
+            hash = \"sha256-0294eb3dee05028d31ee1a5fa2c556a6aaf10a1b\";
         };
     }
     {
@@ -116,7 +116,7 @@ fn test_dump_nix_expression_file_vec() {
         path = fetchurl {
             name = \"@alloc/quick-lru\";
             url  = \"https://registry.npmjs.org/@alloc/quick-lru/-/quick-lru-5.2.0.tgz\";
-            sha1 = \"149134391104193904109309431984918439183b\";
+            hash = \"sha256-149134391104193904109309431984918439183b\";
         };
     }
   ];
