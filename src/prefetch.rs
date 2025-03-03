@@ -62,7 +62,7 @@ impl DumpNixExpression for PrefetchedPackage {
 
         format!(
 "    {{
-      name = \"bun-package-{}\";
+      name = \"{}\";
       path = fetchurl {{
         name = \"{}\";
         url  = \"{}\";
@@ -126,7 +126,7 @@ fn test_dump_nix_expression_file_single() {
 
     let expected = 
 "    {
-      name = \"bun-package-@alloc/quick-lru\";
+      name = \"@alloc/quick-lru\";
       path = fetchurl {
         name = \"@alloc/quick-lru\";
         url  = \"https://registry.npmjs.org/@alloc/quick-lru/-/quick-lru-5.2.0.tgz\";
@@ -165,7 +165,7 @@ fn test_dump_nix_expression_file_vec() {
   # Bun packages to install
   packages = [
     {
-      name = \"bun-package-@alloc/quick-lru\";
+      name = \"@alloc/quick-lru\";
       path = fetchurl {
         name = \"@alloc/quick-lru\";
         url  = \"https://registry.npmjs.org/@alloc/quick-lru/-/quick-lru-5.2.0.tgz\";
@@ -173,7 +173,7 @@ fn test_dump_nix_expression_file_vec() {
       };
     }
     {
-      name = \"bun-package-@alloc/quick-lru\";
+      name = \"@alloc/quick-lru\";
       path = fetchurl {
         name = \"@alloc/quick-lru\";
         url  = \"https://registry.npmjs.org/@alloc/quick-lru/-/quick-lru-5.2.0.tgz\";
