@@ -1,22 +1,33 @@
 # Bun2Nix
 
-A fast rust based tool for converting [Bun](https://bun.sh/) (v1.2+) package lock files to [Nix](https://nixos.wiki/) expressions.
+A fast rust based tool for converting [Bun](https://bun.sh/) (v1.2+) package lock files to [Nix](https://nixos.wiki/) expressions, and consuming them in a reproducible derivation to produce packages.
 
 ## Installation
 
 ### As a Flake
 
-> TODO: write flake installation description
+Add a flake input as follows:
 
-### From Cargo 
+```nix
+inputs.bun2nix.url = "github:baileyluTCD/bun2nix";
+```
 
-> TODO: package on cargo
-> TODO: write cargo description
+Select the appropriate package for your system ([flake-utils](https://github.com/numtide/flake-utils) recommended):
 
-### From nixpkgs
+```nix
+bun2nix = inputs.bun2nix.defaultPackage.${system};
+```
 
-> TODO: package on nix
-> TODO: write nix description
+Add the binary to your environment:
+
+```nix
+devShells.default = pkgs.mkShell {
+  packages = with pkgs; [
+    bun
+    bun2nix.bin
+  ];
+};
+```
 
 ## Usage
 
@@ -32,4 +43,42 @@ Options:
   -V, --version                    Print version
 ```
 
-> TODO: detail how to place in a package.json so that bun2nix gets ran automatically on `bun install`
+It is a good idea to add `bun2nix` to your `package.json` file as a `postinstall` script to keep your generated `bun.nix` file up to date:
+
+```json
+{
+  "name": "examples",
+  "scripts": {
+    "postinstall": "bun2nix -o bun.nix"
+  },
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  }
+}
+```
+
+This will produce a ready to use `bun.nix` file representing your `node_modules` directory, which can be consumed with a provided derivation function as follows:
+
+```nix
+{bun2nix, ...}:
+bun2nix.mkBunDerivation {
+  name = "minimal-bun2nix-example";
+  version = "1.0.0";
+
+  src = ./.;
+
+  bunNix = ./bun.nix;
+
+  index = ./index.ts;
+}
+```
+
+## Examples
+
+Check out our `examples/` directory for ready to use examples for compling a bun binary and a react website through `bun2nix`.
