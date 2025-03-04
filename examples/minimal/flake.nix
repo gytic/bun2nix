@@ -30,13 +30,13 @@
 
       defaultApp = {
         type = "app";
-        program = "${minimal}/bin/minimal";
+        program = "${minimal}/bin/minimal-bun2nix-example";
       };
 
       devShells.default = pkgs.mkShell {
         packages = with pkgs; [
           bun
-          bun2nix
+          bun2nix.bin
         ];
       };
     });

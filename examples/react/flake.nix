@@ -31,7 +31,7 @@
       devShells.default = pkgs.mkShell {
         packages = with pkgs; [
           bun
-          bun2nix
+          bun2nix.bin
         ];
       };
     });
