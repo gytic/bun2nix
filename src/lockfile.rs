@@ -9,6 +9,8 @@ use crate::{
     PrefetchedPackage,
 };
 
+const CONCURRENT_FETCH_REQUESTS: usize = 100;
+
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 /// # Bun Lockfile
@@ -37,10 +39,12 @@ impl Lockfile {
     /// Use the lockfile's packages to produce prefetched sha256s for each
     pub async fn prefetch_packages(self) -> Result<Vec<PrefetchedPackage>> {
         stream::iter(self.packages)
-            .then(|(_, package)| async move {
+            .map(|(_, package)| async move {
                 let url = package.to_npm_url()?;
+
                 PrefetchedPackage::prefetch(package.0, url).await
             })
+            .buffer_unordered(CONCURRENT_FETCH_REQUESTS)
             .try_collect()
             .await
     }
