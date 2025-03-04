@@ -18,13 +18,13 @@ pub enum Error {
     NoAtInPackageIdentifier,
     #[error("Error occurred in nix-prefetch command: {}.", 0)]
     Prefetch(#[from] std::io::Error),
+    #[error("Prefetch command returned an error code")]
+    PrefetchErrorCode,
     #[error("Error parsing UTF8 nix-prefetch stdout: {}.", 0)]
-    UTF8Parse(#[from] std::string::FromUtf8Error),
+    UTF8Parse(#[from] std::str::Utf8Error),
     #[error(
         "Unsupported lockfile version: '{}'. Consider updating your local package or contributing to `bun2nix` if this version hasn't been supported yet.",
         0
     )]
     UnsupportedLockfileVersion(u8),
-    #[error("Network error occurred while prefetching package: {}", 0)]
-    NetworkError(#[from] reqwest::Error),
 }

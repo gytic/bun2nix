@@ -1,6 +1,5 @@
-use base64::{engine::general_purpose, Engine};
 use serde::{Deserialize, Serialize};
-use sha2::{Digest, Sha256};
+use async_process::Command;
 use crate::{error::Error, Result};
 
 #[derive(Default, Debug, Serialize, Deserialize)]
@@ -17,30 +16,33 @@ pub struct PrefetchedPackage {
     pub name: String,
 }
 
+#[derive(Default, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct StorePrefetch {
+    pub hash: String,
+    pub store_path: String
+}
+
 impl PrefetchedPackage {
     /// # Prefetch Package
     ///
     /// Prefetch a package from a url and produce a `PrefetchedPackage`
     pub async fn prefetch(name: String, url: String) -> Result<Self> {
-        let response = reqwest::get(&url)
-            .await?
-            .bytes()
+        let output = Command::new("nix")
+            .args(["store", "prefetch-file", "--json", &url])
+            .output()
             .await?;
 
-        let mut hasher = Sha256::new();
-        hasher.update(&response);
-        let hash_bytes = hasher.finalize();
+        if !output.status.success() {
+            return Err(Error::PrefetchErrorCode);
+        }
 
-        let base64 = general_purpose::STANDARD.encode(hash_bytes);
-        let hash = format!("sha256-{}", base64);
-
-        assert_eq!(51, hash.len(), "hash was not 51 chars: {}", hash);
-        assert!(hash.contains("sha256"));
+        let store_return: StorePrefetch = serde_json::from_slice(&output.stdout)?;
 
         Ok(Self{
             name,
             url,
-            hash
+            hash: store_return.hash
         })
     }
 
