@@ -26,7 +26,7 @@
 
       defaultApp = {
         type = "app";
-        program = "${bun2nix}/bin/bun2nix";
+        program = "${bun2nix.bin}/bin/bun2nix";
       };
 
       checks = {
