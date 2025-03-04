@@ -42,7 +42,7 @@ impl Lockfile {
             .map(|(_, package)| async move {
                 let url = package.to_npm_url()?;
 
-                PrefetchedPackage::prefetch(package.0, url).await
+                PrefetchedPackage::prefetch(package.0, url, package.2.bin).await
             })
             .buffer_unordered(CONCURRENT_FETCH_REQUESTS)
             .try_collect()
@@ -70,7 +70,7 @@ pub struct Workspace {
 
 #[derive(Default, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", default)]
-pub struct Package(pub String, String, Peers, String);
+pub struct Package(pub String, String, MetaData, String);
 
 impl Package {
     /// # NPM url converter
@@ -109,9 +109,18 @@ impl Package {
 
 #[derive(Default, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", default)]
-pub struct Peers {
+pub struct MetaData {
     peer_dependencies: HashMap<String, String>,
     optional_peers: Vec<String>,
+    bin: Binaries,
+}
+
+#[derive(Debug, Default, Serialize, Deserialize)]
+pub enum Binaries {
+    #[default]
+    None,
+    Unnamed(String),
+    Named(HashMap<String, String>),
 }
 
 #[test]
@@ -155,7 +164,7 @@ fn test_to_npm_url() {
     let package = Package(
         "bun-types@1.2.4".to_owned(),
         "".to_owned(),
-        Peers::default(),
+        MetaData::default(),
         "".to_owned(),
     );
 
@@ -169,7 +178,7 @@ fn test_to_npm_url_with_namespace() {
     let package = Package(
         "@alloc/quick-lru@5.2.0".to_owned(),
         "".to_owned(),
-        Peers::default(),
+        MetaData::default(),
         "".to_owned(),
     );
 

@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 use async_process::Command;
-use crate::{error::Error, Result};
+use crate::{error::Error, lockfile::Binaries, Result};
 
 #[derive(Default, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -14,6 +14,8 @@ pub struct PrefetchedPackage {
     pub url: String,
     /// The name of the package in npm
     pub name: String,
+    /// Binaries to install
+    pub binaries: Binaries
 }
 
 #[derive(Default, Debug, Serialize, Deserialize)]
@@ -27,7 +29,7 @@ impl PrefetchedPackage {
     /// # Prefetch Package
     ///
     /// Prefetch a package from a url and produce a `PrefetchedPackage`
-    pub async fn prefetch(name: String, url: String) -> Result<Self> {
+    pub async fn prefetch(name: String, url: String, binaries: Binaries) -> Result<Self> {
         let output = Command::new("nix")
             .args([
                 "store",
@@ -47,7 +49,8 @@ impl PrefetchedPackage {
         Ok(Self{
             name,
             url,
-            hash: store_return.hash
+            hash: store_return.hash,
+            binaries,
         })
     }
 
@@ -68,6 +71,12 @@ pub trait DumpNixExpression {
     ///
     /// Dumps `self` into a nix expression
     fn dump_nix_expression(&self) -> String;
+    ///
+    /// # Dump Nix Binaries Experession
+    ///
+    /// Dumps `self` into a nix expression representing the binaries which need to beinstalled
+    /// to `node_modules/.bin`
+    fn dump_binaries_expression(&self) -> String;
 }
 
 impl DumpNixExpression for PrefetchedPackage {
@@ -86,6 +95,21 @@ impl DumpNixExpression for PrefetchedPackage {
     }}",
             self.get_name_strip_version().unwrap_or(&self.name), self.name, self.url, self.hash
         )
+    }
+
+    fn dump_binaries_expression(&self) -> String {
+        match &self.binaries {
+            Binaries::None => String::default(),
+            Binaries::Unnamed(link) => format!("    {} = {};", self.get_name_strip_version().unwrap_or(&self.name), link),
+            Binaries::Named(bin_map) =>
+                bin_map
+                    .iter()
+                    .map(|(name, link)| {
+                        format!("    {} = {};",name, link)
+                    })
+                    .reduce(|acc, n| acc + "\n" + &n)
+                    .unwrap_or_default()
+        }
     }
 }
 
@@ -112,6 +136,11 @@ impl DumpNixExpression for Vec<PrefetchedPackage> {
 {}
   ];
 
+  # List of binary symlinks to create in the `node_modules/.bin` folder
+  binaries = {{
+{}
+  }};
+
   # Extract a package from a tar file
   extractPackage = pkg:
     runCommand \"bun2nix-extract-${{pkg.name}}\" {{buildInputs = [gnutar coreutils];}} ''
@@ -122,12 +151,20 @@ impl DumpNixExpression for Vec<PrefetchedPackage> {
   # Build the node modules directory
   nodeModules = symlinkJoin {{
     name = \"node-modules\";
-    paths = map extractPackage packages;
+    paths = (map extractPackage packages) ++ binaries;
   }};
 in {{
   inherit nodeModules packages;
 }}",
-    packages_section)
+    packages_section, self.dump_binaries_expression())
+    }
+
+    fn dump_binaries_expression(&self) -> String {
+        self
+            .iter()
+            .map(|p| p.dump_binaries_expression())
+            .reduce(|acc, e| acc + "\n" + &e)
+            .unwrap_or_default()
     }
 }
 
