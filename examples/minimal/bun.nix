@@ -10,7 +10,7 @@
   # Bun packages to install
   packages = [
     {
-      name = "@types/bun@1.2.4";
+      name = "@types/bun";
       path = fetchurl {
         name = "@types/bun@1.2.4";
         url  = "https://registry.npmjs.org/@types/bun/-/bun-1.2.4.tgz";
@@ -18,7 +18,7 @@
       };
     }
     {
-      name = "@types/ws@8.5.14";
+      name = "@types/ws";
       path = fetchurl {
         name = "@types/ws@8.5.14";
         url  = "https://registry.npmjs.org/@types/ws/-/ws-8.5.14.tgz";
@@ -26,7 +26,7 @@
       };
     }
     {
-      name = "undici-types@6.20.0";
+      name = "undici-types";
       path = fetchurl {
         name = "undici-types@6.20.0";
         url  = "https://registry.npmjs.org/undici-types/-/undici-types-6.20.0.tgz";
@@ -34,7 +34,7 @@
       };
     }
     {
-      name = "typescript@5.7.3";
+      name = "typescript";
       path = fetchurl {
         name = "typescript@5.7.3";
         url  = "https://registry.npmjs.org/typescript/-/typescript-5.7.3.tgz";
@@ -42,7 +42,7 @@
       };
     }
     {
-      name = "@types/node@22.13.5";
+      name = "@types/node";
       path = fetchurl {
         name = "@types/node@22.13.5";
         url  = "https://registry.npmjs.org/@types/node/-/node-22.13.5.tgz";
@@ -50,7 +50,7 @@
       };
     }
     {
-      name = "bun-types@1.2.4";
+      name = "bun-types";
       path = fetchurl {
         name = "bun-types@1.2.4";
         url  = "https://registry.npmjs.org/bun-types/-/bun-types-1.2.4.tgz";
