@@ -29,12 +29,17 @@ impl PrefetchedPackage {
     /// Prefetch a package from a url and produce a `PrefetchedPackage`
     pub async fn prefetch(name: String, url: String) -> Result<Self> {
         let output = Command::new("nix")
-            .args(["store", "prefetch-file", "--json", &url])
+            .args([
+                "store",
+                "prefetch-file",
+                "--json",
+                &url,
+            ])
             .output()
             .await?;
 
         if !output.status.success() {
-            return Err(Error::PrefetchErrorCode);
+            return Err(Error::PrefetchStdError(String::from_utf8(output.stderr)?));
         }
 
         let store_return: StorePrefetch = serde_json::from_slice(&output.stdout)?;
