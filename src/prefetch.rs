@@ -73,6 +73,29 @@ impl PrefetchedPackage {
             _ => Err(Error::NoAtInPackageIdentifier)
         }
     }
+
+    fn generate_binary_symlinks(&self) -> Vec<(String, String)> {
+        match &self.binaries {
+            Binaries::None => Vec::default(),
+            Binaries::Unnamed(pathless_link) => {
+                let name = self.get_package_name_only().unwrap_or(&self.name).to_owned();
+                let link = format!("../{}/{}", name, pathless_link);
+
+                vec![(name, link)]
+            }
+            Binaries::Named(bin_map) =>
+                bin_map
+                    .iter()
+                    .map(|(bin_name, pathless_link)| {
+                        let pkg_name = self.get_package_name_only().unwrap_or(&self.name);
+                        let link = format!("../{}/{}", pkg_name, pathless_link);
+
+                        (bin_name.to_owned(), link)
+                    })
+                    .sorted()
+                    .collect()
+        }
+    }
 }
 
 /// # Nix Expression Conversion Trait
@@ -218,11 +241,12 @@ in {{
     fn dump_binaries_expression(&self) -> String {
         self
             .iter()
-            .map(|p| p.dump_binaries_expression())
-            .filter(|b| !b.is_empty())
+            .flat_map(|p| p.generate_binary_symlinks())
+            .unique_by(|(name, _)| name.to_owned())
             .sorted()
+            .map(|(name, symlink)| format!("    {} = \"{}\";", name, symlink))
             .collect::<Vec<_>>()
-            .join("\n")
+            .into_iter().join("\n")
     }
 }
 
@@ -259,8 +283,8 @@ fn test_dump_nix_expression_file() {
         },
         PrefetchedPackage {
             hash: "sha256-w/Huz4+crTzdiSyQVAx0h3lhtTTrtPyKp3xpQD5EG9g=".to_owned(),
-            url: "https://registry.npmjs.org/@alloc/quick-lru/-/quick-lru-5.2.0.tgz".to_owned(),
-            name: "@alloc/quick-lru@5.2.0".to_owned(),
+            url: "https://registry.npmjs.org/other-package/-/other-package-4.2.0.tgz".to_owned(),
+            name: "other-package@4.2.0".to_owned(),
             binaries: Binaries::Unnamed("cli.js".to_owned())
         }
     ];
@@ -288,10 +312,10 @@ fn test_dump_nix_expression_file() {
       };
     }
     {
-      name = \"@alloc/quick-lru\";
+      name = \"other-package\";
       path = fetchurl {
-        name = \"@alloc/quick-lru@5.2.0\";
-        url  = \"https://registry.npmjs.org/@alloc/quick-lru/-/quick-lru-5.2.0.tgz\";
+        name = \"other-package@4.2.0\";
+        url  = \"https://registry.npmjs.org/other-package/-/other-package-4.2.0.tgz\";
         hash = \"sha256-w/Huz4+crTzdiSyQVAx0h3lhtTTrtPyKp3xpQD5EG9g=\";
       };
     }
@@ -315,7 +339,7 @@ fn test_dump_nix_expression_file() {
   binaries = {
     binary_1 = \"../quick-lru/first.js\";
     binary_2 = \"../quick-lru/second.js\";
-    quick-lru = \"../quick-lru/cli.js\";
+    other-package = \"../other-package/cli.js\";
   };
 
   # Link a binary from a package
