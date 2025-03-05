@@ -9,7 +9,7 @@ bun2nix.mkBunDerivation {
 
   # Verify that the cowsay binary was installed as expected and is runnable
   preBuild = ''
-    bunx cowsay
+    bunx cowsay "Hello Nix logs!"
   '';
 
   index = ./index.ts;

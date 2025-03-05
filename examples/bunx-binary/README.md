@@ -6,7 +6,7 @@ This project uses a binary that would be typically installed via `bunx example-b
 
 For the purposes of this example, [cowsay](https://www.npmjs.com/package/cowsay) is ran before the `buildPhase`.
 
-To try it out use `nix run .`.
+To try it out use `nix run .`, then `nix log .` to see the result of `bunx cowsay ...` in action.
 
 ## Notable files
 
