@@ -6,6 +6,7 @@
   stdenv,
   bun,
   callPackage,
+  rsync,
 }: let
   cargoTOML = builtins.fromTOML (builtins.readFile ./Cargo.toml);
 in {
@@ -58,7 +59,7 @@ in {
     stdenv.mkDerivation ({
         inherit name version src;
 
-        nativeBuildInputs = [bun];
+        nativeBuildInputs = [rsync bun];
 
         phases = ["unpackPhase" "loadModulesPhase" "buildPhase" "installPhase"];
 
@@ -66,7 +67,12 @@ in {
         loadModulesPhase = ''
           runHook preLoadModules
 
-          cp -r ${bunDeps.nodeModules} ./node_modules
+          # Preserve symlinks in .bin
+          rsync -a --copy-links --chmod=ugo+w --exclude=".bin" ${bunDeps.nodeModules}/ ./node_modules/
+
+          if [ -d "${bunDeps.nodeModules}/.bin" ]; then
+            rsync -a --links ${bunDeps.nodeModules}/.bin/ ./node_modules/.bin/
+          fi
 
           runHook postLoadModules
         '';
