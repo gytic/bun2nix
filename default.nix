@@ -66,7 +66,7 @@ in {
         loadModulesPhase = ''
           runHook preLoadModules
 
-          cp -rL ${bunDeps.nodeModules} ./node_modules
+          cp -r ${bunDeps.nodeModules} ./node_modules
 
           runHook postLoadModules
         '';

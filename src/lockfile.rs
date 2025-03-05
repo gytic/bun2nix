@@ -116,6 +116,7 @@ pub struct MetaData {
 }
 
 #[derive(Debug, Default, Serialize, Deserialize)]
+#[serde(untagged)]
 pub enum Binaries {
     #[default]
     None,

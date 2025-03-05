@@ -19,7 +19,7 @@ pub enum Error {
     #[error("Error occurred in nix-prefetch command: {}.", 0)]
     Prefetch(#[from] std::io::Error),
     #[error("Prefetch command returned an error code. STDERR: {}", 0)]
-    PrefetchStdError(String),
+    PrefetchStderr(String),
     #[error("Error parsing UTF8 nix-prefetch stdout: {}.", 0)]
     UTF8Parse(#[from] std::string::FromUtf8Error),
     #[error(
