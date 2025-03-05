@@ -11,11 +11,11 @@
         "pre-commit-hooks": "pre-commit-hooks"
       },
       "locked": {
-        "lastModified": 1741098356,
-        "narHash": "sha256-h96KffeT+k+L4Q6sdGz5S6Ay8lsNh7ZIt2aCyLsDxh8=",
+        "lastModified": 1741202878,
+        "narHash": "sha256-P9g7sfuoEdVjTvEI5KmtI5t3vAW9u2vIElYfDGqGBR8=",
         "owner": "baileyluTCD",
         "repo": "bun2nix",
-        "rev": "5c1185599aa7e44360fe01c6b849cdded2e4df08",
+        "rev": "3506276dbb4e8d8fdcd1a8d88be4bf46a970def5",
         "type": "github"
       },
       "original": {

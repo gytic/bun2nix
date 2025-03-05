@@ -11,16 +11,15 @@
         "pre-commit-hooks": "pre-commit-hooks"
       },
       "locked": {
-        "lastModified": 1741198329,
-        "narHash": "sha256-hb6mz4pHVPfVg47WxdC7WArwiYOeQOgT3YnC0TTSLwg=",
+        "lastModified": 1741202736,
+        "narHash": "sha256-yqZmFuK4q4wc0kuNpnzv6/hW9a49wCkiR5H10UbghzE=",
         "owner": "baileyluTCD",
         "repo": "bun2nix",
-        "rev": "56c8a7d10af229dafe8a5df7d65f7cb13fee47b6",
+        "rev": "79301d54452a83949aa49b987a6c2753e931bc3c",
         "type": "github"
       },
       "original": {
         "owner": "baileyluTCD",
-        "ref": "install-node-binaries",
         "repo": "bun2nix",
         "type": "github"
       }
