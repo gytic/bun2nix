@@ -49,6 +49,9 @@
           clippy
           mold
 
+          # Database
+          sqlx-cli
+
           # SSL
           pkg-config
           openssl

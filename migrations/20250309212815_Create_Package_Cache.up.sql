@@ -1,0 +1,7 @@
+CREATE TABLE packages (
+	id INTEGER PRIMARY KEY,
+	name TEXT NOT NULL,
+	url TEXT NOT NULL,
+	hash TEXT NOT NULL,
+	binaries TEXT NOT NULL
+);
