@@ -51,6 +51,7 @@
 
           # Database
           sqlx-cli
+          sqlite
 
           # SSL
           pkg-config
@@ -63,7 +64,13 @@
         env = with pkgs; {
           RUSTFLAGS = "-C link-arg=-fuse-ld=mold";
           LD_LIBRARY_PATH = lib.makeLibraryPath [openssl];
+          DATABASE_URL = "sqlite://.cache/bun2nix";
         };
+
+        shellHook = ''
+          mkdir .cache
+          touch .cache/bun2nix
+        '';
       };
     });
 }

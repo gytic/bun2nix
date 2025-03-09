@@ -2,14 +2,17 @@
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use async_process::Command;
+use sqlx::FromRow;
 use crate::{error::Error, lockfile::Binaries, Result};
 
-#[derive(Default, Debug, Serialize, Deserialize)]
+#[derive(Clone, Default, Debug, Serialize, Deserialize, FromRow)]
 #[serde(rename_all = "camelCase")]
 /// # Prefetched Package
 ///
 /// A model of the results returned by `nix-flake-prefetch <url>`
 pub struct PrefetchedPackage {
+    /// The id of the package in the sqlite cache
+    pub id: Option<i64>,
     /// The prefetched hash of the package
     pub hash: String,
     /// The url to fetch the package from
@@ -17,6 +20,7 @@ pub struct PrefetchedPackage {
     /// The name of the package in npm
     pub name: String,
     /// Binaries to install
+    #[sqlx(try_from = "String")]
     pub binaries: Binaries
 }
 
@@ -31,7 +35,7 @@ impl PrefetchedPackage {
     /// # Prefetch Package
     ///
     /// Prefetch a package from a url and produce a `PrefetchedPackage`
-    pub async fn prefetch(name: String, url: String, binaries: Binaries) -> Result<Self> {
+    pub async fn nix_store_fetch(name: String, url: String, binaries: Binaries) -> Result<Self> {
         let output = Command::new("nix")
             .args([
                 "store",
@@ -53,6 +57,7 @@ impl PrefetchedPackage {
             url,
             hash: store_return.hash,
             binaries,
+            ..Default::default()
         })
     }
 
@@ -279,13 +284,15 @@ fn test_dump_nix_expression_file() {
             binaries: Binaries::Named(HashMap::from([
                 ("binary_1".to_owned(), "first.js".to_owned()),
                 ("binary_2".to_owned(), "second.js".to_owned()),
-            ]))
+            ])),
+            ..Default::default()
         },
         PrefetchedPackage {
             hash: "sha256-w/Huz4+crTzdiSyQVAx0h3lhtTTrtPyKp3xpQD5EG9g=".to_owned(),
             url: "https://registry.npmjs.org/other-package/-/other-package-4.2.0.tgz".to_owned(),
             name: "other-package@4.2.0".to_owned(),
-            binaries: Binaries::Unnamed("cli.js".to_owned())
+            binaries: Binaries::Unnamed("cli.js".to_owned()),
+            ..Default::default()
         }
     ];
 

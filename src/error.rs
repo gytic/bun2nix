@@ -27,4 +27,8 @@ pub enum Error {
         0
     )]
     UnsupportedLockfileVersion(u8),
+    #[error("Error connecting to database: '{}'", 0)]
+    DatabaseConnection(#[from] sqlx::Error),
+    #[error("Error migrating database: '{}'", 0)]
+    DatabaseMigration(#[from] sqlx::migrate::MigrateError),
 }

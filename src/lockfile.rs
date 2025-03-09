@@ -1,8 +1,14 @@
-use std::{collections::HashMap, str::FromStr};
+use std::{
+    collections::{HashMap, HashSet},
+    path::PathBuf,
+    str::FromStr,
+};
 
 use futures::{stream, StreamExt, TryStreamExt};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use sqlx::{query_as, Executor, QueryBuilder, Sqlite, SqlitePool};
+use tokio::task;
 
 use crate::{
     error::{Error, Result},
@@ -37,12 +43,107 @@ impl Lockfile {
     }
 
     /// Use the lockfile's packages to produce prefetched sha256s for each
-    pub async fn prefetch_packages(self) -> Result<Vec<PrefetchedPackage>> {
-        stream::iter(self.packages)
-            .map(|(_, package)| async move {
+    pub async fn prefetch_packages(
+        mut self,
+        cache_location: Option<PathBuf>,
+    ) -> Result<Vec<PrefetchedPackage>> {
+        let Some(loc) = cache_location else {
+            return Self::fetch_uncached_packages(self.packages, None).await;
+        };
+
+        let cache = Self::connect_and_migrate(loc).await?;
+        self.create_temp_pkg_list_db(&cache).await?;
+
+        let mut cached: Vec<PrefetchedPackage> = query_as(
+            "SELECT p.id, p.name, p.url, p.hash
+            FROM packages p
+            INNER JOIN temp_packages t ON p.name = t.name",
+        )
+        .fetch_all(&cache)
+        .await?;
+
+        let uncached_names = query_as::<_, (String,)>(
+            "SELECT DISTINCT t.name
+             FROM temp_packages t
+             LEFT JOIN packages p ON t.name = p.name
+             WHERE p.name IS NULL",
+        )
+        .fetch_all(&cache)
+        .await?
+        .into_iter()
+        .map(|x| x.0)
+        .collect::<HashSet<_>>();
+
+        self.packages.retain(|key, _| uncached_names.contains(key));
+
+        let new_pkgs = Self::fetch_uncached_packages(self.packages, Some(&cache)).await?;
+
+        cached.extend(new_pkgs);
+
+        Ok(cached)
+    }
+
+    async fn create_temp_pkg_list_db(&self, cache: &SqlitePool) -> Result<()> {
+        cache
+            .execute("CREATE TEMP TABLE temp_packages (name TEXT PRIMARY KEY)")
+            .await?;
+
+        QueryBuilder::<Sqlite>::new("INSERT INTO temp_packages(name) ")
+            .push_values(&self.packages, |mut b, package| {
+                b.push_bind(package.0);
+            })
+            .build()
+            .execute(cache)
+            .await?;
+
+        Ok(())
+    }
+
+    async fn connect_and_migrate(loc: PathBuf) -> Result<SqlitePool> {
+        let pool = SqlitePool::connect(loc.to_str().unwrap_or_default()).await?;
+
+        sqlx::migrate!().run(&pool).await?;
+
+        Ok(pool)
+    }
+
+    async fn fetch_uncached_packages(
+        packages: HashMap<String, Package>,
+        cache: Option<&SqlitePool>,
+    ) -> Result<Vec<PrefetchedPackage>> {
+        stream::iter(packages)
+            .map(|(_, package)| async {
                 let url = package.to_npm_url()?;
 
-                PrefetchedPackage::prefetch(package.0, url, package.2.bin).await
+                let fetched =
+                    PrefetchedPackage::nix_store_fetch(package.0, url, package.2.bin).await;
+
+                let Ok(fetched) = fetched else {
+                    return fetched;
+                };
+
+                let Some(cache) = cache else {
+                    return Ok(fetched);
+                };
+
+                let pkg = fetched.clone();
+                let cache = cache.clone();
+                task::spawn(async move {
+                    let binaries = serde_json::to_string(&pkg.binaries).unwrap_or_default();
+
+                    let _ = query_as!(
+                        PrefetchedPackage,
+                        "INSERT INTO packages (name, url, hash, binaries) VALUES (?, ?, ?, ?)",
+                        pkg.name,
+                        pkg.url,
+                        pkg.hash,
+                        binaries
+                    )
+                    .execute(&cache)
+                    .await;
+                });
+
+                Ok(fetched)
             })
             .buffer_unordered(CONCURRENT_FETCH_REQUESTS)
             .try_collect()
@@ -115,13 +216,21 @@ pub struct MetaData {
     bin: Binaries,
 }
 
-#[derive(Debug, Default, Serialize, Deserialize)]
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum Binaries {
     #[default]
     None,
     Unnamed(String),
     Named(HashMap<String, String>),
+}
+
+impl TryFrom<String> for Binaries {
+    type Error = Error;
+
+    fn try_from(value: String) -> Result<Self> {
+        Ok(serde_json::from_str(&value)?)
+    }
 }
 
 #[test]
