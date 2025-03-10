@@ -34,11 +34,15 @@ devShells.default = pkgs.mkShell {
 `bun2nix` can be invoked as a command as follows:
 
 ```
+Convert Bun (v1.2+) packages to Nix expressions
+
 Usage: bun2nix [OPTIONS]
 
 Options:
   -l, --lock-file <LOCK_FILE>      The Bun (v1.2+) lockfile to use to produce the Nix expression [default: ./bun.lock]
   -o, --output-file <OUTPUT_FILE>  The output file to write to - if no file location is provided, print to stdout instead
+  -c, --cache <CACHE>              The sqlite database to use as the cache - will be created if it does not exist [default: ~/.cache/bun2nix]
+      --no-cache                   Disable creating or writing to the cache
   -h, --help                       Print help
   -V, --version                    Print version
 ```
