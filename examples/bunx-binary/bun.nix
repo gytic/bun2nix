@@ -52,22 +52,6 @@
       };
     }
     {
-      name = "ansi-regex";
-      path = fetchurl {
-        name = "ansi-regex@5.0.1";
-        url  = "https://registry.npmjs.org/ansi-regex/-/ansi-regex-5.0.1.tgz";
-        hash = "sha256-Dg6tzaragF212FtTrVzcoHYLmW7hmeyWWOezSqbI4Nk=";
-      };
-    }
-    {
-      name = "ansi-regex";
-      path = fetchurl {
-        name = "ansi-regex@5.0.1";
-        url  = "https://registry.npmjs.org/ansi-regex/-/ansi-regex-5.0.1.tgz";
-        hash = "sha256-Dg6tzaragF212FtTrVzcoHYLmW7hmeyWWOezSqbI4Nk=";
-      };
-    }
-    {
       name = "ansi-styles";
       path = fetchurl {
         name = "ansi-styles@4.3.0";
@@ -180,22 +164,6 @@
       };
     }
     {
-      name = "is-fullwidth-code-point";
-      path = fetchurl {
-        name = "is-fullwidth-code-point@3.0.0";
-        url  = "https://registry.npmjs.org/is-fullwidth-code-point/-/is-fullwidth-code-point-3.0.0.tgz";
-        hash = "sha256-b0Fdrl3GBw8bQtruYWXquUGpcQGYIwX6zIuv2vMAvEo=";
-      };
-    }
-    {
-      name = "is-fullwidth-code-point";
-      path = fetchurl {
-        name = "is-fullwidth-code-point@3.0.0";
-        url  = "https://registry.npmjs.org/is-fullwidth-code-point/-/is-fullwidth-code-point-3.0.0.tgz";
-        hash = "sha256-b0Fdrl3GBw8bQtruYWXquUGpcQGYIwX6zIuv2vMAvEo=";
-      };
-    }
-    {
       name = "locate-path";
       path = fetchurl {
         name = "locate-path@5.0.0";
@@ -276,43 +244,11 @@
       };
     }
     {
-      name = "string-width";
-      path = fetchurl {
-        name = "string-width@4.2.3";
-        url  = "https://registry.npmjs.org/string-width/-/string-width-4.2.3.tgz";
-        hash = "sha256-rbtPsbJugGmvma3/AHk2nJPxfPiHuRCGaR1nHdvVKTQ=";
-      };
-    }
-    {
-      name = "string-width";
-      path = fetchurl {
-        name = "string-width@4.2.3";
-        url  = "https://registry.npmjs.org/string-width/-/string-width-4.2.3.tgz";
-        hash = "sha256-rbtPsbJugGmvma3/AHk2nJPxfPiHuRCGaR1nHdvVKTQ=";
-      };
-    }
-    {
       name = "strip-ansi";
       path = fetchurl {
         name = "strip-ansi@4.0.0";
         url  = "https://registry.npmjs.org/strip-ansi/-/strip-ansi-4.0.0.tgz";
         hash = "sha256-qrCoRzaZ4BaSusK7g9VGDilaPa0OZlPg3Wr1fo/2IC0=";
-      };
-    }
-    {
-      name = "strip-ansi";
-      path = fetchurl {
-        name = "strip-ansi@6.0.1";
-        url  = "https://registry.npmjs.org/strip-ansi/-/strip-ansi-6.0.1.tgz";
-        hash = "sha256-m9t10L/0nxVt2MO8sOBrP6lsPYjd1MNCpDRYZqQMCMo=";
-      };
-    }
-    {
-      name = "strip-ansi";
-      path = fetchurl {
-        name = "strip-ansi@6.0.1";
-        url  = "https://registry.npmjs.org/strip-ansi/-/strip-ansi-6.0.1.tgz";
-        hash = "sha256-m9t10L/0nxVt2MO8sOBrP6lsPYjd1MNCpDRYZqQMCMo=";
       };
     }
     {

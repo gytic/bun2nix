@@ -11,8 +11,6 @@ use crate::{error::Error, lockfile::Binaries, Result};
 ///
 /// A model of the results returned by `nix-flake-prefetch <url>`
 pub struct PrefetchedPackage {
-    /// The id of the package in the sqlite cache
-    pub id: Option<i64>,
     /// The prefetched hash of the package
     pub hash: String,
     /// The url to fetch the package from
@@ -57,7 +55,6 @@ impl PrefetchedPackage {
             url,
             hash: store_return.hash,
             binaries,
-            ..Default::default()
         })
     }
 
