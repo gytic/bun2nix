@@ -1,4 +1,4 @@
-use bun2nix::Lockfile;
+use bun2nix::{Lockfile, Package};
 
 #[tokio::test]
 async fn test_prefetch_packages() {
@@ -36,7 +36,11 @@ async fn test_prefetch_packages() {
 
     assert!(value.lockfile_version == 1);
     assert!(value.workspaces[""].name == Some(String::from("examples")));
-    assert!(value.packages["@types/bun"].0 == "@types/bun@1.2.4");
+
+    assert!(value.packages.contains(&Package {
+        name: "@types/bun".to_owned(),
+        ..Default::default()
+    }));
 
     let prefetched = value.prefetch_packages(None).await.unwrap();
 

@@ -5,12 +5,14 @@
 
 mod error;
 mod lockfile;
+mod package;
 mod prefetch;
 
 use std::path::PathBuf;
 
 pub use error::Result;
 pub use lockfile::Lockfile;
+pub use package::Package;
 pub use prefetch::{DumpNixExpression, PrefetchedPackage};
 
 use error::Error;

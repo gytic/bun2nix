@@ -1,18 +1,18 @@
 use std::{
     collections::{HashMap, HashSet},
-    hash::{Hash, Hasher},
     path::PathBuf,
     str::FromStr,
 };
 
 use futures::{stream, StreamExt, TryStreamExt};
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize};
 use serde_json::Value;
 use sqlx::{query_as, Connection, Executor, QueryBuilder, Sqlite, SqliteConnection};
 
 use crate::{
     error::{Error, Result},
-    PrefetchedPackage,
+    package::PackagesVisitor,
+    Package, PrefetchedPackage,
 };
 
 const CONCURRENT_FETCH_REQUESTS: usize = 100;
@@ -33,7 +33,15 @@ pub struct Lockfile {
 
     /// The list of all packages needed by the lockfile
     #[serde(default)]
-    pub packages: HashMap<String, Package>,
+    #[serde(deserialize_with = "deserialize_packages")]
+    pub packages: HashSet<Package>,
+}
+
+fn deserialize_packages<'de, D>(data: D) -> std::result::Result<HashSet<Package>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    data.deserialize_map(PackagesVisitor)
 }
 
 impl Lockfile {
@@ -47,7 +55,9 @@ impl Lockfile {
         self,
         cache_location: Option<PathBuf>,
     ) -> Result<Vec<PrefetchedPackage>> {
-        let mut packages = self.packages.into_values().collect::<HashSet<_>>();
+        println!("pkgs: {:#?}", self.packages);
+
+        let mut packages = self.packages;
 
         let Some(loc) = cache_location else {
             return Self::fetch_uncached_packages(packages, None).await;
@@ -76,7 +86,7 @@ impl Lockfile {
         .map(|x| x.0)
         .collect::<HashSet<_>>();
 
-        packages.retain(|pkg| uncached_names.contains(&pkg.0));
+        packages.retain(|pkg| uncached_names.contains(&pkg.npm_identifier));
 
         if packages.is_empty() {
             return Ok(cached);
@@ -99,7 +109,7 @@ impl Lockfile {
 
         QueryBuilder::<Sqlite>::new("INSERT INTO temp_packages (name) ")
             .push_values(packages, |mut b, package| {
-                b.push_bind(&package.0);
+                b.push_bind(&package.npm_identifier);
             })
             .build()
             .execute(cache)
@@ -124,7 +134,8 @@ impl Lockfile {
             .map(|package| async {
                 let url = package.to_npm_url()?;
 
-                PrefetchedPackage::nix_store_fetch(package.0, url, package.2.bin).await
+                PrefetchedPackage::nix_store_fetch(package.npm_identifier, url, package.meta.bin)
+                    .await
             })
             .buffer_unordered(CONCURRENT_FETCH_REQUESTS)
             .try_collect()
@@ -167,84 +178,6 @@ pub struct Workspace {
     dependencies: HashMap<String, String>,
 }
 
-#[derive(Default, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase", default)]
-pub struct Package(pub String, String, MetaData, String);
-
-impl Package {
-    /// # NPM url converter
-    ///
-    /// Takes a package in the form:
-    /// ```jsonc
-    /// ["@alloc/quick-lru@5.2.0", "", {}, ""]
-    /// ```
-    ///
-    /// And builds a prefetchable npm url like:
-    /// ```bash
-    /// https://registry.npmjs.org/@alloc/quick-lru/-/quick-lru-5.2.0.tgz
-    /// ```
-    pub fn to_npm_url(&self) -> Result<String> {
-        let Some((user, name_and_ver)) = self.0.split_once("/") else {
-            let Some((name, ver)) = self.0.split_once("@") else {
-                return Err(Error::NoAtInPackageIdentifier);
-            };
-
-            return Ok(format!(
-                "https://registry.npmjs.org/{}/-/{}-{}.tgz",
-                name, name, ver
-            ));
-        };
-
-        let Some((name, ver)) = name_and_ver.split_once("@") else {
-            return Err(Error::NoAtInPackageIdentifier);
-        };
-
-        Ok(format!(
-            "https://registry.npmjs.org/{}/{}/-/{}-{}.tgz",
-            user, name, name, ver
-        ))
-    }
-}
-
-impl Hash for Package {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        self.0.hash(state);
-    }
-}
-
-impl PartialEq for Package {
-    fn eq(&self, other: &Self) -> bool {
-        self.0 == other.0
-    }
-}
-
-impl Eq for Package {}
-
-#[derive(Default, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase", default)]
-pub struct MetaData {
-    peer_dependencies: HashMap<String, String>,
-    optional_peers: Vec<String>,
-    bin: Binaries,
-}
-
-#[derive(Clone, Debug, Default, Serialize, Deserialize)]
-#[serde(untagged)]
-pub enum Binaries {
-    #[default]
-    None,
-    Unnamed(String),
-    Named(HashMap<String, String>),
-}
-
-impl TryFrom<String> for Binaries {
-    type Error = Error;
-
-    fn try_from(value: String) -> Result<Self> {
-        Ok(serde_json::from_str(&value)?)
-    }
-}
-
 #[test]
 fn test_parse_to_value_with_sample() {
     let sample = r#"
@@ -283,12 +216,11 @@ fn test_from_str_version_only() {
 
 #[test]
 fn test_to_npm_url() {
-    let package = Package(
-        "bun-types@1.2.4".to_owned(),
-        "".to_owned(),
-        MetaData::default(),
-        "".to_owned(),
-    );
+    let package = Package {
+        name: "bun-types".to_owned(),
+        npm_identifier: "bun-types@1.2.4".to_owned(),
+        ..Default::default()
+    };
 
     let out = package.to_npm_url().unwrap();
 
@@ -297,12 +229,11 @@ fn test_to_npm_url() {
 
 #[test]
 fn test_to_npm_url_with_namespace() {
-    let package = Package(
-        "@alloc/quick-lru@5.2.0".to_owned(),
-        "".to_owned(),
-        MetaData::default(),
-        "".to_owned(),
-    );
+    let package = Package {
+        name: "@alloc/quick-lru".to_owned(),
+        npm_identifier: "@alloc/quick-lru@5.2.0".to_owned(),
+        ..Default::default()
+    };
 
     let out = package.to_npm_url().unwrap();
 

@@ -3,7 +3,7 @@ use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use async_process::Command;
 use sqlx::FromRow;
-use crate::{error::Error, lockfile::Binaries, Result};
+use crate::{error::Error, package::Binaries, Result};
 
 #[derive(Clone, Default, Debug, Serialize, Deserialize, FromRow)]
 #[serde(rename_all = "camelCase")]
@@ -282,14 +282,12 @@ fn test_dump_nix_expression_file() {
                 ("binary_1".to_owned(), "first.js".to_owned()),
                 ("binary_2".to_owned(), "second.js".to_owned()),
             ])),
-            ..Default::default()
         },
         PrefetchedPackage {
             hash: "sha256-w/Huz4+crTzdiSyQVAx0h3lhtTTrtPyKp3xpQD5EG9g=".to_owned(),
             url: "https://registry.npmjs.org/other-package/-/other-package-4.2.0.tgz".to_owned(),
             name: "other-package@4.2.0".to_owned(),
             binaries: Binaries::Unnamed("cli.js".to_owned()),
-            ..Default::default()
         }
     ];
 
