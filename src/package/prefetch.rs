@@ -1,9 +1,9 @@
-
+use std::hash::{Hash, Hasher};
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use async_process::Command;
 use sqlx::FromRow;
-use crate::{error::Error, package::Binaries, Result};
+use crate::{error::Error, package::Binaries, Package, Result};
 
 #[derive(Clone, Default, Debug, Serialize, Deserialize, FromRow)]
 #[serde(rename_all = "camelCase")]
@@ -11,16 +11,30 @@ use crate::{error::Error, package::Binaries, Result};
 ///
 /// A model of the results returned by `nix-flake-prefetch <url>`
 pub struct PrefetchedPackage {
-    /// The prefetched hash of the package
-    pub hash: String,
     /// The url to fetch the package from
     pub url: String,
-    /// The name of the package in npm
+    /// The name of the package as it appears in node_modules
     pub name: String,
+    /// The name of the package in npm
+    pub npm_identifier: String,
     /// Binaries to install
     #[sqlx(try_from = "String")]
     pub binaries: Binaries
 }
+
+impl Hash for PrefetchedPackage {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.npm_identifier.hash(state);
+    }
+}
+
+impl PartialEq for PrefetchedPackage {
+    fn eq(&self, other: &Self) -> bool {
+        self.npm_identifier == other.npm_identifier
+    }
+}
+
+impl Eq for PrefetchedPackage {}
 
 #[derive(Default, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -30,74 +44,7 @@ struct StorePrefetch {
 }
 
 impl PrefetchedPackage {
-    /// # Prefetch Package
-    ///
-    /// Prefetch a package from a url and produce a `PrefetchedPackage`
-    pub async fn nix_store_fetch(name: String, url: String, binaries: Binaries) -> Result<Self> {
-        let output = Command::new("nix")
-            .args([
-                "store",
-                "prefetch-file",
-                "--json",
-                &url,
-            ])
-            .output()
-            .await?;
 
-        if !output.status.success() {
-            return Err(Error::PrefetchStderr(String::from_utf8(output.stderr)?));
-        }
-
-        let store_return: StorePrefetch = serde_json::from_slice(&output.stdout)?;
-
-        Ok(Self{
-            name,
-            url,
-            hash: store_return.hash,
-            binaries,
-        })
-    }
-
-    fn get_name_strip_version(&self) -> Result<&str> {
-        match self.name.matches("@").count() {
-            1 => Ok(self.name.split_once('@').ok_or(Error::NoAtInPackageIdentifier)?.0),
-            2 => self.name.rsplitn(2, '@').last().ok_or(Error::NoAtInPackageIdentifier),
-            _ => Err(Error::NoAtInPackageIdentifier)
-        }
-    }
-
-    fn get_package_name_only(&self) -> Result<&str> {
-        let name_no_ver = self.get_name_strip_version()?;
-
-        match name_no_ver.matches("/").count() {
-            0 => Ok(name_no_ver),
-            1 => Ok(name_no_ver.split_once('/').ok_or(Error::NoAtInPackageIdentifier)?.1),
-            _ => Err(Error::NoAtInPackageIdentifier)
-        }
-    }
-
-    fn generate_binary_symlinks(&self) -> Vec<(String, String)> {
-        match &self.binaries {
-            Binaries::None => Vec::default(),
-            Binaries::Unnamed(pathless_link) => {
-                let name = self.get_package_name_only().unwrap_or(&self.name).to_owned();
-                let link = format!("../{}/{}", name, pathless_link);
-
-                vec![(name, link)]
-            }
-            Binaries::Named(bin_map) =>
-                bin_map
-                    .iter()
-                    .map(|(bin_name, pathless_link)| {
-                        let pkg_name = self.get_package_name_only().unwrap_or(&self.name);
-                        let link = format!("../{}/{}", pkg_name, pathless_link);
-
-                        (bin_name.to_owned(), link)
-                    })
-                    .sorted()
-                    .collect()
-        }
-    }
 }
 
 /// # Nix Expression Conversion Trait
@@ -122,15 +69,12 @@ impl DumpNixExpression for PrefetchedPackage {
         assert!(self.hash.contains("sha256"));
 
         format!(
-"    {{
+"    \"{}\" = fetchurl {{
       name = \"{}\";
-      path = fetchurl {{
-        name = \"{}\";
-        url  = \"{}\";
-        hash = \"{}\";
-      }};
-    }}",
-            self.get_name_strip_version().unwrap_or(&self.name), self.name, self.url, self.hash
+      url = \"{}\";
+      hash = \"{}\";
+    }};",
+            self.name, self.npm_identifier, self.url, self.hash
         )
     }
 
@@ -138,17 +82,15 @@ impl DumpNixExpression for PrefetchedPackage {
         match &self.binaries {
             Binaries::None => String::default(),
             Binaries::Unnamed(pathless_link) => {
-                let name = self.get_package_name_only().unwrap_or(&self.name);
-                let link = format!("../{}/{}", name, pathless_link);
+                let link = format!("../{}/{}", self.name, pathless_link);
 
-                format!("    {} = \"{}\";", name, link)
+                format!("    {} = \"{}\";", self.name, link)
             }
             Binaries::Named(bin_map) =>
                 bin_map
                     .iter()
                     .map(|(bin_name, pathless_link)| {
-                        let pkg_name = self.get_package_name_only().unwrap_or(&self.name);
-                        let link = format!("../{}/{}", pkg_name, pathless_link);
+                        let link = format!("../{}/{}", self.name, pathless_link);
 
                         format!("    {} = \"{}\";", bin_name, link)
                     })
@@ -181,22 +123,22 @@ impl DumpNixExpression for Vec<PrefetchedPackage> {
   bun,
 }}: let
   # Bun packages to install
-  packages = [
+  packages = {{
 {}
-  ];
+  }};
 
   # Extract a package from a tar file
-  extractPackage = pkg:
-    runCommand \"bun2nix-extract-${{pkg.name}}\" {{buildInputs = [gnutar coreutils];}} ''
+  extractPackage = name: pkg:
+    runCommand \"bun2nix-extract-${{name}}\" {{buildInputs = [gnutar coreutils];}} ''
       # Extract the files from npm
-      mkdir -p $out/${{pkg.name}}
-      tar -xzf ${{pkg.path}} -C $out/${{pkg.name}} --strip-components=1
+      mkdir -p $out/${{name}}
+      tar -xzf ${{pkg.path}} -C $out/${{name}} --strip-components=1
 
       # Patch binary shebangs to point to bun
       mkdir -p $out/bin
       ln -s ${{bun}}/bin/bun $out/bin/node
-      PATH=$out/bin:$PATH patchShebangs $out/${{pkg.name}}
-      patchShebangs $out/${{pkg.name}}
+      PATH=$out/bin:$PATH patchShebangs $out/${{name}}
+      patchShebangs $out/${{name}}
     '';
 
   # List of binary symlinks to create in the `node_modules/.bin` folder
@@ -221,7 +163,7 @@ impl DumpNixExpression for Vec<PrefetchedPackage> {
   # Link the packages to inject into node_modules
   packageFiles = symlinkJoin {{
     name = \"package-files\";
-    paths = map extractPackage packages;
+    paths = lib.mapAttrsToList extractPackage packages;
   }};
 
   # Build the node modules directory
@@ -253,23 +195,6 @@ in {{
 }
 
 #[test]
-fn test_get_name_strip_version() {
-    let a = PrefetchedPackage {
-        name: "quick-lru@5.2.0".to_owned(),
-        ..Default::default()
-    };
-
-    assert_eq!(a.get_name_strip_version().unwrap(), "quick-lru");
-
-    let b = PrefetchedPackage {
-        name: "@alloc/quick-lru@5.2.0".to_owned(),
-        ..Default::default()
-    };
-
-    assert_eq!(b.get_name_strip_version().unwrap(), "@alloc/quick-lru");
-}
-
-#[test]
 fn test_dump_nix_expression_file() {
     use std::collections::HashMap;
 
@@ -277,7 +202,8 @@ fn test_dump_nix_expression_file() {
         PrefetchedPackage {
             hash: "sha256-w/Huz4+crTzdiSyQVAx0h3lhtTTrtPyKp3xpQD5EG9g=".to_owned(),
             url: "https://registry.npmjs.org/@alloc/quick-lru/-/quick-lru-5.2.0.tgz".to_owned(),
-            name: "@alloc/quick-lru@5.2.0".to_owned(),
+            name: "@alloc/quick-lru".to_owned(),
+            npm_identifier: "@alloc/quick-lru@5.2.0".to_owned(),
             binaries: Binaries::Named(HashMap::from([
                 ("binary_1".to_owned(), "first.js".to_owned()),
                 ("binary_2".to_owned(), "second.js".to_owned()),
@@ -286,7 +212,8 @@ fn test_dump_nix_expression_file() {
         PrefetchedPackage {
             hash: "sha256-w/Huz4+crTzdiSyQVAx0h3lhtTTrtPyKp3xpQD5EG9g=".to_owned(),
             url: "https://registry.npmjs.org/other-package/-/other-package-4.2.0.tgz".to_owned(),
-            name: "other-package@4.2.0".to_owned(),
+            name: "other-package".to_owned(),
+            npm_identifier: "other-package@4.2.0".to_owned(),
             binaries: Binaries::Unnamed("cli.js".to_owned()),
         }
     ];
@@ -304,43 +231,37 @@ fn test_dump_nix_expression_file() {
   bun,
 }: let
   # Bun packages to install
-  packages = [
-    {
-      name = \"@alloc/quick-lru\";
-      path = fetchurl {
-        name = \"@alloc/quick-lru@5.2.0\";
-        url  = \"https://registry.npmjs.org/@alloc/quick-lru/-/quick-lru-5.2.0.tgz\";
-        hash = \"sha256-w/Huz4+crTzdiSyQVAx0h3lhtTTrtPyKp3xpQD5EG9g=\";
-      };
-    }
-    {
-      name = \"other-package\";
-      path = fetchurl {
-        name = \"other-package@4.2.0\";
-        url  = \"https://registry.npmjs.org/other-package/-/other-package-4.2.0.tgz\";
-        hash = \"sha256-w/Huz4+crTzdiSyQVAx0h3lhtTTrtPyKp3xpQD5EG9g=\";
-      };
-    }
-  ];
+  packages = {
+    \"@alloc/quick-lru\" = fetchurl {
+      name = \"@alloc/quick-lru@5.2.0\";
+      url  = \"https://registry.npmjs.org/@alloc/quick-lru/-/quick-lru-5.2.0.tgz\";
+      hash = \"sha256-w/Huz4+crTzdiSyQVAx0h3lhtTTrtPyKp3xpQD5EG9g=\";
+    };
+    \"other-package\" = fetchurl {
+      name = \"other-package@4.2.0\";
+      url  = \"https://registry.npmjs.org/other-package/-/other-package-4.2.0.tgz\";
+      hash = \"sha256-w/Huz4+crTzdiSyQVAx0h3lhtTTrtPyKp3xpQD5EG9g=\";
+    };
+  };
 
   # Extract a package from a tar file
-  extractPackage = pkg:
-    runCommand \"bun2nix-extract-${pkg.name}\" {buildInputs = [gnutar coreutils];} ''
+  extractPackage = name: pkg:
+    runCommand \"bun2nix-extract-${name}\" {buildInputs = [gnutar coreutils];} ''
       # Extract the files from npm
-      mkdir -p $out/${pkg.name}
-      tar -xzf ${pkg.path} -C $out/${pkg.name} --strip-components=1
+      mkdir -p $out/${name}
+      tar -xzf ${pkg.path} -C $out/${name} --strip-components=1
 
       # Patch binary shebangs to point to bun
       mkdir -p $out/bin
       ln -s ${bun}/bin/bun $out/bin/node
-      PATH=$out/bin:$PATH patchShebangs $out/${pkg.name}
-      patchShebangs $out/${pkg.name}
+      PATH=$out/bin:$PATH patchShebangs $out/${name}
+      patchShebangs $out/${name}
     '';
 
   # List of binary symlinks to create in the `node_modules/.bin` folder
   binaries = {
-    binary_1 = \"../quick-lru/first.js\";
-    binary_2 = \"../quick-lru/second.js\";
+    binary_1 = \"../@alloc/quick-lru/first.js\";
+    binary_2 = \"../@alloc/quick-lru/second.js\";
     other-package = \"../other-package/cli.js\";
   };
 
@@ -361,7 +282,7 @@ fn test_dump_nix_expression_file() {
   # Link the packages to inject into node_modules
   packageFiles = symlinkJoin {
     name = \"package-files\";
-    paths = map extractPackage packages;
+    paths = lib.mapAttrsToList extractPackage packages;
   };
 
   # Build the node modules directory

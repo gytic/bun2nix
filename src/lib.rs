@@ -3,19 +3,17 @@
 
 #![warn(missing_docs)]
 
-mod error;
+mod cache;
+pub mod error;
 mod lockfile;
 mod package;
-mod prefetch;
 
 use std::path::PathBuf;
 
+pub use cache::Cache;
 pub use error::Result;
 pub use lockfile::Lockfile;
 pub use package::Package;
-pub use prefetch::{DumpNixExpression, PrefetchedPackage};
-
-use error::Error;
 
 /// # Convert Bun Lockfile to a Nix expression
 ///
@@ -30,9 +28,9 @@ pub async fn convert_lockfile_to_nix_expression(
         return Err(Error::UnsupportedLockfileVersion(lockfile.lockfile_version));
     };
 
-    let mut pkgs = lockfile.prefetch_packages(cache_location).await?;
+    let mut fods = Cache::prefetch_packages(lockfile.packages(), cache_location).await?;
 
-    pkgs.sort_by(|a, b| a.hash.cmp(&b.hash));
+    fods.sort_by(|a, b| a.data.hash.cmp(&b.data.hash));
 
-    Ok(pkgs.dump_nix_expression())
+    Ok(fods.dump_nix_expression())
 }
