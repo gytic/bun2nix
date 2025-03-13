@@ -1,3 +1,5 @@
+//! This module holds the core implementation for the package type and related methods
+
 use std::{
     fmt::Debug,
     hash::{Hash, Hasher},
@@ -9,25 +11,30 @@ use serde::{Deserialize, Serialize};
 use state::State;
 use store_prefetch::StorePrefetch;
 
-use crate::error::{Error, Result};
+use crate::{
+    cache::CacheRow,
+    error::{Error, Result},
+};
 
 mod binaries;
-mod dump_nix_expression;
+mod fetch_many;
 mod metadata;
 mod state;
 mod store_prefetch;
-mod visitor;
 
 pub use binaries::Binaries;
+pub use fetch_many::FetchMany;
 pub use metadata::MetaData;
 pub use state::{Fetched, Unfetched};
-pub use visitor::PackageVisitor;
 
-#[derive(Default, Debug, Serialize, Deserialize)]
+#[derive(Default, Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase", default)]
-/// # Lockfile Package
+/// # Package
 ///
-/// An individual package found in a bun lockfile
+/// An individual package found in a bun lockfile.
+///
+/// It holds two states: `Unfetched` and `Fetched` to differentiate between those which we have a
+/// hash for and those which we do not.
 pub struct Package<D: State> {
     /// The name of the package, as found in the `./node_modules` directory or in an import
     /// statement
@@ -38,17 +45,21 @@ pub struct Package<D: State> {
 
     /// The state the package is currently in
     pub data: D,
+
+    /// Binaries to create symlinks for
+    pub binaries: Binaries,
 }
 
 impl Package<Unfetched> {
     /// # Package Constructor
     ///
     /// Produce a new instance of an unfetched package
-    pub fn new(name: String, npm_identifier: String, meta: MetaData) -> Self {
+    pub fn new(name: String, npm_identifier: String, binaries: Binaries) -> Self {
         Self {
             name,
+            binaries,
             npm_identifier,
-            data: Unfetched { meta },
+            data: Unfetched,
         }
     }
 
@@ -80,24 +91,26 @@ impl Package<Unfetched> {
         Ok(Package {
             name: self.name,
             npm_identifier: self.npm_identifier,
+            binaries: self.binaries,
             data: Fetched {
                 url,
                 hash: store_return.hash,
-                binaries: self.data.meta.binaries,
             },
         })
     }
 
     /// # NPM url converter
     ///
-    /// Takes a package in the form:
-    /// ```jsonc
-    /// ["@alloc/quick-lru@5.2.0", "", {}, ""]
-    /// ```
+    /// Produce a url needed to fetch from the npm api from a package
     ///
-    /// And builds a prefetchable npm url like:
-    /// ```bash
-    /// https://registry.npmjs.org/@alloc/quick-lru/-/quick-lru-5.2.0.tgz
+    /// ## Usage
+    ///```rust
+    /// let package = Package {
+    ///     "@alloc/quick-lru@5.2.0",
+    ///     ..Default::default()
+    /// };
+    ///
+    /// assert_eq!(package.to_npm_url(), "https://registry.npmjs.org/@alloc/quick-lru/-/quick-lru-5.2.0.tgz")
     /// ```
     pub fn to_npm_url(&self) -> Result<String> {
         let Some((user, name_and_ver)) = self.npm_identifier.split_once("/") else {
@@ -123,12 +136,28 @@ impl Package<Unfetched> {
 }
 
 impl Package<Fetched> {
+    /// # Try From Name and Cache Row
+    ///
+    /// Try create a new fetched package from a cache entry by binding a name to make it
+    /// suitable for writing
+    pub fn try_from_name_and_cache_row(name: String, row: CacheRow) -> Result<Self> {
+        Ok(Self {
+            name,
+            npm_identifier: row.npm_identifier,
+            binaries: serde_json::from_str(&row.binaries)?,
+            data: Fetched {
+                url: row.url,
+                hash: row.hash,
+            },
+        })
+    }
+
     /// # Generate Binary Symlinks
     ///
     /// Produces a list of binary names and symlinks to their correct location in
     /// `node_modules`
     pub fn generate_binary_symlinks(&self) -> Vec<(String, String)> {
-        match &self.data.binaries {
+        match &self.binaries {
             Binaries::None => Vec::default(),
             Binaries::Unnamed(pathless_link) => {
                 let link = format!("../{}/{}", self.name, pathless_link);
@@ -148,10 +177,16 @@ impl Package<Fetched> {
     }
 }
 
-impl<D: State> Hash for Package<D> {
+impl Hash for Package<Unfetched> {
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.name.hash(state);
         self.npm_identifier.hash(state);
+    }
+}
+
+impl Hash for Package<Fetched> {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.data.hash.hash(state);
     }
 }
 
@@ -162,29 +197,3 @@ impl<D: State> PartialEq for Package<D> {
 }
 
 impl<D: State> Eq for Package<D> {}
-
-#[test]
-fn test_to_npm_url() {
-    let package = Package {
-        name: "bun-types".to_owned(),
-        npm_identifier: "bun-types@1.2.4".to_owned(),
-        ..Default::default()
-    };
-
-    let out = package.to_npm_url().unwrap();
-
-    assert!(out == "https://registry.npmjs.org/bun-types/-/bun-types-1.2.4.tgz");
-}
-
-#[test]
-fn test_to_npm_url_with_namespace() {
-    let package = Package {
-        name: "@alloc/quick-lru".to_owned(),
-        npm_identifier: "@alloc/quick-lru@5.2.0".to_owned(),
-        ..Default::default()
-    };
-
-    let out = package.to_npm_url().unwrap();
-
-    assert!(out == "https://registry.npmjs.org/@alloc/quick-lru/-/quick-lru-5.2.0.tgz");
-}

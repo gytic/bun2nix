@@ -1,5 +1,3 @@
-use crate::{package::Binaries, Package, Result};
-use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 
 #[derive(Default, Debug, Serialize, Deserialize)]
