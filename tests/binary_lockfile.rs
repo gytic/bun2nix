@@ -1,7 +1,7 @@
 use std::{fs, path::PathBuf};
 
 #[tokio::test]
-async fn test_parse_minimal_lockfile() {
+async fn test_parse_bunx_binary_lockfile() {
     let lockfile = fs::read_to_string("./examples/bunx-binary/bun.lock")
         .expect("Could not find example lockfile for integration test");
 

@@ -3,17 +3,21 @@
 
 #![warn(missing_docs)]
 
-mod cache;
+pub mod cache;
 pub mod error;
-mod lockfile;
-mod package;
+pub mod lockfile;
+pub mod nix_expression;
+pub mod package;
 
 use std::path::PathBuf;
 
 pub use cache::Cache;
-pub use error::Result;
+pub use error::{Error, Result};
 pub use lockfile::Lockfile;
+use nix_expression::NixExpression;
+use package::FetchMany;
 pub use package::Package;
+use rinja::Template;
 
 /// # Convert Bun Lockfile to a Nix expression
 ///
@@ -28,9 +32,15 @@ pub async fn convert_lockfile_to_nix_expression(
         return Err(Error::UnsupportedLockfileVersion(lockfile.lockfile_version));
     };
 
-    let mut fods = Cache::prefetch_packages(lockfile.packages(), cache_location).await?;
+    let packages = lockfile.packages();
+
+    let mut fods = if let Some(location) = cache_location {
+        Cache::new(location).await?.fetch_packages(packages).await?
+    } else {
+        packages.fetch_many().await?
+    };
 
     fods.sort_by(|a, b| a.data.hash.cmp(&b.data.hash));
 
-    Ok(fods.dump_nix_expression())
+    Ok(NixExpression::new(fods).render()?)
 }

@@ -1,8 +1,15 @@
+//! Errors which may occur during the running of this program
+//!
+//! This module contains two items:
+//! - A giant unified error type `Error`
+//! - An alias for `std::result::Result<T, E>` with that error for convenience
+
 use thiserror::Error;
 
 /// Result alias for Errors which occur in `bun2nix`
 pub type Result<T> = std::result::Result<T, Error>;
 
+#[allow(missing_docs)]
 #[derive(Error, Debug)]
 /// Errors which occur in `bun2nix`
 pub enum Error {
@@ -20,6 +27,8 @@ pub enum Error {
     Prefetch(#[from] std::io::Error),
     #[error("Prefetch command returned an error code. STDERR: {}", 0)]
     PrefetchStderr(String),
+    #[error("Cache table did not have value for: {}", 0)]
+    CacheTable(String),
     #[error("Error parsing UTF8 nix-prefetch stdout: {}.", 0)]
     UTF8Parse(#[from] std::string::FromUtf8Error),
     #[error(
@@ -31,4 +40,8 @@ pub enum Error {
     DatabaseConnection(#[from] sqlx::Error),
     #[error("Error migrating database: '{}'", 0)]
     DatabaseMigration(#[from] sqlx::migrate::MigrateError),
+    #[error("Error joining tokio task: '{}'", 0)]
+    JoinError(#[from] tokio::task::JoinError),
+    #[error("Failed to render template: '{}'", 0)]
+    TemplateError(#[from] rinja::Error),
 }

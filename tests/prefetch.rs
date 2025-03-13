@@ -1,4 +1,4 @@
-use bun2nix::{Lockfile, Package};
+use bun2nix::{package::FetchMany, Lockfile, Package};
 
 #[tokio::test]
 async fn test_prefetch_packages() {
@@ -42,7 +42,7 @@ async fn test_prefetch_packages() {
         ..Default::default()
     }));
 
-    let prefetched = value.prefetch_packages(None).await.unwrap();
+    let prefetched = value.packages().fetch_many().await.unwrap();
 
     assert!(!prefetched.is_empty());
 }
