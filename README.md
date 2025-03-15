@@ -36,15 +36,36 @@ devShells.default = pkgs.mkShell {
 ```
 Convert Bun (v1.2+) packages to Nix expressions
 
-Usage: bun2nix [OPTIONS]
+Usage: bun2nix [OPTIONS] [COMMAND]
+
+Commands:
+  cache  Cache related subcommands
+  help   Print this message or the help of the given subcommand(s)
 
 Options:
-  -l, --lock-file <LOCK_FILE>      The Bun (v1.2+) lockfile to use to produce the Nix expression [default: ./bun.lock]
-  -o, --output-file <OUTPUT_FILE>  The output file to write to - if no file location is provided, print to stdout instead
-  -c, --cache <CACHE>              The sqlite database to use as the cache - will be created if it does not exist [default: ~/.cache/bun2nix]
-      --no-cache                   Disable creating or writing to the cache
-  -h, --help                       Print help
-  -V, --version                    Print version
+  -l, --lock-file <LOCK_FILE>
+          The Bun (v1.2+) lockfile to use to produce the Nix expression
+
+          [default: ./bun.lock]
+
+  -o, --output-file <OUTPUT_FILE>
+          The output file to write to - if no file location is provided, print to stdout instead
+
+  -c, --cache-location <CACHE_LOCATION>
+          The sqlite database to use as the cache - will be created if it does not exist.
+
+          Default value of <system cache directory>/bun2nix is assigned when no value is passed to `cache_location`.
+
+          [default: /home/luke/.cache/bun2nix]
+
+      --disable-cache
+          Disable usage of the cache entirely
+
+  -h, --help
+          Print help (see a summary with '-h')
+
+  -V, --version
+          Print version
 ```
 
 It is a good idea to add `bun2nix` to your `package.json` file as a `postinstall` script to keep your generated `bun.nix` file up to date:
@@ -85,4 +106,4 @@ bun2nix.mkBunDerivation {
 
 ## Examples
 
-Check out our `examples/` directory for ready to use examples for compling a bun binary and a react website through `bun2nix`.
+Check out our `examples/` directory for ready to use examples for compiling a bun binary and a React website through `bun2nix`.

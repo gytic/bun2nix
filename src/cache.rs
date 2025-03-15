@@ -7,7 +7,7 @@ use std::{
 };
 
 use rayon::iter::{IntoParallelIterator, IntoParallelRefIterator, ParallelIterator};
-use sqlx::{Connection, QueryBuilder, Sqlite, SqliteConnection};
+use sqlx::{query_as, Connection, QueryBuilder, Sqlite, SqliteConnection};
 use temp_packages_list::TempPackagesList;
 use tokio::try_join;
 
@@ -56,6 +56,36 @@ impl Cache {
     /// Create a new connection to the sqlite database
     async fn make_new_connection(location: &Path) -> Result<SqliteConnection> {
         Ok(SqliteConnection::connect(location.to_str().unwrap_or_default()).await?)
+    }
+
+    /// # List cached packages by npm identifier
+    ///
+    /// Returns an list of **every** single cache row currently in the database similar to a
+    /// given npm identifier
+    pub async fn list_cached_pkgs_by_npm_identifier(
+        &mut self,
+        npm_identifier: &str,
+    ) -> Result<Vec<CacheRow>> {
+        let query = format!("%{}%", npm_identifier);
+
+        Ok(query_as!(
+            CacheRow,
+            "SELECT * FROM packages WHERE npm_identifier LIKE ?",
+            query
+        )
+        .fetch_all(&mut self.connection)
+        .await?)
+    }
+
+    /// # Delete all cached packages
+    ///
+    /// Completely clears the cache of all entries
+    pub async fn delete_all_cached_packages(&mut self) -> Result<()> {
+        query_as!(CacheRow, "DELETE FROM packages")
+            .execute(&mut self.connection)
+            .await?;
+
+        Ok(())
     }
 
     /// # Fetch Packages

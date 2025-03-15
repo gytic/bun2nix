@@ -1,8 +1,9 @@
+use serde::{Deserialize, Serialize};
 use sqlx::prelude::FromRow;
 
 use crate::{error::Error, package::Fetched, Package, Result};
 
-#[derive(FromRow)]
+#[derive(FromRow, Serialize, Deserialize, Debug)]
 /// # Cache Row
 ///
 /// An individual row in the cache for a package
