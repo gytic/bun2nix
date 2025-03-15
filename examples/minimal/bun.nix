@@ -9,77 +9,59 @@
   symlinkJoin,
   bun,
 }: let
-  # Bun packages to install
-  packages = [
-    {
-      name = "@types/bun";
-      path = fetchurl {
-        name = "@types/bun@1.2.4";
-        url  = "https://registry.npmjs.org/@types/bun/-/bun-1.2.4.tgz";
-        hash = "sha256-O01ctlMKEB5nmokJir6UwrPEPWaW9zhiqS0YkwPVX9Y=";
-      };
-    }
-    {
-      name = "@types/node";
-      path = fetchurl {
-        name = "@types/node@22.13.5";
-        url  = "https://registry.npmjs.org/@types/node/-/node-22.13.5.tgz";
-        hash = "sha256-jtFd0kKkgHHRYLsT8YUk7PgWSyu0nVwrUHm+IMzNRKQ=";
-      };
-    }
-    {
-      name = "@types/ws";
-      path = fetchurl {
-        name = "@types/ws@8.5.14";
-        url  = "https://registry.npmjs.org/@types/ws/-/ws-8.5.14.tgz";
-        hash = "sha256-SsUn5egoHI/5PcxHQwwtNupaBcwgePqjR3uTG7Ew37w=";
-      };
-    }
-    {
-      name = "bun-types";
-      path = fetchurl {
-        name = "bun-types@1.2.4";
-        url  = "https://registry.npmjs.org/bun-types/-/bun-types-1.2.4.tgz";
-        hash = "sha256-lXqzNu+EFE1bzON4rLGrSdws76vuyStC1Ehxa3n/6/0=";
-      };
-    }
-    {
-      name = "typescript";
-      path = fetchurl {
-        name = "typescript@5.7.3";
-        url  = "https://registry.npmjs.org/typescript/-/typescript-5.7.3.tgz";
-        hash = "sha256-gM/KElS6uOgdY5F45C1kBthW+6bjTK1g0atQ7m5ffrs=";
-      };
-    }
-    {
-      name = "undici-types";
-      path = fetchurl {
-        name = "undici-types@6.20.0";
-        url  = "https://registry.npmjs.org/undici-types/-/undici-types-6.20.0.tgz";
-        hash = "sha256-coyp/P9nY3Lk3NZIteJvu9sonsK89nXnYBzCE0pejW4=";
-      };
-    }
-  ];
+  # Set of Bun packages to install
+  packages = {
+    "@types/bun" = fetchurl {
+      name = "@types/bun@1.2.4";
+      url = "https://registry.npmjs.org/@types/bun/-/bun-1.2.4.tgz";
+      hash = "sha256-O01ctlMKEB5nmokJir6UwrPEPWaW9zhiqS0YkwPVX9Y=";
+    };
+    "@types/ws" = fetchurl {
+      name = "@types/ws@8.5.14";
+      url = "https://registry.npmjs.org/@types/ws/-/ws-8.5.14.tgz";
+      hash = "sha256-SsUn5egoHI/5PcxHQwwtNupaBcwgePqjR3uTG7Ew37w=";
+    };
+    "undici-types" = fetchurl {
+      name = "undici-types@6.20.0";
+      url = "https://registry.npmjs.org/undici-types/-/undici-types-6.20.0.tgz";
+      hash = "sha256-coyp/P9nY3Lk3NZIteJvu9sonsK89nXnYBzCE0pejW4=";
+    };
+    "typescript" = fetchurl {
+      name = "typescript@5.7.3";
+      url = "https://registry.npmjs.org/typescript/-/typescript-5.7.3.tgz";
+      hash = "sha256-gM/KElS6uOgdY5F45C1kBthW+6bjTK1g0atQ7m5ffrs=";
+    };
+    "@types/node" = fetchurl {
+      name = "@types/node@22.13.5";
+      url = "https://registry.npmjs.org/@types/node/-/node-22.13.5.tgz";
+      hash = "sha256-jtFd0kKkgHHRYLsT8YUk7PgWSyu0nVwrUHm+IMzNRKQ=";
+    };
+    "bun-types" = fetchurl {
+      name = "bun-types@1.2.4";
+      url = "https://registry.npmjs.org/bun-types/-/bun-types-1.2.4.tgz";
+      hash = "sha256-lXqzNu+EFE1bzON4rLGrSdws76vuyStC1Ehxa3n/6/0=";
+    };
+  };
+
+  # List of binary symlinks to create in the `node_modules/.bin` folder
+  binaries = {
+    "tsc" = "../typescript/bin/tsc";
+    "tsserver" = "../typescript/bin/tsserver";
+  };
 
   # Extract a package from a tar file
-  extractPackage = pkg:
-    runCommand "bun2nix-extract-${pkg.name}" {buildInputs = [gnutar coreutils];} ''
+  extractPackage = name: pkg:
+    runCommand "bun2nix-extract-${name}" {buildInputs = [gnutar coreutils];} ''
       # Extract the files from npm
-      mkdir -p $out/${pkg.name}
-      tar -xzf ${pkg.path} -C $out/${pkg.name} --strip-components=1
+      mkdir -p $out/${name}
+      tar -xzf ${pkg} -C $out/${name} --strip-components=1
 
       # Patch binary shebangs to point to bun
       mkdir -p $out/bin
       ln -s ${bun}/bin/bun $out/bin/node
-      PATH=$out/bin:$PATH patchShebangs $out/${pkg.name}
-      patchShebangs $out/${pkg.name}
+      PATH=$out/bin:$PATH patchShebangs $out/${name}
+      patchShebangs $out/${name}
     '';
-
-  # List of binary symlinks to create in the `node_modules/.bin` folder
-  binaries = {
-    tsc = "../typescript/bin/tsc";
-    tsserver = "../typescript/bin/tsserver";
-  };
 
   # Link a binary from a package
   linkBin = name: dest:
@@ -98,7 +80,7 @@
   # Link the packages to inject into node_modules
   packageFiles = symlinkJoin {
     name = "package-files";
-    paths = map extractPackage packages;
+    paths = lib.mapAttrsToList extractPackage packages;
   };
 
   # Build the node modules directory

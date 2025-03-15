@@ -7,10 +7,7 @@ pub use nix_escaper::NixEscaper;
 use normalized_binary::NormalizedBinary;
 use rinja::Template;
 
-use crate::{
-    package::{Binaries, Fetched},
-    Package,
-};
+use crate::{package::Fetched, Package};
 
 /// # Nix Expression
 ///
@@ -32,28 +29,8 @@ impl NixExpression {
             .map(|pkg| (&pkg.name, &pkg.binaries))
             .collect::<Vec<_>>();
 
-        let binaries = Self::normalize_binaries(normalized);
+        let binaries = NormalizedBinary::normalize_binaries(normalized);
 
         Self { packages, binaries }
-    }
-
-    fn normalize_binaries<'a>(binaries: Vec<(&'a String, &'a Binaries)>) -> Vec<NormalizedBinary> {
-        binaries
-            .into_iter()
-            .flat_map(|(name, bin)| match bin {
-                Binaries::None => Vec::default(),
-                Binaries::Unnamed(location) => vec![NormalizedBinary {
-                    name: name.clone(),
-                    location: location.clone(),
-                }],
-                Binaries::Named(map) => map
-                    .iter()
-                    .map(|(name, location)| NormalizedBinary {
-                        name: name.clone(),
-                        location: location.clone(),
-                    })
-                    .collect(),
-            })
-            .collect()
     }
 }
