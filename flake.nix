@@ -22,7 +22,7 @@
 
       bun2nix = pkgs.callPackage ./default.nix {};
     in {
-      defaultPackage = bun2nix;
+      defaultPackage = bun2nix.bin;
 
       defaultApp = {
         type = "app";
