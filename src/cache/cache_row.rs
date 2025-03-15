@@ -31,7 +31,7 @@ impl CacheRow {
             npm_identifier,
             url: body.0,
             hash: body.1,
-            binaries: serde_json::to_string(&body.2)?,
+            binaries: body.2,
         })
     }
 }
