@@ -1,0 +1,38 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT * FROM packages WHERE npm_identifier LIKE ?",
+  "describe": {
+    "columns": [
+      {
+        "name": "npm_identifier",
+        "ordinal": 0,
+        "type_info": "Text"
+      },
+      {
+        "name": "url",
+        "ordinal": 1,
+        "type_info": "Text"
+      },
+      {
+        "name": "hash",
+        "ordinal": 2,
+        "type_info": "Text"
+      },
+      {
+        "name": "binaries",
+        "ordinal": 3,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "b91b654d5eb9ad377360f391a796d471ae4d4b992882140714785325fa3b3898"
+}
