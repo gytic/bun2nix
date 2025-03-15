@@ -169,6 +169,10 @@ impl Cache {
         location: PathBuf,
         packages: &Vec<Package<Fetched>>,
     ) -> Result<()> {
+        if packages.is_empty() {
+            return Ok(());
+        }
+
         // Make a new connection as this is ran potentially at the same time as fetching in a
         // different thread so a unique connection is needed
         let mut connection = Self::make_new_connection(&location).await?;
