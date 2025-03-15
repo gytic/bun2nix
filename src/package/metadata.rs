@@ -17,5 +17,6 @@ pub struct MetaData {
     pub optional_peers: Vec<String>,
 
     /// Package binaries
+    #[serde(rename = "bin")]
     pub binaries: Binaries,
 }
