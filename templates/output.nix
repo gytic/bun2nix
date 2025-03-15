@@ -11,13 +11,13 @@
 }: let
   # Bun packages to install
   packages = {
-    {% for pkg in packages -%}
+    {%- for pkg in packages %}
     "{{ pkg.name }}" = fetchurl {
       name = "{{ pkg.npm_identifier }}";
       url = "{{ pkg.data.url }}";
       hash = "{{ pkg.data.hash }}";
     };
-    {% endfor -%}
+    {%- endfor %}
   };
 
   # Extract a package from a tar file
@@ -36,9 +36,9 @@
 
   # List of binary symlinks to create in the `node_modules/.bin` folder
   binaries = {
-    {% for bin in binaries -%}
+    {%- for bin in binaries %}
     "{{ bin.name }}" = "{{ bin.location }}";
-    {%- endfor -%}
+    {%- endfor %}
   };
 
   # Link a binary from a package
