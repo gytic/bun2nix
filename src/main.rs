@@ -126,7 +126,7 @@ async fn run_bun2nix(cli: Cli) {
 /// Cache subcommand executor
 async fn run_cache_command(cmd: CacheCommands, cache_location: Option<PathBuf>) -> Result<()> {
     let Some(location) = cache_location else {
-        panic!("\nCache location must be set in order to run commands on the cache!\nEnsure `--no-cache` is not being passed as an option.\n");
+        panic!("\nCache location must be set in order to run commands on the cache!\nEnsure `--disable-cache` is not being passed as an option.\n");
     };
 
     let mut cache = Cache::new(location).await?;
