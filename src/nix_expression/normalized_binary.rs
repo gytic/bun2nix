@@ -92,7 +92,7 @@ impl NormalizedBinary {
                     .collect(),
             })
             .sorted()
-            .dedup()
+            .dedup_by(|a, b| a.name == b.name)
             .collect()
     }
 }
