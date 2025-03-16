@@ -256,18 +256,34 @@
     "tsserver" = "../typescript/bin/tsserver";
   };
 
-  # Extract a package from a tar file
-  extractPackage = name: pkg:
-    runCommand "bun2nix-extract-${name}" {buildInputs = [gnutar coreutils];} ''
-      # Extract the files from npm
-      mkdir -p $out/${name}
-      tar -xzf ${pkg} -C $out/${name} --strip-components=1
+  # Normalize a package path
+  normalizePath = name:
+    if lib.hasPrefix "@" name
+    then name
+    else if !lib.hasInfix "/" name
+    then name
+    else let
+      parts = lib.strings.splitString "/" name;
+      joiner = builtins.concatStringsSep "/node_modules/";
+    in
+      joiner parts;
 
-      # Patch binary shebangs to point to bun
+  # Extract a package from a tar file
+  extractPackage = name: pkg: let
+    targetPath = normalizePath name;
+  in
+    runCommand "bun2nix-extract-${name}" {buildInputs = [gnutar coreutils];} ''
+      echo ${targetPath}
+
+      # Extract the npm download into the correctly resolved path based on the package name
+      mkdir -p $out/${targetPath}
+      tar -xzf ${pkg} -C $out/${targetPath} --strip-components=1
+
+      # Patch any binaries in the package
       mkdir -p $out/bin
       ln -s ${bun}/bin/bun $out/bin/node
-      PATH=$out/bin:$PATH patchShebangs $out/${name}
-      patchShebangs $out/${name}
+      PATH=$out/bin:$PATH patchShebangs $out/${targetPath}
+      patchShebangs $out/${targetPath}
     '';
 
   # Link a binary from a package

@@ -75,6 +75,11 @@ in {
             rsync -a --links ${bunDeps.nodeModules}/.bin/ ./node_modules/.bin/
           fi
 
+          mkdir tmp
+          export HOME=$TMPDIR
+
+          export BUN_INSTALL=./node_modules
+
           runHook postLoadModules
         '';
 
