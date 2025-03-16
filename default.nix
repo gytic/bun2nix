@@ -78,8 +78,6 @@ in {
           mkdir tmp
           export HOME=$TMPDIR
 
-          export BUN_INSTALL=./node_modules
-
           runHook postLoadModules
         '';
 
