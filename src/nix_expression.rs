@@ -4,7 +4,7 @@ mod nix_escaper;
 mod normalized_binary;
 
 pub use nix_escaper::NixEscaper;
-use normalized_binary::NormalizedBinary;
+pub use normalized_binary::NormalizedBinary;
 use rinja::Template;
 
 use crate::{package::Fetched, Package};
@@ -26,7 +26,7 @@ impl NixExpression {
     pub fn new(packages: Vec<Package<Fetched>>) -> Self {
         let normalized = packages
             .iter()
-            .map(|pkg| (&pkg.name, &pkg.binaries))
+            .map(|pkg| (pkg.name.as_str(), &pkg.binaries))
             .collect::<Vec<_>>();
 
         let binaries = NormalizedBinary::normalize_binaries(normalized);

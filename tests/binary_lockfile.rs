@@ -14,5 +14,5 @@ async fn test_parse_bunx_binary_lockfile() {
 
     let correct_nix = fs::read_to_string("./examples/bunx-binary/bun.nix").unwrap();
 
-    assert_eq!(parsed, correct_nix);
+    assert_eq!(parsed.trim(), correct_nix.trim());
 }

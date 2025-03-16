@@ -31,6 +31,7 @@ in {
     checkFlags = [
       "--skip=test_parse_minimal_lockfile"
       "--skip=test_parse_react_lockfile"
+      "--skip=test_parse_bunx_binary_lockfile"
       "--skip=test_prefetch_packages"
     ];
 

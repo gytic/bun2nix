@@ -108,11 +108,11 @@ impl Package<Unfetched> {
     /// use bun2nix::Package;
     ///
     /// let package = Package {
-    ///     "@alloc/quick-lru@5.2.0",
+    ///     npm_identifier: "@alloc/quick-lru@5.2.0".to_owned(),
     ///     ..Default::default()
     /// };
     ///
-    /// assert_eq!(package.to_npm_url(), "https://registry.npmjs.org/@alloc/quick-lru/-/quick-lru-5.2.0.tgz")
+    /// assert_eq!(package.to_npm_url().unwrap(), "https://registry.npmjs.org/@alloc/quick-lru/-/quick-lru-5.2.0.tgz")
     /// ```
     pub fn to_npm_url(&self) -> Result<String> {
         let Some((user, name_and_ver)) = self.npm_identifier.split_once("/") else {

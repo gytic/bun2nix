@@ -30,8 +30,9 @@ pub use package_visitor::PackageVisitor;
 /// A bun lockfile can be deserialized from a string as follows:
 ///
 /// ```rust
+/// use bun2nix::Lockfile;
 ///
-///     let lockfile = r#"
+/// let lockfile = r#"
 /// {
 ///   "lockfileVersion": 1,
 ///   "workspaces": {
@@ -57,12 +58,13 @@ pub use package_visitor::PackageVisitor;
 ///     "typescript": ["typescript@5.7.3", "", { "bin": { "tsc": "bin/tsc", "tsserver": "bin/tsserver" } }, "sha512-84MVSjMEHP+FQRPy3pX9sTVV/INIex71s9TL2Gm5FG/WG1SqXeKyZ0k7/blY/4FdOzI12CBy1vGc4og/eus0fw=="],
 ///
 ///     "undici-types": ["undici-types@6.20.0", "", {}, "sha512-Ny6QZ2Nju20vw1SRHe3d9jVu6gJ+4e3+MMpqu7pqE5HT6WsTSlce++GQmK5UXS8mzV8DSYHrQH+Xrf2jVcuKNg=="],
+///   }
 /// }
 /// "#;
 ///
-///     let value: Lockfile = lockfile.parse().unwrap();
+/// let value: Lockfile = lockfile.parse().unwrap();
 ///
-///     assert!(value.lockfile_version == 1);
+/// assert!(value.lockfile_version == 1);
 /// ```
 pub struct Lockfile {
     /// The version field of the bun lockfile

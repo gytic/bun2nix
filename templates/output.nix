@@ -9,7 +9,7 @@
   symlinkJoin,
   bun,
 }: let
-  # Bun packages to install
+  # Set of Bun packages to install
   packages = {
     {%- for pkg in packages %}
     "{{ pkg.name }}" = fetchurl {
@@ -20,12 +20,19 @@
     {%- endfor %}
   };
 
+  # List of binary symlinks to create in the `node_modules/.bin` folder
+  binaries = {
+    {%- for bin in binaries %}
+    "{{ bin.name }}" = "{{ bin.location }}";
+    {%- endfor %}
+  };
+
   # Extract a package from a tar file
   extractPackage = name: pkg:
     runCommand "bun2nix-extract-${name}" {buildInputs = [gnutar coreutils];} ''
       # Extract the files from npm
       mkdir -p $out/${name}
-      tar -xzf ${pkg.path} -C $out/${name} --strip-components=1
+      tar -xzf ${pkg} -C $out/${name} --strip-components=1
 
       # Patch binary shebangs to point to bun
       mkdir -p $out/bin
@@ -33,13 +40,6 @@
       PATH=$out/bin:$PATH patchShebangs $out/${name}
       patchShebangs $out/${name}
     '';
-
-  # List of binary symlinks to create in the `node_modules/.bin` folder
-  binaries = {
-    {%- for bin in binaries %}
-    "{{ bin.name }}" = "{{ bin.location }}";
-    {%- endfor %}
-  };
 
   # Link a binary from a package
   linkBin = name: dest:
