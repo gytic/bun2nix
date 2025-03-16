@@ -1,3 +1,8 @@
+use std::{
+    hash::{Hash, Hasher},
+    path::PathBuf,
+};
+
 use itertools::Itertools;
 
 use crate::package::Binaries;
@@ -24,7 +29,7 @@ impl NormalizedBinary {
     ///
     /// ```rust
     /// use bun2nix::{package::Binaries, nix_expression::NormalizedBinary};
-    /// use std::collections::HashMap;
+    /// use std::collections::{HashMap, HashSet};
     ///
     /// let none = Binaries::None;
     /// let unnamed = Binaries::Unnamed("cli.js".to_owned());
@@ -65,10 +70,19 @@ impl NormalizedBinary {
             .into_iter()
             .flat_map(|(pkg_name, bin)| match bin {
                 Binaries::None => Vec::default(),
-                Binaries::Unnamed(location) => vec![NormalizedBinary {
-                    name: pkg_name.to_owned(),
-                    location: format!("../{}/{}", pkg_name, location),
-                }],
+                Binaries::Unnamed(location) => {
+                    let name_path = PathBuf::from(pkg_name);
+
+                    let out_name = name_path
+                        .components()
+                        .last()
+                        .map(|x| x.as_os_str().to_string_lossy());
+
+                    vec![NormalizedBinary {
+                        name: out_name.unwrap_or_default().to_string(),
+                        location: format!("../{}/{}", pkg_name, location),
+                    }]
+                }
                 Binaries::Named(map) => map
                     .iter()
                     .map(|(bin_name, in_pkg_location)| NormalizedBinary {
@@ -78,6 +92,13 @@ impl NormalizedBinary {
                     .collect(),
             })
             .sorted()
+            .dedup()
             .collect()
+    }
+}
+
+impl Hash for NormalizedBinary {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.name.hash(state);
     }
 }
