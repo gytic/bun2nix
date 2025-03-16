@@ -105,6 +105,8 @@ impl Package<Unfetched> {
     ///
     /// ## Usage
     ///```rust
+    /// use bun2nix::Package;
+    ///
     /// let package = Package {
     ///     "@alloc/quick-lru@5.2.0",
     ///     ..Default::default()
@@ -177,16 +179,10 @@ impl Package<Fetched> {
     }
 }
 
-impl Hash for Package<Unfetched> {
+impl<D: State> Hash for Package<D> {
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.name.hash(state);
         self.npm_identifier.hash(state);
-    }
-}
-
-impl Hash for Package<Fetched> {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        self.data.hash.hash(state);
     }
 }
 
@@ -196,4 +192,16 @@ impl<D: State> PartialEq for Package<D> {
     }
 }
 
+impl<D: State> PartialOrd for Package<D> {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
 impl<D: State> Eq for Package<D> {}
+
+impl<D: State> Ord for Package<D> {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        (&self.name, &self.npm_identifier).cmp(&(&other.name, &other.npm_identifier))
+    }
+}

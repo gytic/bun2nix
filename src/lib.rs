@@ -40,7 +40,7 @@ pub async fn convert_lockfile_to_nix_expression(
         packages.fetch_many().await?
     };
 
-    fods.sort_by(|a, b| a.data.hash.cmp(&b.data.hash));
+    fods.sort();
 
     Ok(NixExpression::new(fods).render()?)
 }

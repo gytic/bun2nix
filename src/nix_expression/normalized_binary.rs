@@ -1,5 +1,8 @@
+use itertools::Itertools;
+
 use crate::package::Binaries;
 
+#[derive(Default, Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct NormalizedBinary {
     pub name: String,
     pub location: String,
@@ -59,6 +62,7 @@ impl NormalizedBinary {
                     })
                     .collect(),
             })
+            .sorted()
             .collect()
     }
 }
