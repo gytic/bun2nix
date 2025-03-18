@@ -28,16 +28,21 @@
   };
 
   # Normalize a package path
-  normalizePath = name:
-    if lib.hasPrefix "@" name
+  normalizePath = name: let
+    join = builtins.concatStringsSep "/node_modules/";
+  in
+    if !lib.hasInfix "/" name
     then name
-    else if !lib.hasInfix "/" name
-    then name
+    else if lib.hasPrefix "@" name
+    then let
+      parts = lib.strings.splitString "/" name;
+      namespaced = builtins.concatStringsSep "/" (lib.lists.take 2 parts);
+    in
+      join ([namespaced] ++ lib.lists.drop 2 parts)
     else let
       parts = lib.strings.splitString "/" name;
-      joiner = builtins.concatStringsSep "/node_modules/";
     in
-      joiner parts;
+      join parts;
 
   # Extract a package from a tar file
   extractPackage = name: pkg: let
