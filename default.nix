@@ -69,10 +69,10 @@ in {
           runHook preLoadModules
 
           # Preserve symlinks in .bin
-          rsync -a --copy-links --chmod=ugo+w --exclude=".bin" ${bunDeps.nodeModules}/ ./node_modules/
+          rsync -a --copy-links --chmod=ugo+w --exclude=".bin" ${bunDeps.nodeModules}/node_modules/ ./node_modules/
 
-          if [ -d "${bunDeps.nodeModules}/.bin" ]; then
-            rsync -a --links ${bunDeps.nodeModules}/.bin/ ./node_modules/.bin/
+          if [ -d "${bunDeps.nodeModules}/node_modules/.bin" ]; then
+            rsync -a --links ${bunDeps.nodeModules}/node_modules/.bin/ ./node_modules/.bin/
           fi
 
           mkdir tmp

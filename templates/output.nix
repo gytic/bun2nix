@@ -3,96 +3,70 @@
 {
   lib,
   fetchurl,
-  gnutar,
-  coreutils,
   runCommand,
-  symlinkJoin,
+  gnutar,
   bun,
+  makeWrapper,
+  ...
 }: let
   # Set of Bun packages to install
   packages = {
     {%- for pkg in packages %}
-    "{{ pkg.name }}" = fetchurl {
-      name = "{{ pkg.npm_identifier }}";
-      url = "{{ pkg.data.url }}";
-      hash = "{{ pkg.data.hash }}";
+    "{{ pkg.name }}" = {
+      out_path = "{{ pkg.data.out_path }}";
+      binaries = {
+        {%- for binary in pkg.data.binaries %}
+        "{{ binary.name }}" = "{{ binary.location }}";
+        {%- endfor %}
+      };
+      pkg = fetchurl {
+        name = "{{ pkg.npm_identifier }}";
+        url = "{{ pkg.data.url }}";
+        hash = "{{ pkg.data.hash }}";
+      };
     };
     {%- endfor %}
   };
 
-  # List of binary symlinks to create in the `node_modules/.bin` folder
-  binaries = {
-    {%- for bin in binaries %}
-    "{{ bin.name }}" = "{{ bin.location }}";
-    {%- endfor %}
-  };
-
-  # Normalize a package path
-  normalizePath = name: let
-    join = builtins.concatStringsSep "/node_modules/";
-  in
-    if !lib.hasInfix "/" name
-    then name
-    else if lib.hasPrefix "@" name
-    then let
-      parts = lib.strings.splitString "/" name;
-      namespaced = builtins.concatStringsSep "/" (lib.lists.take 2 parts);
-    in
-      join ([namespaced] ++ lib.lists.drop 2 parts)
-    else let
-      parts = lib.strings.splitString "/" name;
-    in
-      join parts;
-
-  # Extract a package from a tar file
-  extractPackage = name: pkg: let
-    targetPath = normalizePath name;
-  in
-    runCommand "bun2nix-extract-${name}" {buildInputs = [gnutar coreutils];} ''
-      echo ${targetPath}
-
-      # Extract the npm download into the correctly resolved path based on the package name
-      mkdir -p $out/${targetPath}
-      tar -xzf ${pkg} -C $out/${targetPath} --strip-components=1
-
-      # Patch any binaries in the package
-      mkdir -p $out/bin
-      ln -s ${bun}/bin/bun $out/bin/node
-      PATH=$out/bin:$PATH patchShebangs $out/${targetPath}
-      patchShebangs $out/${targetPath}
-    '';
-
-  # Link a binary from a package
-  linkBin = name: dest:
-    runCommand "bun2nix-binary-${name}" {} ''
-      mkdir -p $out
-
-      ln -sn ${dest} $out/${name}
-    '';
-
-  # Construct the .bin directory
-  dotBinDir = symlinkJoin {
-    name = ".bin";
-    paths = lib.mapAttrsToList linkBin binaries;
-  };
-
-  # Link the packages to inject into node_modules
-  packageFiles = symlinkJoin {
-    name = "package-files";
-    paths = lib.mapAttrsToList extractPackage packages;
-  };
-
   # Build the node modules directory
-  nodeModules = runCommand "node-modules" {} ''
-    mkdir -p $out
+  nodeModules = runCommand "node-modules" {
+    nativeBuildInputs = [ 
+      gnutar 
+      makeWrapper
+    ];
+  } ''
+    mkdir -p $out/node_modules/.bin
 
-    # Packages need to be regular folders
-    cp -rL ${packageFiles}/* $out/
+    # Extract a given package to it's destination
+    extract() {
+      local pkg=$1
+      local dest=$2
+      
+      mkdir -p "$dest"
+      tar -xzf "$pkg" -C "$dest" --strip-components=1
+    }
 
-    # Executables need to be symlinks
-    cp -r ${dotBinDir} $out/.bin
+    # Process each package
+    ${lib.concatStringsSep "\n" (lib.mapAttrsToList (name: pkg: ''
+      echo "Installing package ${name}..."
+
+      mkdir -p "$out/node_modules/${pkg.out_path}"
+      extract "${pkg.pkg}" "$out/node_modules/${pkg.out_path}"
+      
+      # Handle binaries if they exist
+      ${lib.concatStringsSep "\n" (lib.mapAttrsToList (binName: binPath: ''
+        ln -sf "${binPath}" "$out/node_modules/.bin/${binName}"
+      '') pkg.binaries)}
+    '') packages)}
+
+    # Force bun instead of node for script execution
+    makeWrapper ${bun}/bin/bun $out/bin/node
+    export PATH="$out/bin:$PATH"
+
+    patchShebangs $out/node_modules
   '';
+
 in {
-  inherit nodeModules packages dotBinDir binaries;
+  inherit nodeModules packages;
 }
 
