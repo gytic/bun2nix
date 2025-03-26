@@ -6,6 +6,7 @@ use serde::{Deserialize, Serialize};
 use crate::{
     error::{Error, Result},
     nix_expression::NormalizedBinary,
+    package::Normalized,
 };
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
@@ -74,6 +75,23 @@ impl Binaries {
     ///     named.normalize("has-named-binaries"),
     ///     expected
     /// );
+    ///
+    /// let named_subpackage  = Binaries::Named(HashMap::from([
+    ///     ("glob".to_owned(), "dist/esm/bin.mjs".to_owned())
+    /// ]));
+    ///
+    /// let expected = vec![
+    ///     NormalizedBinary {
+    ///         name: "glob".to_owned(),
+    ///         location: "../sucrase/node_modules/glob/dist/esm/bin.mjs".to_owned(),
+    ///     },
+    /// ];
+    ///
+    /// assert_eq!(
+    ///     named_subpackage.normalize("sucrase/glob"),
+    ///     expected
+    /// );
+    ///
     /// ```
     pub fn normalize(self, pkg_name: &str) -> Vec<NormalizedBinary> {
         match self {
@@ -88,14 +106,14 @@ impl Binaries {
 
                 vec![NormalizedBinary {
                     name: out_name.unwrap_or_default().to_string(),
-                    location: format!("../{}/{}", pkg_name, location),
+                    location: Self::normalize_location(pkg_name, &location),
                 }]
             }
             Binaries::Named(map) => map
                 .into_iter()
                 .map(|(bin_name, in_pkg_location)| NormalizedBinary {
                     name: bin_name,
-                    location: format!("../{}/{}", pkg_name, in_pkg_location),
+                    location: Self::normalize_location(pkg_name, &in_pkg_location),
                 })
                 .collect(),
         }
@@ -103,6 +121,12 @@ impl Binaries {
         .sorted()
         .dedup_by(|a, b| a.name == b.name)
         .collect()
+    }
+
+    fn normalize_location(pkg_name: &str, location: &str) -> String {
+        let normal = Normalized::convert_name_to_out_path(pkg_name);
+
+        format!("../{}/{}", normal, location)
     }
 }
 
