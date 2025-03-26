@@ -3,157 +3,206 @@
 {
   lib,
   fetchurl,
-  gnutar,
-  coreutils,
   runCommand,
-  symlinkJoin,
+  gnutar,
   bun,
+  makeWrapper,
+  ...
 }: let
   # Set of Bun packages to install
   packages = {
-    "@types/bun" = fetchurl {
-      name = "@types/bun@1.2.4";
-      url = "https://registry.npmjs.org/@types/bun/-/bun-1.2.4.tgz";
-      hash = "sha256-O01ctlMKEB5nmokJir6UwrPEPWaW9zhiqS0YkwPVX9Y=";
+    "@types/bun" = {
+      out_path = "@types/bun";
+      binaries = {
+      };
+      pkg = fetchurl {
+        name = "@types/bun@1.2.4";
+        url = "https://registry.npmjs.org/@types/bun/-/bun-1.2.4.tgz";
+        hash = "sha256-O01ctlMKEB5nmokJir6UwrPEPWaW9zhiqS0YkwPVX9Y=";
+      };
     };
-    "@types/node" = fetchurl {
-      name = "@types/node@22.13.5";
-      url = "https://registry.npmjs.org/@types/node/-/node-22.13.5.tgz";
-      hash = "sha256-jtFd0kKkgHHRYLsT8YUk7PgWSyu0nVwrUHm+IMzNRKQ=";
+    "@types/node" = {
+      out_path = "@types/node";
+      binaries = {
+      };
+      pkg = fetchurl {
+        name = "@types/node@22.13.5";
+        url = "https://registry.npmjs.org/@types/node/-/node-22.13.5.tgz";
+        hash = "sha256-jtFd0kKkgHHRYLsT8YUk7PgWSyu0nVwrUHm+IMzNRKQ=";
+      };
     };
-    "@types/react" = fetchurl {
-      name = "@types/react@19.0.10";
-      url = "https://registry.npmjs.org/@types/react/-/react-19.0.10.tgz";
-      hash = "sha256-cKe1P9eluhnbnhaOIVOqoRF6iUwJCQJX3ZWDL46Uank=";
+    "@types/react" = {
+      out_path = "@types/react";
+      binaries = {
+      };
+      pkg = fetchurl {
+        name = "@types/react@19.0.10";
+        url = "https://registry.npmjs.org/@types/react/-/react-19.0.10.tgz";
+        hash = "sha256-cKe1P9eluhnbnhaOIVOqoRF6iUwJCQJX3ZWDL46Uank=";
+      };
     };
-    "@types/react-dom" = fetchurl {
-      name = "@types/react-dom@19.0.4";
-      url = "https://registry.npmjs.org/@types/react-dom/-/react-dom-19.0.4.tgz";
-      hash = "sha256-rJnqfJ6tOL2GEZ43gL3ib8C8wKNEqBZkKU3zm3kONDw=";
+    "@types/react-dom" = {
+      out_path = "@types/react-dom";
+      binaries = {
+      };
+      pkg = fetchurl {
+        name = "@types/react-dom@19.0.4";
+        url = "https://registry.npmjs.org/@types/react-dom/-/react-dom-19.0.4.tgz";
+        hash = "sha256-rJnqfJ6tOL2GEZ43gL3ib8C8wKNEqBZkKU3zm3kONDw=";
+      };
     };
-    "@types/ws" = fetchurl {
-      name = "@types/ws@8.5.14";
-      url = "https://registry.npmjs.org/@types/ws/-/ws-8.5.14.tgz";
-      hash = "sha256-SsUn5egoHI/5PcxHQwwtNupaBcwgePqjR3uTG7Ew37w=";
+    "@types/ws" = {
+      out_path = "@types/ws";
+      binaries = {
+      };
+      pkg = fetchurl {
+        name = "@types/ws@8.5.14";
+        url = "https://registry.npmjs.org/@types/ws/-/ws-8.5.14.tgz";
+        hash = "sha256-SsUn5egoHI/5PcxHQwwtNupaBcwgePqjR3uTG7Ew37w=";
+      };
     };
-    "bun-plugin-tailwind" = fetchurl {
-      name = "bun-plugin-tailwind@0.0.14";
-      url = "https://registry.npmjs.org/bun-plugin-tailwind/-/bun-plugin-tailwind-0.0.14.tgz";
-      hash = "sha256-nQViPxk9Oiz+kZWKoeA1k2MD/t+DMbIQLlOZUQk1TgA=";
+    "bun-plugin-tailwind" = {
+      out_path = "bun-plugin-tailwind";
+      binaries = {
+      };
+      pkg = fetchurl {
+        name = "bun-plugin-tailwind@0.0.14";
+        url = "https://registry.npmjs.org/bun-plugin-tailwind/-/bun-plugin-tailwind-0.0.14.tgz";
+        hash = "sha256-nQViPxk9Oiz+kZWKoeA1k2MD/t+DMbIQLlOZUQk1TgA=";
+      };
     };
-    "bun-plugin-tailwind/tailwindcss" = fetchurl {
-      name = "tailwindcss@4.0.0-beta.9";
-      url = "https://registry.npmjs.org/tailwindcss/-/tailwindcss-4.0.0-beta.9.tgz";
-      hash = "sha256-9GTG+7bBUxKu0n/g42Ri4NRiGaREm+dq/mzLOcOX73g=";
+    "bun-plugin-tailwind/tailwindcss" = {
+      out_path = "bun-plugin-tailwind/node_modules/tailwindcss";
+      binaries = {
+      };
+      pkg = fetchurl {
+        name = "tailwindcss@4.0.0-beta.9";
+        url = "https://registry.npmjs.org/tailwindcss/-/tailwindcss-4.0.0-beta.9.tgz";
+        hash = "sha256-9GTG+7bBUxKu0n/g42Ri4NRiGaREm+dq/mzLOcOX73g=";
+      };
     };
-    "bun-types" = fetchurl {
-      name = "bun-types@1.2.4";
-      url = "https://registry.npmjs.org/bun-types/-/bun-types-1.2.4.tgz";
-      hash = "sha256-lXqzNu+EFE1bzON4rLGrSdws76vuyStC1Ehxa3n/6/0=";
+    "bun-types" = {
+      out_path = "bun-types";
+      binaries = {
+      };
+      pkg = fetchurl {
+        name = "bun-types@1.2.4";
+        url = "https://registry.npmjs.org/bun-types/-/bun-types-1.2.4.tgz";
+        hash = "sha256-lXqzNu+EFE1bzON4rLGrSdws76vuyStC1Ehxa3n/6/0=";
+      };
     };
-    "csstype" = fetchurl {
-      name = "csstype@3.1.3";
-      url = "https://registry.npmjs.org/csstype/-/csstype-3.1.3.tgz";
-      hash = "sha256-Lwg/fPKjmPBaYktO+isUSWxF53zSsSoGR+JpdWcYZ3c=";
+    "csstype" = {
+      out_path = "csstype";
+      binaries = {
+      };
+      pkg = fetchurl {
+        name = "csstype@3.1.3";
+        url = "https://registry.npmjs.org/csstype/-/csstype-3.1.3.tgz";
+        hash = "sha256-Lwg/fPKjmPBaYktO+isUSWxF53zSsSoGR+JpdWcYZ3c=";
+      };
     };
-    "react" = fetchurl {
-      name = "react@19.0.0";
-      url = "https://registry.npmjs.org/react/-/react-19.0.0.tgz";
-      hash = "sha256-IXjsAtQcCfYLWn3CGER4ev0KQfJo+qbqmsegbM9k7KY=";
+    "react" = {
+      out_path = "react";
+      binaries = {
+      };
+      pkg = fetchurl {
+        name = "react@19.0.0";
+        url = "https://registry.npmjs.org/react/-/react-19.0.0.tgz";
+        hash = "sha256-IXjsAtQcCfYLWn3CGER4ev0KQfJo+qbqmsegbM9k7KY=";
+      };
     };
-    "react-dom" = fetchurl {
-      name = "react-dom@19.0.0";
-      url = "https://registry.npmjs.org/react-dom/-/react-dom-19.0.0.tgz";
-      hash = "sha256-Ug6qBE6TJehvkLmHEQOd/UojK7p90g69MrCVp7Y3eXc=";
+    "react-dom" = {
+      out_path = "react-dom";
+      binaries = {
+      };
+      pkg = fetchurl {
+        name = "react-dom@19.0.0";
+        url = "https://registry.npmjs.org/react-dom/-/react-dom-19.0.0.tgz";
+        hash = "sha256-Ug6qBE6TJehvkLmHEQOd/UojK7p90g69MrCVp7Y3eXc=";
+      };
     };
-    "scheduler" = fetchurl {
-      name = "scheduler@0.25.0";
-      url = "https://registry.npmjs.org/scheduler/-/scheduler-0.25.0.tgz";
-      hash = "sha256-iqwtpt7LCcHaz4wQb2LS+0RU+7H98vb+bU7xpXt8aRQ=";
+    "scheduler" = {
+      out_path = "scheduler";
+      binaries = {
+      };
+      pkg = fetchurl {
+        name = "scheduler@0.25.0";
+        url = "https://registry.npmjs.org/scheduler/-/scheduler-0.25.0.tgz";
+        hash = "sha256-iqwtpt7LCcHaz4wQb2LS+0RU+7H98vb+bU7xpXt8aRQ=";
+      };
     };
-    "tailwindcss" = fetchurl {
-      name = "tailwindcss@4.0.9";
-      url = "https://registry.npmjs.org/tailwindcss/-/tailwindcss-4.0.9.tgz";
-      hash = "sha256-kw0dfQQ5MRjcvU8Vrs5nTIsOWIsqqNx9tPFvk+xxSvQ=";
+    "tailwindcss" = {
+      out_path = "tailwindcss";
+      binaries = {
+      };
+      pkg = fetchurl {
+        name = "tailwindcss@4.0.9";
+        url = "https://registry.npmjs.org/tailwindcss/-/tailwindcss-4.0.9.tgz";
+        hash = "sha256-kw0dfQQ5MRjcvU8Vrs5nTIsOWIsqqNx9tPFvk+xxSvQ=";
+      };
     };
-    "typescript" = fetchurl {
-      name = "typescript@5.7.3";
-      url = "https://registry.npmjs.org/typescript/-/typescript-5.7.3.tgz";
-      hash = "sha256-gM/KElS6uOgdY5F45C1kBthW+6bjTK1g0atQ7m5ffrs=";
+    "typescript" = {
+      out_path = "typescript";
+      binaries = {
+        "tsc" = "../typescript/bin/tsc";
+        "tsserver" = "../typescript/bin/tsserver";
+      };
+      pkg = fetchurl {
+        name = "typescript@5.7.3";
+        url = "https://registry.npmjs.org/typescript/-/typescript-5.7.3.tgz";
+        hash = "sha256-gM/KElS6uOgdY5F45C1kBthW+6bjTK1g0atQ7m5ffrs=";
+      };
     };
-    "undici-types" = fetchurl {
-      name = "undici-types@6.20.0";
-      url = "https://registry.npmjs.org/undici-types/-/undici-types-6.20.0.tgz";
-      hash = "sha256-coyp/P9nY3Lk3NZIteJvu9sonsK89nXnYBzCE0pejW4=";
+    "undici-types" = {
+      out_path = "undici-types";
+      binaries = {
+      };
+      pkg = fetchurl {
+        name = "undici-types@6.20.0";
+        url = "https://registry.npmjs.org/undici-types/-/undici-types-6.20.0.tgz";
+        hash = "sha256-coyp/P9nY3Lk3NZIteJvu9sonsK89nXnYBzCE0pejW4=";
+      };
     };
-  };
-
-  # List of binary symlinks to create in the `node_modules/.bin` folder
-  binaries = {
-    "tsc" = "../typescript/bin/tsc";
-    "tsserver" = "../typescript/bin/tsserver";
-  };
-
-  # Normalize a package path
-  normalizePath = name:
-    if lib.hasPrefix "@" name
-    then name
-    else if !lib.hasInfix "/" name
-    then name
-    else let
-      parts = lib.strings.splitString "/" name;
-      joiner = builtins.concatStringsSep "/node_modules/";
-    in
-      joiner parts;
-
-  # Extract a package from a tar file
-  extractPackage = name: pkg: let
-    targetPath = normalizePath name;
-  in
-    runCommand "bun2nix-extract-${name}" {buildInputs = [gnutar coreutils];} ''
-      echo ${targetPath}
-
-      # Extract the npm download into the correctly resolved path based on the package name
-      mkdir -p $out/${targetPath}
-      tar -xzf ${pkg} -C $out/${targetPath} --strip-components=1
-
-      # Patch any binaries in the package
-      mkdir -p $out/bin
-      ln -s ${bun}/bin/bun $out/bin/node
-      PATH=$out/bin:$PATH patchShebangs $out/${targetPath}
-      patchShebangs $out/${targetPath}
-    '';
-
-  # Link a binary from a package
-  linkBin = name: dest:
-    runCommand "bun2nix-binary-${name}" {} ''
-      mkdir -p $out
-
-      ln -sn ${dest} $out/${name}
-    '';
-
-  # Construct the .bin directory
-  dotBinDir = symlinkJoin {
-    name = ".bin";
-    paths = lib.mapAttrsToList linkBin binaries;
-  };
-
-  # Link the packages to inject into node_modules
-  packageFiles = symlinkJoin {
-    name = "package-files";
-    paths = lib.mapAttrsToList extractPackage packages;
   };
 
   # Build the node modules directory
-  nodeModules = runCommand "node-modules" {} ''
-    mkdir -p $out
+  nodeModules = runCommand "node-modules" {
+    nativeBuildInputs = [ 
+      gnutar 
+      makeWrapper
+    ];
+  } ''
+    mkdir -p $out/node_modules/.bin
 
-    # Packages need to be regular folders
-    cp -rL ${packageFiles}/* $out/
+    # Extract a given package to it's destination
+    extract() {
+      local pkg=$1
+      local dest=$2
+      
+      mkdir -p "$dest"
+      tar -xzf "$pkg" -C "$dest" --strip-components=1
+    }
 
-    # Executables need to be symlinks
-    cp -r ${dotBinDir} $out/.bin
+    # Process each package
+    ${lib.concatStringsSep "\n" (lib.mapAttrsToList (name: pkg: ''
+      echo "Installing package ${name}..."
+
+      mkdir -p "$out/node_modules/${pkg.out_path}"
+      extract "${pkg.pkg}" "$out/node_modules/${pkg.out_path}"
+      
+      # Handle binaries if they exist
+      ${lib.concatStringsSep "\n" (lib.mapAttrsToList (binName: binPath: ''
+        ln -sf "${binPath}" "$out/node_modules/.bin/${binName}"
+      '') pkg.binaries)}
+    '') packages)}
+
+    # Force bun instead of node for script execution
+    makeWrapper ${bun}/bin/bun $out/bin/node
+    export PATH="$out/bin:$PATH"
+
+    patchShebangs $out/node_modules
   '';
+
 in {
-  inherit nodeModules packages dotBinDir binaries;
+  inherit nodeModules packages;
 }

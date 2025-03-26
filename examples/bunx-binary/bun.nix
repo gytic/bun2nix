@@ -3,319 +3,528 @@
 {
   lib,
   fetchurl,
-  gnutar,
-  coreutils,
   runCommand,
-  symlinkJoin,
+  gnutar,
   bun,
+  makeWrapper,
+  ...
 }: let
   # Set of Bun packages to install
   packages = {
-    "@types/bun" = fetchurl {
-      name = "@types/bun@1.2.4";
-      url = "https://registry.npmjs.org/@types/bun/-/bun-1.2.4.tgz";
-      hash = "sha256-O01ctlMKEB5nmokJir6UwrPEPWaW9zhiqS0YkwPVX9Y=";
+    "@types/bun" = {
+      out_path = "@types/bun";
+      binaries = {
+      };
+      pkg = fetchurl {
+        name = "@types/bun@1.2.4";
+        url = "https://registry.npmjs.org/@types/bun/-/bun-1.2.4.tgz";
+        hash = "sha256-O01ctlMKEB5nmokJir6UwrPEPWaW9zhiqS0YkwPVX9Y=";
+      };
     };
-    "@types/node" = fetchurl {
-      name = "@types/node@22.13.5";
-      url = "https://registry.npmjs.org/@types/node/-/node-22.13.5.tgz";
-      hash = "sha256-jtFd0kKkgHHRYLsT8YUk7PgWSyu0nVwrUHm+IMzNRKQ=";
+    "@types/node" = {
+      out_path = "@types/node";
+      binaries = {
+      };
+      pkg = fetchurl {
+        name = "@types/node@22.13.5";
+        url = "https://registry.npmjs.org/@types/node/-/node-22.13.5.tgz";
+        hash = "sha256-jtFd0kKkgHHRYLsT8YUk7PgWSyu0nVwrUHm+IMzNRKQ=";
+      };
     };
-    "@types/ws" = fetchurl {
-      name = "@types/ws@8.5.14";
-      url = "https://registry.npmjs.org/@types/ws/-/ws-8.5.14.tgz";
-      hash = "sha256-SsUn5egoHI/5PcxHQwwtNupaBcwgePqjR3uTG7Ew37w=";
+    "@types/ws" = {
+      out_path = "@types/ws";
+      binaries = {
+      };
+      pkg = fetchurl {
+        name = "@types/ws@8.5.14";
+        url = "https://registry.npmjs.org/@types/ws/-/ws-8.5.14.tgz";
+        hash = "sha256-SsUn5egoHI/5PcxHQwwtNupaBcwgePqjR3uTG7Ew37w=";
+      };
     };
-    "ansi-regex" = fetchurl {
-      name = "ansi-regex@3.0.1";
-      url = "https://registry.npmjs.org/ansi-regex/-/ansi-regex-3.0.1.tgz";
-      hash = "sha256-mJwKSCr4eX6JDYmb3AxUw0OQClMDYXYEocOamMCnZFc=";
+    "ansi-regex" = {
+      out_path = "ansi-regex";
+      binaries = {
+      };
+      pkg = fetchurl {
+        name = "ansi-regex@3.0.1";
+        url = "https://registry.npmjs.org/ansi-regex/-/ansi-regex-3.0.1.tgz";
+        hash = "sha256-mJwKSCr4eX6JDYmb3AxUw0OQClMDYXYEocOamMCnZFc=";
+      };
     };
-    "ansi-styles" = fetchurl {
-      name = "ansi-styles@4.3.0";
-      url = "https://registry.npmjs.org/ansi-styles/-/ansi-styles-4.3.0.tgz";
-      hash = "sha256-LFOaRthatgMxg5l0NNLZpcos7vwStNuQIvVkeEzXmH8=";
+    "ansi-styles" = {
+      out_path = "ansi-styles";
+      binaries = {
+      };
+      pkg = fetchurl {
+        name = "ansi-styles@4.3.0";
+        url = "https://registry.npmjs.org/ansi-styles/-/ansi-styles-4.3.0.tgz";
+        hash = "sha256-LFOaRthatgMxg5l0NNLZpcos7vwStNuQIvVkeEzXmH8=";
+      };
     };
-    "bun-types" = fetchurl {
-      name = "bun-types@1.2.4";
-      url = "https://registry.npmjs.org/bun-types/-/bun-types-1.2.4.tgz";
-      hash = "sha256-lXqzNu+EFE1bzON4rLGrSdws76vuyStC1Ehxa3n/6/0=";
+    "bun-types" = {
+      out_path = "bun-types";
+      binaries = {
+      };
+      pkg = fetchurl {
+        name = "bun-types@1.2.4";
+        url = "https://registry.npmjs.org/bun-types/-/bun-types-1.2.4.tgz";
+        hash = "sha256-lXqzNu+EFE1bzON4rLGrSdws76vuyStC1Ehxa3n/6/0=";
+      };
     };
-    "camelcase" = fetchurl {
-      name = "camelcase@5.3.1";
-      url = "https://registry.npmjs.org/camelcase/-/camelcase-5.3.1.tgz";
-      hash = "sha256-xgkySriJUV8vc1TdzDGbYIDJt28qwUQcA9oDHIVFhpY=";
+    "camelcase" = {
+      out_path = "camelcase";
+      binaries = {
+      };
+      pkg = fetchurl {
+        name = "camelcase@5.3.1";
+        url = "https://registry.npmjs.org/camelcase/-/camelcase-5.3.1.tgz";
+        hash = "sha256-xgkySriJUV8vc1TdzDGbYIDJt28qwUQcA9oDHIVFhpY=";
+      };
     };
-    "cliui" = fetchurl {
-      name = "cliui@6.0.0";
-      url = "https://registry.npmjs.org/cliui/-/cliui-6.0.0.tgz";
-      hash = "sha256-U4v8l1Mzj464FsRuflQbO7raGERs+LUUnPqq//Aay9g=";
+    "cliui" = {
+      out_path = "cliui";
+      binaries = {
+      };
+      pkg = fetchurl {
+        name = "cliui@6.0.0";
+        url = "https://registry.npmjs.org/cliui/-/cliui-6.0.0.tgz";
+        hash = "sha256-U4v8l1Mzj464FsRuflQbO7raGERs+LUUnPqq//Aay9g=";
+      };
     };
-    "cliui/string-width" = fetchurl {
-      name = "string-width@4.2.3";
-      url = "https://registry.npmjs.org/string-width/-/string-width-4.2.3.tgz";
-      hash = "sha256-rbtPsbJugGmvma3/AHk2nJPxfPiHuRCGaR1nHdvVKTQ=";
+    "cliui/string-width" = {
+      out_path = "cliui/node_modules/string-width";
+      binaries = {
+      };
+      pkg = fetchurl {
+        name = "string-width@4.2.3";
+        url = "https://registry.npmjs.org/string-width/-/string-width-4.2.3.tgz";
+        hash = "sha256-rbtPsbJugGmvma3/AHk2nJPxfPiHuRCGaR1nHdvVKTQ=";
+      };
     };
-    "cliui/string-width/is-fullwidth-code-point" = fetchurl {
-      name = "is-fullwidth-code-point@3.0.0";
-      url = "https://registry.npmjs.org/is-fullwidth-code-point/-/is-fullwidth-code-point-3.0.0.tgz";
-      hash = "sha256-b0Fdrl3GBw8bQtruYWXquUGpcQGYIwX6zIuv2vMAvEo=";
+    "cliui/string-width/is-fullwidth-code-point" = {
+      out_path = "cliui/node_modules/string-width/node_modules/is-fullwidth-code-point";
+      binaries = {
+      };
+      pkg = fetchurl {
+        name = "is-fullwidth-code-point@3.0.0";
+        url = "https://registry.npmjs.org/is-fullwidth-code-point/-/is-fullwidth-code-point-3.0.0.tgz";
+        hash = "sha256-b0Fdrl3GBw8bQtruYWXquUGpcQGYIwX6zIuv2vMAvEo=";
+      };
     };
-    "cliui/strip-ansi" = fetchurl {
-      name = "strip-ansi@6.0.1";
-      url = "https://registry.npmjs.org/strip-ansi/-/strip-ansi-6.0.1.tgz";
-      hash = "sha256-m9t10L/0nxVt2MO8sOBrP6lsPYjd1MNCpDRYZqQMCMo=";
+    "cliui/strip-ansi" = {
+      out_path = "cliui/node_modules/strip-ansi";
+      binaries = {
+      };
+      pkg = fetchurl {
+        name = "strip-ansi@6.0.1";
+        url = "https://registry.npmjs.org/strip-ansi/-/strip-ansi-6.0.1.tgz";
+        hash = "sha256-m9t10L/0nxVt2MO8sOBrP6lsPYjd1MNCpDRYZqQMCMo=";
+      };
     };
-    "cliui/strip-ansi/ansi-regex" = fetchurl {
-      name = "ansi-regex@5.0.1";
-      url = "https://registry.npmjs.org/ansi-regex/-/ansi-regex-5.0.1.tgz";
-      hash = "sha256-Dg6tzaragF212FtTrVzcoHYLmW7hmeyWWOezSqbI4Nk=";
+    "cliui/strip-ansi/ansi-regex" = {
+      out_path = "cliui/node_modules/strip-ansi/node_modules/ansi-regex";
+      binaries = {
+      };
+      pkg = fetchurl {
+        name = "ansi-regex@5.0.1";
+        url = "https://registry.npmjs.org/ansi-regex/-/ansi-regex-5.0.1.tgz";
+        hash = "sha256-Dg6tzaragF212FtTrVzcoHYLmW7hmeyWWOezSqbI4Nk=";
+      };
     };
-    "color-convert" = fetchurl {
-      name = "color-convert@2.0.1";
-      url = "https://registry.npmjs.org/color-convert/-/color-convert-2.0.1.tgz";
-      hash = "sha256-kg+kNTjAGaCF278Ey29yzDN2JOX1IXUZ8Oey73hOfOE=";
+    "color-convert" = {
+      out_path = "color-convert";
+      binaries = {
+      };
+      pkg = fetchurl {
+        name = "color-convert@2.0.1";
+        url = "https://registry.npmjs.org/color-convert/-/color-convert-2.0.1.tgz";
+        hash = "sha256-kg+kNTjAGaCF278Ey29yzDN2JOX1IXUZ8Oey73hOfOE=";
+      };
     };
-    "color-name" = fetchurl {
-      name = "color-name@1.1.4";
-      url = "https://registry.npmjs.org/color-name/-/color-name-1.1.4.tgz";
-      hash = "sha256-UHt8RGHo65QTVa+aWemn4CzQ58YXa0jRgJdmNE8/Fwg=";
+    "color-name" = {
+      out_path = "color-name";
+      binaries = {
+      };
+      pkg = fetchurl {
+        name = "color-name@1.1.4";
+        url = "https://registry.npmjs.org/color-name/-/color-name-1.1.4.tgz";
+        hash = "sha256-UHt8RGHo65QTVa+aWemn4CzQ58YXa0jRgJdmNE8/Fwg=";
+      };
     };
-    "cowsay" = fetchurl {
-      name = "cowsay@1.6.0";
-      url = "https://registry.npmjs.org/cowsay/-/cowsay-1.6.0.tgz";
-      hash = "sha256-AhDv6s+TRKz4Cy9qQDdRiichfaUoJfhOPeBLOFMi04k=";
+    "cowsay" = {
+      out_path = "cowsay";
+      binaries = {
+        "cowsay" = "../cowsay/cli.js";
+        "cowthink" = "../cowsay/cli.js";
+      };
+      pkg = fetchurl {
+        name = "cowsay@1.6.0";
+        url = "https://registry.npmjs.org/cowsay/-/cowsay-1.6.0.tgz";
+        hash = "sha256-AhDv6s+TRKz4Cy9qQDdRiichfaUoJfhOPeBLOFMi04k=";
+      };
     };
-    "decamelize" = fetchurl {
-      name = "decamelize@1.2.0";
-      url = "https://registry.npmjs.org/decamelize/-/decamelize-1.2.0.tgz";
-      hash = "sha256-tK3v9RDjjDoCcDvLpy/748ZbWR8Tx4xqRZtegBo+KGQ=";
+    "decamelize" = {
+      out_path = "decamelize";
+      binaries = {
+      };
+      pkg = fetchurl {
+        name = "decamelize@1.2.0";
+        url = "https://registry.npmjs.org/decamelize/-/decamelize-1.2.0.tgz";
+        hash = "sha256-tK3v9RDjjDoCcDvLpy/748ZbWR8Tx4xqRZtegBo+KGQ=";
+      };
     };
-    "emoji-regex" = fetchurl {
-      name = "emoji-regex@8.0.0";
-      url = "https://registry.npmjs.org/emoji-regex/-/emoji-regex-8.0.0.tgz";
-      hash = "sha256-tczZ+/sICY7vvra2tLQNtts6z5JD4yfgOZJaqGYcsQc=";
+    "emoji-regex" = {
+      out_path = "emoji-regex";
+      binaries = {
+      };
+      pkg = fetchurl {
+        name = "emoji-regex@8.0.0";
+        url = "https://registry.npmjs.org/emoji-regex/-/emoji-regex-8.0.0.tgz";
+        hash = "sha256-tczZ+/sICY7vvra2tLQNtts6z5JD4yfgOZJaqGYcsQc=";
+      };
     };
-    "find-up" = fetchurl {
-      name = "find-up@4.1.0";
-      url = "https://registry.npmjs.org/find-up/-/find-up-4.1.0.tgz";
-      hash = "sha256-M6mwU1MG0uBeCicIi2g0S1Ksdn1XbvYLerFzqg1aJus=";
+    "find-up" = {
+      out_path = "find-up";
+      binaries = {
+      };
+      pkg = fetchurl {
+        name = "find-up@4.1.0";
+        url = "https://registry.npmjs.org/find-up/-/find-up-4.1.0.tgz";
+        hash = "sha256-M6mwU1MG0uBeCicIi2g0S1Ksdn1XbvYLerFzqg1aJus=";
+      };
     };
-    "get-caller-file" = fetchurl {
-      name = "get-caller-file@2.0.5";
-      url = "https://registry.npmjs.org/get-caller-file/-/get-caller-file-2.0.5.tgz";
-      hash = "sha256-exPhyBlJ/0wbquSsTjSZBJLV6Khtq347kAJ7H1Emk18=";
+    "get-caller-file" = {
+      out_path = "get-caller-file";
+      binaries = {
+      };
+      pkg = fetchurl {
+        name = "get-caller-file@2.0.5";
+        url = "https://registry.npmjs.org/get-caller-file/-/get-caller-file-2.0.5.tgz";
+        hash = "sha256-exPhyBlJ/0wbquSsTjSZBJLV6Khtq347kAJ7H1Emk18=";
+      };
     };
-    "get-stdin" = fetchurl {
-      name = "get-stdin@8.0.0";
-      url = "https://registry.npmjs.org/get-stdin/-/get-stdin-8.0.0.tgz";
-      hash = "sha256-VQMl1m2rqflYVjd0kxQwp/Vb0qq8R3A/LKMQLtNoRAs=";
+    "get-stdin" = {
+      out_path = "get-stdin";
+      binaries = {
+      };
+      pkg = fetchurl {
+        name = "get-stdin@8.0.0";
+        url = "https://registry.npmjs.org/get-stdin/-/get-stdin-8.0.0.tgz";
+        hash = "sha256-VQMl1m2rqflYVjd0kxQwp/Vb0qq8R3A/LKMQLtNoRAs=";
+      };
     };
-    "is-fullwidth-code-point" = fetchurl {
-      name = "is-fullwidth-code-point@2.0.0";
-      url = "https://registry.npmjs.org/is-fullwidth-code-point/-/is-fullwidth-code-point-2.0.0.tgz";
-      hash = "sha256-TNDQ7e5r8yi2QWYgVNaen6+RJivu5vFY65dCIM6roGs=";
+    "is-fullwidth-code-point" = {
+      out_path = "is-fullwidth-code-point";
+      binaries = {
+      };
+      pkg = fetchurl {
+        name = "is-fullwidth-code-point@2.0.0";
+        url = "https://registry.npmjs.org/is-fullwidth-code-point/-/is-fullwidth-code-point-2.0.0.tgz";
+        hash = "sha256-TNDQ7e5r8yi2QWYgVNaen6+RJivu5vFY65dCIM6roGs=";
+      };
     };
-    "locate-path" = fetchurl {
-      name = "locate-path@5.0.0";
-      url = "https://registry.npmjs.org/locate-path/-/locate-path-5.0.0.tgz";
-      hash = "sha256-rj0bk2CkNYQKgajH2in1ljDdeTw/OaCPFfc/04lAU7c=";
+    "locate-path" = {
+      out_path = "locate-path";
+      binaries = {
+      };
+      pkg = fetchurl {
+        name = "locate-path@5.0.0";
+        url = "https://registry.npmjs.org/locate-path/-/locate-path-5.0.0.tgz";
+        hash = "sha256-rj0bk2CkNYQKgajH2in1ljDdeTw/OaCPFfc/04lAU7c=";
+      };
     };
-    "p-limit" = fetchurl {
-      name = "p-limit@2.3.0";
-      url = "https://registry.npmjs.org/p-limit/-/p-limit-2.3.0.tgz";
-      hash = "sha256-OEtFJAnP61xvqC3Gjr+kmLJHF7dPuNP+brK7iZCNspU=";
+    "p-limit" = {
+      out_path = "p-limit";
+      binaries = {
+      };
+      pkg = fetchurl {
+        name = "p-limit@2.3.0";
+        url = "https://registry.npmjs.org/p-limit/-/p-limit-2.3.0.tgz";
+        hash = "sha256-OEtFJAnP61xvqC3Gjr+kmLJHF7dPuNP+brK7iZCNspU=";
+      };
     };
-    "p-locate" = fetchurl {
-      name = "p-locate@4.1.0";
-      url = "https://registry.npmjs.org/p-locate/-/p-locate-4.1.0.tgz";
-      hash = "sha256-2Vpq5GLj2WfesMJQvaHDu+v+hqWIMtJ7IEx7dKdvpfA=";
+    "p-locate" = {
+      out_path = "p-locate";
+      binaries = {
+      };
+      pkg = fetchurl {
+        name = "p-locate@4.1.0";
+        url = "https://registry.npmjs.org/p-locate/-/p-locate-4.1.0.tgz";
+        hash = "sha256-2Vpq5GLj2WfesMJQvaHDu+v+hqWIMtJ7IEx7dKdvpfA=";
+      };
     };
-    "p-try" = fetchurl {
-      name = "p-try@2.2.0";
-      url = "https://registry.npmjs.org/p-try/-/p-try-2.2.0.tgz";
-      hash = "sha256-o5CyuJiZ35UK/AME6rp80fXjdGsuNwdYqbUPF35xN5A=";
+    "p-try" = {
+      out_path = "p-try";
+      binaries = {
+      };
+      pkg = fetchurl {
+        name = "p-try@2.2.0";
+        url = "https://registry.npmjs.org/p-try/-/p-try-2.2.0.tgz";
+        hash = "sha256-o5CyuJiZ35UK/AME6rp80fXjdGsuNwdYqbUPF35xN5A=";
+      };
     };
-    "path-exists" = fetchurl {
-      name = "path-exists@4.0.0";
-      url = "https://registry.npmjs.org/path-exists/-/path-exists-4.0.0.tgz";
-      hash = "sha256-27U1yTAs6bP3d+zj/wVcyNiIkKHh3t3ARTQK73b7d1w=";
+    "path-exists" = {
+      out_path = "path-exists";
+      binaries = {
+      };
+      pkg = fetchurl {
+        name = "path-exists@4.0.0";
+        url = "https://registry.npmjs.org/path-exists/-/path-exists-4.0.0.tgz";
+        hash = "sha256-27U1yTAs6bP3d+zj/wVcyNiIkKHh3t3ARTQK73b7d1w=";
+      };
     };
-    "require-directory" = fetchurl {
-      name = "require-directory@2.1.1";
-      url = "https://registry.npmjs.org/require-directory/-/require-directory-2.1.1.tgz";
-      hash = "sha256-cDvuCEQ2A4P+SoeS1KWlYmR0JqBT51l6HScqxVTzhsg=";
+    "require-directory" = {
+      out_path = "require-directory";
+      binaries = {
+      };
+      pkg = fetchurl {
+        name = "require-directory@2.1.1";
+        url = "https://registry.npmjs.org/require-directory/-/require-directory-2.1.1.tgz";
+        hash = "sha256-cDvuCEQ2A4P+SoeS1KWlYmR0JqBT51l6HScqxVTzhsg=";
+      };
     };
-    "require-main-filename" = fetchurl {
-      name = "require-main-filename@2.0.0";
-      url = "https://registry.npmjs.org/require-main-filename/-/require-main-filename-2.0.0.tgz";
-      hash = "sha256-xbtWYxj7YJHHwqx8Crpu63szL/z6+tImii3BKk1CjgA=";
+    "require-main-filename" = {
+      out_path = "require-main-filename";
+      binaries = {
+      };
+      pkg = fetchurl {
+        name = "require-main-filename@2.0.0";
+        url = "https://registry.npmjs.org/require-main-filename/-/require-main-filename-2.0.0.tgz";
+        hash = "sha256-xbtWYxj7YJHHwqx8Crpu63szL/z6+tImii3BKk1CjgA=";
+      };
     };
-    "set-blocking" = fetchurl {
-      name = "set-blocking@2.0.0";
-      url = "https://registry.npmjs.org/set-blocking/-/set-blocking-2.0.0.tgz";
-      hash = "sha256-2TSu59ueCdoJ6HckdDMV/+iIEwqm4E+73srJhfauaT0=";
+    "set-blocking" = {
+      out_path = "set-blocking";
+      binaries = {
+      };
+      pkg = fetchurl {
+        name = "set-blocking@2.0.0";
+        url = "https://registry.npmjs.org/set-blocking/-/set-blocking-2.0.0.tgz";
+        hash = "sha256-2TSu59ueCdoJ6HckdDMV/+iIEwqm4E+73srJhfauaT0=";
+      };
     };
-    "string-width" = fetchurl {
-      name = "string-width@2.1.1";
-      url = "https://registry.npmjs.org/string-width/-/string-width-2.1.1.tgz";
-      hash = "sha256-InzcDOkgkAugjJxTvfvTarIteNllfbthCOT5ua5ZeSw=";
+    "string-width" = {
+      out_path = "string-width";
+      binaries = {
+      };
+      pkg = fetchurl {
+        name = "string-width@2.1.1";
+        url = "https://registry.npmjs.org/string-width/-/string-width-2.1.1.tgz";
+        hash = "sha256-InzcDOkgkAugjJxTvfvTarIteNllfbthCOT5ua5ZeSw=";
+      };
     };
-    "strip-ansi" = fetchurl {
-      name = "strip-ansi@4.0.0";
-      url = "https://registry.npmjs.org/strip-ansi/-/strip-ansi-4.0.0.tgz";
-      hash = "sha256-qrCoRzaZ4BaSusK7g9VGDilaPa0OZlPg3Wr1fo/2IC0=";
+    "strip-ansi" = {
+      out_path = "strip-ansi";
+      binaries = {
+      };
+      pkg = fetchurl {
+        name = "strip-ansi@4.0.0";
+        url = "https://registry.npmjs.org/strip-ansi/-/strip-ansi-4.0.0.tgz";
+        hash = "sha256-qrCoRzaZ4BaSusK7g9VGDilaPa0OZlPg3Wr1fo/2IC0=";
+      };
     };
-    "strip-final-newline" = fetchurl {
-      name = "strip-final-newline@2.0.0";
-      url = "https://registry.npmjs.org/strip-final-newline/-/strip-final-newline-2.0.0.tgz";
-      hash = "sha256-aR/7LICNb2TQJWXw6OHhzSXqzh4ywGXpPWwaok4rAHU=";
+    "strip-final-newline" = {
+      out_path = "strip-final-newline";
+      binaries = {
+      };
+      pkg = fetchurl {
+        name = "strip-final-newline@2.0.0";
+        url = "https://registry.npmjs.org/strip-final-newline/-/strip-final-newline-2.0.0.tgz";
+        hash = "sha256-aR/7LICNb2TQJWXw6OHhzSXqzh4ywGXpPWwaok4rAHU=";
+      };
     };
-    "typescript" = fetchurl {
-      name = "typescript@5.7.3";
-      url = "https://registry.npmjs.org/typescript/-/typescript-5.7.3.tgz";
-      hash = "sha256-gM/KElS6uOgdY5F45C1kBthW+6bjTK1g0atQ7m5ffrs=";
+    "typescript" = {
+      out_path = "typescript";
+      binaries = {
+        "tsc" = "../typescript/bin/tsc";
+        "tsserver" = "../typescript/bin/tsserver";
+      };
+      pkg = fetchurl {
+        name = "typescript@5.7.3";
+        url = "https://registry.npmjs.org/typescript/-/typescript-5.7.3.tgz";
+        hash = "sha256-gM/KElS6uOgdY5F45C1kBthW+6bjTK1g0atQ7m5ffrs=";
+      };
     };
-    "undici-types" = fetchurl {
-      name = "undici-types@6.20.0";
-      url = "https://registry.npmjs.org/undici-types/-/undici-types-6.20.0.tgz";
-      hash = "sha256-coyp/P9nY3Lk3NZIteJvu9sonsK89nXnYBzCE0pejW4=";
+    "undici-types" = {
+      out_path = "undici-types";
+      binaries = {
+      };
+      pkg = fetchurl {
+        name = "undici-types@6.20.0";
+        url = "https://registry.npmjs.org/undici-types/-/undici-types-6.20.0.tgz";
+        hash = "sha256-coyp/P9nY3Lk3NZIteJvu9sonsK89nXnYBzCE0pejW4=";
+      };
     };
-    "which-module" = fetchurl {
-      name = "which-module@2.0.1";
-      url = "https://registry.npmjs.org/which-module/-/which-module-2.0.1.tgz";
-      hash = "sha256-/47vIvmJKGxKM9bFOs8RAnpMJjTrBCxj1783ALNCSXM=";
+    "which-module" = {
+      out_path = "which-module";
+      binaries = {
+      };
+      pkg = fetchurl {
+        name = "which-module@2.0.1";
+        url = "https://registry.npmjs.org/which-module/-/which-module-2.0.1.tgz";
+        hash = "sha256-/47vIvmJKGxKM9bFOs8RAnpMJjTrBCxj1783ALNCSXM=";
+      };
     };
-    "wrap-ansi" = fetchurl {
-      name = "wrap-ansi@6.2.0";
-      url = "https://registry.npmjs.org/wrap-ansi/-/wrap-ansi-6.2.0.tgz";
-      hash = "sha256-1G/EEvBNhzcApVe8lobULA1seXnhglzv6/QnnKnWePg=";
+    "wrap-ansi" = {
+      out_path = "wrap-ansi";
+      binaries = {
+      };
+      pkg = fetchurl {
+        name = "wrap-ansi@6.2.0";
+        url = "https://registry.npmjs.org/wrap-ansi/-/wrap-ansi-6.2.0.tgz";
+        hash = "sha256-1G/EEvBNhzcApVe8lobULA1seXnhglzv6/QnnKnWePg=";
+      };
     };
-    "wrap-ansi/string-width" = fetchurl {
-      name = "string-width@4.2.3";
-      url = "https://registry.npmjs.org/string-width/-/string-width-4.2.3.tgz";
-      hash = "sha256-rbtPsbJugGmvma3/AHk2nJPxfPiHuRCGaR1nHdvVKTQ=";
+    "wrap-ansi/string-width" = {
+      out_path = "wrap-ansi/node_modules/string-width";
+      binaries = {
+      };
+      pkg = fetchurl {
+        name = "string-width@4.2.3";
+        url = "https://registry.npmjs.org/string-width/-/string-width-4.2.3.tgz";
+        hash = "sha256-rbtPsbJugGmvma3/AHk2nJPxfPiHuRCGaR1nHdvVKTQ=";
+      };
     };
-    "wrap-ansi/string-width/is-fullwidth-code-point" = fetchurl {
-      name = "is-fullwidth-code-point@3.0.0";
-      url = "https://registry.npmjs.org/is-fullwidth-code-point/-/is-fullwidth-code-point-3.0.0.tgz";
-      hash = "sha256-b0Fdrl3GBw8bQtruYWXquUGpcQGYIwX6zIuv2vMAvEo=";
+    "wrap-ansi/string-width/is-fullwidth-code-point" = {
+      out_path = "wrap-ansi/node_modules/string-width/node_modules/is-fullwidth-code-point";
+      binaries = {
+      };
+      pkg = fetchurl {
+        name = "is-fullwidth-code-point@3.0.0";
+        url = "https://registry.npmjs.org/is-fullwidth-code-point/-/is-fullwidth-code-point-3.0.0.tgz";
+        hash = "sha256-b0Fdrl3GBw8bQtruYWXquUGpcQGYIwX6zIuv2vMAvEo=";
+      };
     };
-    "wrap-ansi/strip-ansi" = fetchurl {
-      name = "strip-ansi@6.0.1";
-      url = "https://registry.npmjs.org/strip-ansi/-/strip-ansi-6.0.1.tgz";
-      hash = "sha256-m9t10L/0nxVt2MO8sOBrP6lsPYjd1MNCpDRYZqQMCMo=";
+    "wrap-ansi/strip-ansi" = {
+      out_path = "wrap-ansi/node_modules/strip-ansi";
+      binaries = {
+      };
+      pkg = fetchurl {
+        name = "strip-ansi@6.0.1";
+        url = "https://registry.npmjs.org/strip-ansi/-/strip-ansi-6.0.1.tgz";
+        hash = "sha256-m9t10L/0nxVt2MO8sOBrP6lsPYjd1MNCpDRYZqQMCMo=";
+      };
     };
-    "wrap-ansi/strip-ansi/ansi-regex" = fetchurl {
-      name = "ansi-regex@5.0.1";
-      url = "https://registry.npmjs.org/ansi-regex/-/ansi-regex-5.0.1.tgz";
-      hash = "sha256-Dg6tzaragF212FtTrVzcoHYLmW7hmeyWWOezSqbI4Nk=";
+    "wrap-ansi/strip-ansi/ansi-regex" = {
+      out_path = "wrap-ansi/node_modules/strip-ansi/node_modules/ansi-regex";
+      binaries = {
+      };
+      pkg = fetchurl {
+        name = "ansi-regex@5.0.1";
+        url = "https://registry.npmjs.org/ansi-regex/-/ansi-regex-5.0.1.tgz";
+        hash = "sha256-Dg6tzaragF212FtTrVzcoHYLmW7hmeyWWOezSqbI4Nk=";
+      };
     };
-    "y18n" = fetchurl {
-      name = "y18n@4.0.3";
-      url = "https://registry.npmjs.org/y18n/-/y18n-4.0.3.tgz";
-      hash = "sha256-vElwRJgBQpunciiibwPgW6fppemBEe20TWoPx7ZmDs8=";
+    "y18n" = {
+      out_path = "y18n";
+      binaries = {
+      };
+      pkg = fetchurl {
+        name = "y18n@4.0.3";
+        url = "https://registry.npmjs.org/y18n/-/y18n-4.0.3.tgz";
+        hash = "sha256-vElwRJgBQpunciiibwPgW6fppemBEe20TWoPx7ZmDs8=";
+      };
     };
-    "yargs" = fetchurl {
-      name = "yargs@15.4.1";
-      url = "https://registry.npmjs.org/yargs/-/yargs-15.4.1.tgz";
-      hash = "sha256-Qav+xqdM+0+jMK8qM7hn36BqmytDm7ASRMT0fFhd5TU=";
+    "yargs" = {
+      out_path = "yargs";
+      binaries = {
+      };
+      pkg = fetchurl {
+        name = "yargs@15.4.1";
+        url = "https://registry.npmjs.org/yargs/-/yargs-15.4.1.tgz";
+        hash = "sha256-Qav+xqdM+0+jMK8qM7hn36BqmytDm7ASRMT0fFhd5TU=";
+      };
     };
-    "yargs-parser" = fetchurl {
-      name = "yargs-parser@18.1.3";
-      url = "https://registry.npmjs.org/yargs-parser/-/yargs-parser-18.1.3.tgz";
-      hash = "sha256-DJE17iMw/ZzcGf7RG42aeykvXdjd9AwTsFE0BpPrvlg=";
+    "yargs-parser" = {
+      out_path = "yargs-parser";
+      binaries = {
+      };
+      pkg = fetchurl {
+        name = "yargs-parser@18.1.3";
+        url = "https://registry.npmjs.org/yargs-parser/-/yargs-parser-18.1.3.tgz";
+        hash = "sha256-DJE17iMw/ZzcGf7RG42aeykvXdjd9AwTsFE0BpPrvlg=";
+      };
     };
-    "yargs/string-width" = fetchurl {
-      name = "string-width@4.2.3";
-      url = "https://registry.npmjs.org/string-width/-/string-width-4.2.3.tgz";
-      hash = "sha256-rbtPsbJugGmvma3/AHk2nJPxfPiHuRCGaR1nHdvVKTQ=";
+    "yargs/string-width" = {
+      out_path = "yargs/node_modules/string-width";
+      binaries = {
+      };
+      pkg = fetchurl {
+        name = "string-width@4.2.3";
+        url = "https://registry.npmjs.org/string-width/-/string-width-4.2.3.tgz";
+        hash = "sha256-rbtPsbJugGmvma3/AHk2nJPxfPiHuRCGaR1nHdvVKTQ=";
+      };
     };
-    "yargs/string-width/is-fullwidth-code-point" = fetchurl {
-      name = "is-fullwidth-code-point@3.0.0";
-      url = "https://registry.npmjs.org/is-fullwidth-code-point/-/is-fullwidth-code-point-3.0.0.tgz";
-      hash = "sha256-b0Fdrl3GBw8bQtruYWXquUGpcQGYIwX6zIuv2vMAvEo=";
+    "yargs/string-width/is-fullwidth-code-point" = {
+      out_path = "yargs/node_modules/string-width/node_modules/is-fullwidth-code-point";
+      binaries = {
+      };
+      pkg = fetchurl {
+        name = "is-fullwidth-code-point@3.0.0";
+        url = "https://registry.npmjs.org/is-fullwidth-code-point/-/is-fullwidth-code-point-3.0.0.tgz";
+        hash = "sha256-b0Fdrl3GBw8bQtruYWXquUGpcQGYIwX6zIuv2vMAvEo=";
+      };
     };
-    "yargs/string-width/strip-ansi" = fetchurl {
-      name = "strip-ansi@6.0.1";
-      url = "https://registry.npmjs.org/strip-ansi/-/strip-ansi-6.0.1.tgz";
-      hash = "sha256-m9t10L/0nxVt2MO8sOBrP6lsPYjd1MNCpDRYZqQMCMo=";
+    "yargs/string-width/strip-ansi" = {
+      out_path = "yargs/node_modules/string-width/node_modules/strip-ansi";
+      binaries = {
+      };
+      pkg = fetchurl {
+        name = "strip-ansi@6.0.1";
+        url = "https://registry.npmjs.org/strip-ansi/-/strip-ansi-6.0.1.tgz";
+        hash = "sha256-m9t10L/0nxVt2MO8sOBrP6lsPYjd1MNCpDRYZqQMCMo=";
+      };
     };
-    "yargs/string-width/strip-ansi/ansi-regex" = fetchurl {
-      name = "ansi-regex@5.0.1";
-      url = "https://registry.npmjs.org/ansi-regex/-/ansi-regex-5.0.1.tgz";
-      hash = "sha256-Dg6tzaragF212FtTrVzcoHYLmW7hmeyWWOezSqbI4Nk=";
+    "yargs/string-width/strip-ansi/ansi-regex" = {
+      out_path = "yargs/node_modules/string-width/node_modules/strip-ansi/node_modules/ansi-regex";
+      binaries = {
+      };
+      pkg = fetchurl {
+        name = "ansi-regex@5.0.1";
+        url = "https://registry.npmjs.org/ansi-regex/-/ansi-regex-5.0.1.tgz";
+        hash = "sha256-Dg6tzaragF212FtTrVzcoHYLmW7hmeyWWOezSqbI4Nk=";
+      };
     };
-  };
-
-  # List of binary symlinks to create in the `node_modules/.bin` folder
-  binaries = {
-    "cowsay" = "../cowsay/cli.js";
-    "cowthink" = "../cowsay/cli.js";
-    "tsc" = "../typescript/bin/tsc";
-    "tsserver" = "../typescript/bin/tsserver";
-  };
-
-  # Normalize a package path
-  normalizePath = name:
-    if lib.hasPrefix "@" name
-    then name
-    else if !lib.hasInfix "/" name
-    then name
-    else let
-      parts = lib.strings.splitString "/" name;
-      joiner = builtins.concatStringsSep "/node_modules/";
-    in
-      joiner parts;
-
-  # Extract a package from a tar file
-  extractPackage = name: pkg: let
-    targetPath = normalizePath name;
-  in
-    runCommand "bun2nix-extract-${name}" {buildInputs = [gnutar coreutils];} ''
-      echo ${targetPath}
-
-      # Extract the npm download into the correctly resolved path based on the package name
-      mkdir -p $out/${targetPath}
-      tar -xzf ${pkg} -C $out/${targetPath} --strip-components=1
-
-      # Patch any binaries in the package
-      mkdir -p $out/bin
-      ln -s ${bun}/bin/bun $out/bin/node
-      PATH=$out/bin:$PATH patchShebangs $out/${targetPath}
-      patchShebangs $out/${targetPath}
-    '';
-
-  # Link a binary from a package
-  linkBin = name: dest:
-    runCommand "bun2nix-binary-${name}" {} ''
-      mkdir -p $out
-
-      ln -sn ${dest} $out/${name}
-    '';
-
-  # Construct the .bin directory
-  dotBinDir = symlinkJoin {
-    name = ".bin";
-    paths = lib.mapAttrsToList linkBin binaries;
-  };
-
-  # Link the packages to inject into node_modules
-  packageFiles = symlinkJoin {
-    name = "package-files";
-    paths = lib.mapAttrsToList extractPackage packages;
   };
 
   # Build the node modules directory
-  nodeModules = runCommand "node-modules" {} ''
-    mkdir -p $out
+  nodeModules = runCommand "node-modules" {
+    nativeBuildInputs = [ 
+      gnutar 
+      makeWrapper
+    ];
+  } ''
+    mkdir -p $out/node_modules/.bin
 
-    # Packages need to be regular folders
-    cp -rL ${packageFiles}/* $out/
+    # Extract a given package to it's destination
+    extract() {
+      local pkg=$1
+      local dest=$2
+      
+      mkdir -p "$dest"
+      tar -xzf "$pkg" -C "$dest" --strip-components=1
+    }
 
-    # Executables need to be symlinks
-    cp -r ${dotBinDir} $out/.bin
+    # Process each package
+    ${lib.concatStringsSep "\n" (lib.mapAttrsToList (name: pkg: ''
+      echo "Installing package ${name}..."
+
+      mkdir -p "$out/node_modules/${pkg.out_path}"
+      extract "${pkg.pkg}" "$out/node_modules/${pkg.out_path}"
+      
+      # Handle binaries if they exist
+      ${lib.concatStringsSep "\n" (lib.mapAttrsToList (binName: binPath: ''
+        ln -sf "${binPath}" "$out/node_modules/.bin/${binName}"
+      '') pkg.binaries)}
+    '') packages)}
+
+    # Force bun instead of node for script execution
+    makeWrapper ${bun}/bin/bun $out/bin/node
+    export PATH="$out/bin:$PATH"
+
+    patchShebangs $out/node_modules
   '';
+
 in {
-  inherit nodeModules packages dotBinDir binaries;
+  inherit nodeModules packages;
 }

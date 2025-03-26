@@ -9,6 +9,7 @@ bun2nix.mkBunDerivation {
 
   # Verify that the cowsay binary was installed as expected and is runnable
   preBuild = ''
+    bun ./node_modules/.bin/cowsay "hello 1"
     bunx cowsay "Hello Nix logs!"
   '';
 
