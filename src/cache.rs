@@ -184,7 +184,7 @@ impl Cache {
             b.push_bind(&pkg.npm_identifier);
             b.push_bind(&pkg.data.url);
             b.push_bind(&pkg.data.hash);
-            b.push_bind(serde_json::to_string(&pkg.binaries).unwrap());
+            b.push_bind(serde_json::to_string(&pkg.data.binaries).unwrap());
         })
         .build()
         .execute(&mut connection)

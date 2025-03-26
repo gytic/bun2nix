@@ -18,7 +18,7 @@ use crate::{
 mod package_visitor;
 pub use package_visitor::PackageVisitor;
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 /// # Bun Lockfile
 ///
@@ -119,7 +119,7 @@ impl FromStr for Lockfile {
     }
 }
 
-#[derive(Default, Serialize, Deserialize)]
+#[derive(Default, Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase", default)]
 /// # Lockfile workspace
 ///

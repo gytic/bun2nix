@@ -6,7 +6,6 @@ use std::{
 };
 
 use async_process::Command;
-use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use state::State;
 use store_prefetch::StorePrefetch;
@@ -19,13 +18,15 @@ use crate::{
 mod binaries;
 mod fetch_many;
 mod metadata;
+mod normalized_binary;
 mod state;
 mod store_prefetch;
 
 pub use binaries::Binaries;
 pub use fetch_many::FetchMany;
 pub use metadata::MetaData;
-pub use state::{Fetched, Unfetched};
+pub use normalized_binary::NormalizedBinary;
+pub use state::{Fetched, Normalized, Unfetched};
 
 #[derive(Default, Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase", default)]
@@ -45,9 +46,6 @@ pub struct Package<D: State> {
 
     /// The state the package is currently in
     pub data: D,
-
-    /// Binaries to create symlinks for
-    pub binaries: Binaries,
 }
 
 impl Package<Unfetched> {
@@ -57,9 +55,8 @@ impl Package<Unfetched> {
     pub fn new(name: String, npm_identifier: String, binaries: Binaries) -> Self {
         Self {
             name,
-            binaries,
             npm_identifier,
-            data: Unfetched,
+            data: Unfetched { binaries },
         }
     }
 
@@ -91,10 +88,10 @@ impl Package<Unfetched> {
         Ok(Package {
             name: self.name,
             npm_identifier: self.npm_identifier,
-            binaries: self.binaries,
             data: Fetched {
                 url,
                 hash: store_return.hash,
+                binaries: self.data.binaries,
             },
         })
     }
@@ -146,35 +143,29 @@ impl Package<Fetched> {
         Ok(Self {
             name,
             npm_identifier: row.npm_identifier,
-            binaries: serde_json::from_str(&row.binaries)?,
             data: Fetched {
                 url: row.url,
                 hash: row.hash,
+                binaries: serde_json::from_str(&row.binaries)?,
             },
         })
     }
 
-    /// # Generate Binary Symlinks
+    /// # Normalize Packages
     ///
-    /// Produces a list of binary names and symlinks to their correct location in
-    /// `node_modules`
-    pub fn generate_binary_symlinks(&self) -> Vec<(String, String)> {
-        match &self.binaries {
-            Binaries::None => Vec::default(),
-            Binaries::Unnamed(pathless_link) => {
-                let link = format!("../{}/{}", self.name, pathless_link);
-
-                vec![(self.name.clone(), link)]
-            }
-            Binaries::Named(bin_map) => bin_map
-                .iter()
-                .map(|(bin_name, pathless_link)| {
-                    let link = format!("../{}/{}", self.name, pathless_link);
-
-                    (bin_name.to_owned(), link)
-                })
-                .sorted()
-                .collect(),
+    /// Normalizes a package's data fields to prepare it to be output
+    ///
+    /// This includes building the output path in `node_modules` and a proper binaries list
+    pub fn normalize(self) -> Package<Normalized> {
+        Package {
+            npm_identifier: self.npm_identifier,
+            data: Normalized {
+                out_path: Normalized::convert_name_to_out_path(&self.name),
+                url: self.data.url,
+                hash: self.data.hash,
+                binaries: self.data.binaries.normalize(&self.name),
+            },
+            name: self.name,
         }
     }
 }

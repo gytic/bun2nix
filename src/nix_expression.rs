@@ -1,13 +1,15 @@
 //! This module handles construction of the rendered nix code as the output
 
 mod nix_escaper;
-mod normalized_binary;
 
+pub use crate::package::NormalizedBinary;
 pub use nix_escaper::NixEscaper;
-pub use normalized_binary::NormalizedBinary;
 use rinja::Template;
 
-use crate::{package::Fetched, Package};
+use crate::{
+    package::{Fetched, Normalized},
+    Package,
+};
 
 /// # Nix Expression
 ///
@@ -15,8 +17,7 @@ use crate::{package::Fetched, Package};
 #[derive(Template)]
 #[template(path = "output.nix")]
 pub struct NixExpression {
-    packages: Vec<Package<Fetched>>,
-    binaries: Vec<NormalizedBinary>,
+    packages: Vec<Package<Normalized>>,
 }
 
 impl NixExpression {
@@ -24,13 +25,8 @@ impl NixExpression {
     ///
     /// Produce a new, ready to render, nix expression from a fetch package list
     pub fn new(packages: Vec<Package<Fetched>>) -> Self {
-        let normalized = packages
-            .iter()
-            .map(|pkg| (pkg.name.as_str(), &pkg.binaries))
-            .collect::<Vec<_>>();
-
-        let binaries = NormalizedBinary::normalize_binaries(normalized);
-
-        Self { packages, binaries }
+        Self {
+            packages: packages.into_iter().map(|pkg| pkg.normalize()).collect(),
+        }
     }
 }

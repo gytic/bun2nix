@@ -44,7 +44,7 @@ impl TryFrom<Package<Fetched>> for CacheRow {
             npm_identifier: pkg.npm_identifier,
             url: pkg.data.url,
             hash: pkg.data.hash,
-            binaries: serde_json::to_string(&pkg.binaries)?,
+            binaries: serde_json::to_string(&pkg.data.binaries)?,
         })
     }
 }
