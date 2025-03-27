@@ -4,7 +4,7 @@
   lib,
   fetchurl,
   runCommand,
-  gnutar,
+  libarchive,
   bun,
   makeWrapper,
   ...
@@ -31,7 +31,7 @@
   # Build the node modules directory
   nodeModules = runCommand "node-modules" {
     nativeBuildInputs = [ 
-      gnutar 
+      libarchive 
       makeWrapper
     ];
   } ''
@@ -43,7 +43,14 @@
       local dest=$2
       
       mkdir -p "$dest"
-      tar -xzf "$pkg" -C "$dest" --strip-components=1
+      bsdtar --extract \
+        --file "$pkg" \
+        --directory "$dest" \
+        --strip-components=1 \
+        --no-same-owner \
+        --no-same-permissions
+
+      chmod -R a+X "$dest"
     }
 
     # Process each package
