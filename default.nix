@@ -90,7 +90,6 @@ in {
             --compile \
             --minify \
             --sourcemap \
-            --bytecode \
             ${args.index} \
             --outfile ${name}
 
