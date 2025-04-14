@@ -9,7 +9,7 @@ pkgs.rustPlatform.buildRustPackage {
   pname = cargoTOML.package.name;
   version = cargoTOML.package.version;
 
-  src = ./.;
+  src = ../.;
 
   buildInputs = with pkgs; [
     pkg-config
