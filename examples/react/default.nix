@@ -1,4 +1,4 @@
-{bun2nix, ...}:
+{ bun2nix, ... }:
 bun2nix.mkBunDerivation {
   name = "react-bun2nix-example";
   version = "1.0.0";

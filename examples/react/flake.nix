@@ -14,25 +14,30 @@
     };
   };
 
-  outputs = {
-    nixpkgs,
-    flake-utils,
-    ...
-  } @ inputs:
-    flake-utils.lib.eachDefaultSystem (system: let
-      pkgs = import nixpkgs {inherit system;};
+  outputs =
+    {
+      nixpkgs,
+      flake-utils,
+      ...
+    }@inputs:
+    flake-utils.lib.eachDefaultSystem (
+      system:
+      let
+        pkgs = import nixpkgs { inherit system; };
 
-      bun2nix = inputs.bun2nix.defaultPackage.${system};
+        bun2nix = inputs.bun2nix.defaultPackage.${system};
 
-      react-site = pkgs.callPackage ./default.nix {inherit bun2nix;};
-    in {
-      defaultPackage = react-site;
+        react-site = pkgs.callPackage ./default.nix { inherit bun2nix; };
+      in
+      {
+        defaultPackage = react-site;
 
-      devShells.default = pkgs.mkShell {
-        packages = with pkgs; [
-          bun
-          bun2nix.bin
-        ];
-      };
-    });
+        devShells.default = pkgs.mkShell {
+          packages = with pkgs; [
+            bun
+            bun2nix.bin
+          ];
+        };
+      }
+    );
 }

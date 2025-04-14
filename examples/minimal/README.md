@@ -9,6 +9,7 @@ To try it out use `nix run .`.
 ## Notable files
 
 The main files of note are:
+
 - `flake.nix` -> Contains basic project setup for a nix flake for `bun2nix`
 - `default.nix` -> Contains build instructions for this bun package
 - `bun.nix` -> Generated bun expression from `bun.lock`
