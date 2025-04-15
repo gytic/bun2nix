@@ -1,19 +1,32 @@
-{ pkgs, ... }:
 {
-  name,
+  bun,
+  callPackage,
+  lib,
+  rsync,
+  stdenv,
+  ...
+}:
+{
+  pname,
   version,
   src,
   bunNix,
+  buildFlags ? [
+    "--compile"
+    "--minify"
+    "--sourcemap"
+    "--bytecode"
+  ],
   ...
 }@args:
 let
-  bunDeps = pkgs.callPackage bunNix { };
+  bunDeps = callPackage bunNix { };
 in
-pkgs.stdenv.mkDerivation (
+stdenv.mkDerivation (
   {
     inherit name version src;
 
-    nativeBuildInputs = with pkgs; [
+    nativeBuildInputs = [
       rsync
       bun
     ];
@@ -44,19 +57,12 @@ pkgs.stdenv.mkDerivation (
 
     # Create a react static html site as per the script
     buildPhase =
-      assert pkgs.lib.assertMsg (args.index != null)
+      assert lib.assertMsg (args.index != null)
         "`index` input to `mkBunDerivation` pointing to your javascript index file must be set in order to use the default buildPhase";
       ''
         runHook preBuild
 
-        # Create a bun binary with all the highest compile time optimizations enabled
-        bun build \
-          --compile \
-          --minify \
-          --sourcemap \
-          --bytecode \
-          ${args.index} \
-          --outfile ${name}
+        bun build ${lib.concatStringsSep " " buildFlags} ${args.index} --outfile ${pname}
 
         runHook postBuild
       '';
