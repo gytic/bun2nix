@@ -100,6 +100,13 @@ bun2nix.mkBunDerivation {
 
   bunNix = ./bun.nix;
 
+  buildFlags = [
+    "--compile"
+    "--minify"
+    "--sourcemap"
+    "--bytecode"
+  ];
+
   index = ./index.ts;
 }
 ```

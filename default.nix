@@ -53,6 +53,12 @@ in {
     version,
     src,
     bunNix,
+    buildFlags ? [
+      "--compile"
+      "--minify"
+      "--sourcemap"
+      "--bytecode"
+    ],
     ...
   } @ args: let
     bunDeps = callPackage bunNix {};
@@ -86,13 +92,7 @@ in {
           runHook preBuild
 
           # Create a bun binary with all the highest compile time optimizations enabled
-          bun build \
-            --compile \
-            --minify \
-            --sourcemap \
-            --bytecode \
-            ${args.index} \
-            --outfile ${name}
+          bun build ${lib.concatStringsSep " " buildFlags} ${args.index} --outfile ${name}
 
           runHook postBuild
         '';
