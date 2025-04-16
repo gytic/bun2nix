@@ -53,7 +53,12 @@ in {
     version,
     src,
     bunNix,
-    buildFlags,
+    buildFlags ? [
+      "--compile"
+      "--minify"
+      "--sourcemap"
+      "--bytecode"
+    ],
     ...
   } @ args: let
     bunDeps = callPackage bunNix {};
