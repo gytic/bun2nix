@@ -27,6 +27,11 @@ impl<'de> Visitor<'de> for PackageVisitor {
         let mut packages = HashSet::new();
 
         while let Some((name, values)) = map.next_entry::<String, Vec<serde_json::Value>>()? {
+            if values.len() == 1 {
+                // workspaces are currently not supported
+                // see issue: https://github.com/baileyluTCD/bun2nix/issues/6
+                continue;
+            }
             if values.len() < 4 {
                 return Err(de::Error::custom(format!(
                     "Invalid package entry for {}: expected at least 4 values",
