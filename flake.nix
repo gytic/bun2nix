@@ -44,6 +44,7 @@
         packages = with pkgs; [
           # Rust dependencies
           rustc
+          rust-analyzer
           cargo
           rustfmt
           clippy
