@@ -1,0 +1,16 @@
+# Set of Bun packages to install
+{
+  {%- for pkg in packages %}
+  "{{ pkg.name }}" = {
+    out_path = "{{ pkg.data.out_path }}";
+    binaries = {
+      {%- for binary in pkg.data.binaries %}
+      "{{ binary.name }}" = "{{ binary.location }}";
+      {%- endfor %}
+    };
+    name = "{{ pkg.npm_identifier }}";
+    url = "{{ pkg.data.url }}";
+    hash = "{{ pkg.data.hash }}";
+  };
+  {%- endfor %}
+}
