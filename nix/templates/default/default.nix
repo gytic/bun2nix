@@ -1,6 +1,6 @@
 { mkBunDerivation, ... }:
 mkBunDerivation {
-  name = "minimal-bun2nix-example";
+  pname = "minimal-bun2nix-example";
   version = "1.0.0";
 
   src = ./.;
