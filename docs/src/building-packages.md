@@ -9,8 +9,8 @@
 Currently, basic usage would look something like:
 
 ```nix
-{bun2nix, ...}:
-bun2nix.mkBunDerivation {
+{mkBunDerivation, ...}:
+mkBunDerivation {
   pname = "simple-bun-app";
   version = "1.0.0";
 
@@ -37,6 +37,5 @@ The full list of accepted arguments is:
 
 If you wish to attempt building with your own derivation function, there are some important things you may wish to know:
 
-1. The generated `bun.nix` file contains build instructions for `node_modules` anything beyond that is your responsibility.
-2. `bun.nix` is intended to be consumed by `pkgs.callPackage`. Once you have that you may access the generated node modules as an attribute of that package. Additionally, the package set of all the packages is exposed too in case you wish to tackle making `node_modules` yourself.
-3. If you copy `node_modules` to your directory, be sure to preserve the symlinks in `.bin` which are important for running any program ran with `bunx`.
+1. `bun.nix` contains a list of package metadata that has all you need to construct a `node_modules` directory for a given package.
+2. This can be produced with the `mkBunNodeModules` library function provided by `bun2nix`.

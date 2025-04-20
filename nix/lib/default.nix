@@ -7,8 +7,10 @@ eachSystem (
   let
     pkgs = inputs.nixpkgs.legacyPackages.${system};
   in
-  {
-    mkBunDerivation = pkgs.callPackage ./mkBunDerivation.nix { };
+  rec {
+    mkBunNodeModules = pkgs.callPackage ./mkBunNodeModules.nix { };
+
+    mkBunDerivation = pkgs.callPackage ./mkBunDerivation.nix { inherit mkBunNodeModules; };
 
     treefmt = inputs.treefmt-nix.lib.evalModule pkgs (import ./treefmt-config.nix);
   }

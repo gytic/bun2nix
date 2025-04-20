@@ -1,7 +1,7 @@
 {
   bun,
-  callPackage,
   lib,
+  mkBunNodeModules,
   rsync,
   stdenv,
   ...
@@ -20,7 +20,7 @@
   ...
 }@args:
 let
-  bunDeps = callPackage bunNix { };
+  bunDeps = mkBunNodeModules (import bunNix);
 in
 stdenv.mkDerivation (
   {
@@ -31,28 +31,22 @@ stdenv.mkDerivation (
       bun
     ];
 
-    phases = [
-      "unpackPhase"
-      "loadModulesPhase"
-      "buildPhase"
-      "installPhase"
-    ];
-
     # Load node_modules based on the expression generated from the lockfile
-    loadModulesPhase = ''
-      runHook preLoadModules
+    configurePhase = ''
+      runHook preConfigure
+
+      # Unfortunately a full copy of node_modules does need to be done instead of a symlink as many packages will write to their install location
+      rsync -a --copy-links --chmod=ugo+w --exclude=".bin" ${bunDeps}/node_modules/ ./node_modules/
 
       # Preserve symlinks in .bin
-      rsync -a --copy-links --chmod=ugo+w --exclude=".bin" ${bunDeps.nodeModules}/node_modules/ ./node_modules/
-
-      if [ -d "${bunDeps.nodeModules}/node_modules/.bin" ]; then
-        rsync -a --links ${bunDeps.nodeModules}/node_modules/.bin/ ./node_modules/.bin/
+      if [ -d "${bunDeps}/node_modules/.bin" ]; then
+        rsync -a --links ${bunDeps}/node_modules/.bin/ ./node_modules/.bin/
       fi
 
       mkdir tmp
       export HOME=$TMPDIR
 
-      runHook postLoadModules
+      runHook postConfigure
     '';
 
     # Create a react static html site as per the script
@@ -81,7 +75,7 @@ stdenv.mkDerivation (
     # Bun binaries are broken by fixup phase
     dontFixup = true;
   }
-  // lib.optionalAttrs (args.buildPhase == null && args.installPhase == null) {
+  // lib.optionalAttrs (!(args ? buildPhase) && !(args ? installPhase)) {
     meta.mainProgram = pname;
   }
   // args
