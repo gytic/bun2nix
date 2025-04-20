@@ -1,6 +1,6 @@
 { mkBunDerivation, ... }:
 mkBunDerivation {
-  name = "react-bun2nix-example";
+  pname = "react-bun2nix-example";
   version = "1.0.0";
 
   src = ./.;
