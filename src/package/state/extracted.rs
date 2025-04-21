@@ -6,9 +6,9 @@ use super::State;
 
 #[derive(Default, Debug, Serialize, Deserialize, Clone)]
 /// Data held by an unfetched package
-pub struct Unfetched {
+pub struct Extracted {
     /// Binaries to create symlinks for
     pub binaries: Binaries,
 }
 
-impl State for Unfetched {}
+impl State for Extracted {}

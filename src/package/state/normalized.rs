@@ -16,9 +16,6 @@ pub struct Normalized {
     /// The url to fetch the package from
     pub url: String,
 
-    /// The prefetched hash of the package's files
-    pub hash: String,
-
     /// Binaries to create symlinks for
     pub binaries: Vec<NormalizedBinary>,
 }
