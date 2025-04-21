@@ -1,7 +1,7 @@
 # Bun2Nix
 
 <div style="display: flex; flex-direction: column; align-items: center; width: 100%;">
-    <img src="./favicon.svg" alt="Bun2nix Logo" width="150" height="150">
+    <img alt="Bun2nix Logo" src="./favicon.svg" alt="Bun2nix Logo" width="150" height="150">
 </div>
 
 Bun2nix is a fast rust based tool for converting lockfiles generated with the [JavaScript](https://en.wikipedia.org/wiki/JavaScript) [Bun](https://bun.sh/) (v1.2+) package manager files to [Nix](https://nixos.wiki/) expressions, which allows them to be consumed to build Bun packages reproducibly.
