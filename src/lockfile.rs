@@ -1,17 +1,14 @@
 //! This module holds everything related to deserialization of the bun lockfile, including type
 //! mappings and custom deserialization methods
 
-use std::{
-    collections::{HashMap, HashSet},
-    str::FromStr,
-};
+use std::{collections::HashMap, str::FromStr};
 
 use serde::{Deserialize, Deserializer, Serialize};
 use serde_json::Value;
 
 use crate::{
     error::{Error, Result},
-    package::Unfetched,
+    package::Extracted,
     Package,
 };
 
@@ -77,14 +74,14 @@ pub struct Lockfile {
     /// The list of all packages needed by the lockfile
     #[serde(default)]
     #[serde(deserialize_with = "Lockfile::deserialize_packages")]
-    pub packages: HashSet<Package<Unfetched>>,
+    pub packages: Vec<Package<Extracted>>,
 }
 
 impl Lockfile {
     /// # Lockfile Packages
     ///
     /// Consume the parsed lockfile and output it's packages set
-    pub fn packages(self) -> HashSet<Package<Unfetched>> {
+    pub fn packages(self) -> Vec<Package<Extracted>> {
         self.packages
     }
 
@@ -101,7 +98,7 @@ impl Lockfile {
     /// Use the `PackagesVisitor` to deserialize the packages into a `HashSet`
     pub fn deserialize_packages<'de, D>(
         data: D,
-    ) -> std::result::Result<HashSet<Package<Unfetched>>, D::Error>
+    ) -> std::result::Result<Vec<Package<Extracted>>, D::Error>
     where
         D: Deserializer<'de>,
     {

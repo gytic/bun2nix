@@ -101,7 +101,7 @@ impl Binaries {
 
                 let out_name = name_path
                     .components()
-                    .last()
+                    .next_back()
                     .map(|x| x.as_os_str().to_string_lossy());
 
                 vec![NormalizedBinary {

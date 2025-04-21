@@ -2,12 +2,12 @@
 
 mod nix_escaper;
 
-pub use crate::package::NormalizedBinary;
+pub use crate::{error::Result, package::NormalizedBinary};
 pub use nix_escaper::NixEscaper;
 use rinja::Template;
 
 use crate::{
-    package::{Fetched, Normalized},
+    package::{Extracted, Normalized},
     Package,
 };
 
@@ -23,10 +23,13 @@ pub struct NixExpression {
 impl NixExpression {
     /// # New Nix Expression
     ///
-    /// Produce a new, ready to render, nix expression from a fetch package list
-    pub fn new(packages: Vec<Package<Fetched>>) -> Self {
-        Self {
-            packages: packages.into_iter().map(|pkg| pkg.normalize()).collect(),
-        }
+    /// Produce a new, ready to render, nix expression from a package list
+    pub fn new(packages: Vec<Package<Extracted>>) -> Result<Self> {
+        let packages = packages
+            .into_iter()
+            .map(|pkg| pkg.normalize())
+            .collect::<Result<Vec<_>>>()?;
+
+        Ok(Self { packages })
     }
 }

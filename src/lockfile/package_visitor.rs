@@ -1,9 +1,9 @@
-use std::{collections::HashSet, fmt};
+use std::fmt;
 
 use serde::de::{self, MapAccess, Visitor};
 
 use crate::{
-    package::{MetaData, Unfetched},
+    package::{Extracted, MetaData},
     Package,
 };
 
@@ -14,7 +14,7 @@ use crate::{
 pub struct PackageVisitor;
 
 impl<'de> Visitor<'de> for PackageVisitor {
-    type Value = HashSet<Package<Unfetched>>;
+    type Value = Vec<Package<Extracted>>;
 
     fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         formatter.write_str("a map of package names to tuples")
@@ -24,7 +24,7 @@ impl<'de> Visitor<'de> for PackageVisitor {
     where
         M: MapAccess<'de>,
     {
-        let mut packages = HashSet::new();
+        let mut packages = Vec::new();
 
         while let Some((name, values)) = map.next_entry::<String, Vec<serde_json::Value>>()? {
             if values.len() < 4 {
@@ -42,9 +42,19 @@ impl<'de> Visitor<'de> for PackageVisitor {
             let meta: MetaData = serde_json::from_str(&values[2].to_string())
                 .map_err(|e| de::Error::custom(format!("Invalid metadata format: {}", e)))?;
 
-            let pkg = Package::new(name, npm_identifier, meta.binaries);
+            let hash = values[3]
+                .as_str()
+                .ok_or_else(|| de::Error::custom("Invalid hash format"))?
+                .to_string();
 
-            packages.insert(pkg);
+            assert!(
+                hash.contains("sha512-"),
+                "Expected hash to be in sri format and contain sha512"
+            );
+
+            let pkg = Package::new(name, npm_identifier, hash, meta.binaries);
+
+            packages.push(pkg);
         }
 
         Ok(packages)
