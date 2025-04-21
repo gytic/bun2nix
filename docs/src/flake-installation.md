@@ -74,7 +74,7 @@ And place this in a file called `default.nix`
 ```nix
 { mkBunDerivation, ... }:
 mkBunDerivation {
-  name = "bun2nix-example";
+  pname = "bun2nix-example";
   version = "1.0.0";
 
   src = ./.;
