@@ -42,6 +42,16 @@ runCommand "node-modules"
           src = fetchurl {
             inherit (pkg) name url hash;
           };
+
+          binaries =
+            if pkg ? binaries then
+              lib.concatStringsSep "\n" (
+                lib.mapAttrsToList (binName: binPath: ''
+                  ln -sf "${binPath}" "$out/node_modules/.bin/${binName}"
+                '') pkg.binaries
+              )
+            else
+              "";
         in
         ''
           echo "Installing package ${name}..."
@@ -49,12 +59,7 @@ runCommand "node-modules"
           mkdir -p "$out/node_modules/${pkg.out_path}"
           extract "${src}" "$out/node_modules/${pkg.out_path}"
 
-          # Handle binaries if they exist
-          ${lib.concatStringsSep "\n" (
-            lib.mapAttrsToList (binName: binPath: ''
-              ln -sf "${binPath}" "$out/node_modules/.bin/${binName}"
-            '') pkg.binaries
-          )}
+          ${binaries}
         ''
       ) packages
     )}
