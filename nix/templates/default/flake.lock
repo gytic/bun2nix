@@ -35,16 +35,15 @@
         "treefmt-nix": "treefmt-nix"
       },
       "locked": {
-        "lastModified": 1745182300,
-        "narHash": "sha256-e+5D4V8TYX7WsH3BFXO2YjSplRvpltgggFpyR87XVdg=",
+        "lastModified": 1745183113,
+        "narHash": "sha256-J0A5ht0HI2hTrIP8JbGXUl4VNrPdtg56F02lkbS4A40=",
         "owner": "baileyluTCD",
         "repo": "bun2nix",
-        "rev": "9eb1396c75210f2c709b78c76936a4694ff1a2fd",
+        "rev": "34ce30876ee6cacac41f86f83d530d795fd910d2",
         "type": "github"
       },
       "original": {
         "owner": "baileyluTCD",
-        "ref": "migrate-to-blueprint-framework",
         "repo": "bun2nix",
         "type": "github"
       }
