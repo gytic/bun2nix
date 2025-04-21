@@ -16,14 +16,6 @@ pkgs.rustPlatform.buildRustPackage {
     openssl
   ];
 
-  # Disable network using tests
-  checkFlags = [
-    "--skip=test_parse_minimal_lockfile"
-    "--skip=test_parse_react_lockfile"
-    "--skip=test_parse_bunx_binary_lockfile"
-    "--skip=test_prefetch_packages"
-  ];
-
   cargoLock = {
     lockFile = ../Cargo.lock;
   };
