@@ -10,7 +10,7 @@
     };
     name = "{{ pkg.npm_identifier }}";
     url = "{{ pkg.data.url }}";
-    hash = "{{ pkg.data.hash }}";
+    hash = "{{ pkg.hash }}";
   };
   {%- endfor %}
 }

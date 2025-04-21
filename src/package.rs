@@ -5,38 +5,30 @@ use std::{
     hash::{Hash, Hasher},
 };
 
-use async_process::Command;
 use serde::{Deserialize, Serialize};
 use state::State;
-use store_prefetch::StorePrefetch;
 
-use crate::{
-    cache::CacheRow,
-    error::{Error, Result},
-};
+use crate::error::{Error, Result};
 
 mod binaries;
-mod fetch_many;
 mod metadata;
 mod normalized_binary;
 mod state;
-mod store_prefetch;
 
 pub use binaries::Binaries;
-pub use fetch_many::FetchMany;
 pub use metadata::MetaData;
 pub use normalized_binary::NormalizedBinary;
-pub use state::{Fetched, Normalized, Unfetched};
+pub use state::{Extracted, Normalized};
 
 #[derive(Default, Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase", default)]
 /// # Package
 ///
 /// An individual package found in a bun lockfile.
-///
-/// It holds two states: `Unfetched` and `Fetched` to differentiate between those which we have a
-/// hash for and those which we do not.
 pub struct Package<D: State> {
+    /// The prefetched package hash
+    pub hash: String,
+
     /// The name of the package, as found in the `./node_modules` directory or in an import
     /// statement
     pub name: String,
@@ -48,52 +40,17 @@ pub struct Package<D: State> {
     pub data: D,
 }
 
-impl Package<Unfetched> {
+impl Package<Extracted> {
     /// # Package Constructor
     ///
-    /// Produce a new instance of an unfetched package
-    pub fn new(name: String, npm_identifier: String, binaries: Binaries) -> Self {
+    /// Produce a new instance of a just extracted package
+    pub fn new(name: String, npm_identifier: String, hash: String, binaries: Binaries) -> Self {
         Self {
             name,
             npm_identifier,
-            data: Unfetched { binaries },
+            hash,
+            data: Extracted { binaries },
         }
-    }
-
-    /// # Fetch One
-    ///
-    /// Prefetch a single package from a url without interacting with the cache and produce a fetched package
-    pub async fn fetch_one(self) -> Result<Package<Fetched>> {
-        let url = self.to_npm_url()?;
-
-        let output = Command::new("nix")
-            .args(["store", "prefetch-file", "--json", &url])
-            .output()
-            .await?;
-
-        if !output.status.success() {
-            return Err(Error::PrefetchStderr(String::from_utf8(output.stderr)?));
-        }
-
-        let store_return: StorePrefetch = serde_json::from_slice(&output.stdout)?;
-
-        assert_eq!(
-            51,
-            store_return.hash.len(),
-            "hash was not 51 chars: {}",
-            store_return.hash
-        );
-        assert!(store_return.hash.contains("sha256"));
-
-        Ok(Package {
-            name: self.name,
-            npm_identifier: self.npm_identifier,
-            data: Fetched {
-                url,
-                hash: store_return.hash,
-                binaries: self.data.binaries,
-            },
-        })
     }
 
     /// # NPM url converter
@@ -132,41 +89,23 @@ impl Package<Unfetched> {
             user, name, name, ver
         ))
     }
-}
-
-impl Package<Fetched> {
-    /// # Try From Name and Cache Row
-    ///
-    /// Try create a new fetched package from a cache entry by binding a name to make it
-    /// suitable for writing
-    pub fn try_from_name_and_cache_row(name: String, row: CacheRow) -> Result<Self> {
-        Ok(Self {
-            name,
-            npm_identifier: row.npm_identifier,
-            data: Fetched {
-                url: row.url,
-                hash: row.hash,
-                binaries: serde_json::from_str(&row.binaries)?,
-            },
-        })
-    }
 
     /// # Normalize Packages
     ///
     /// Normalizes a package's data fields to prepare it to be output
     ///
     /// This includes building the output path in `node_modules` and a proper binaries list
-    pub fn normalize(self) -> Package<Normalized> {
-        Package {
-            npm_identifier: self.npm_identifier,
+    pub fn normalize(self) -> Result<Package<Normalized>> {
+        Ok(Package {
             data: Normalized {
                 out_path: Normalized::convert_name_to_out_path(&self.name),
-                url: self.data.url,
-                hash: self.data.hash,
+                url: self.to_npm_url()?,
                 binaries: self.data.binaries.normalize(&self.name),
             },
+            npm_identifier: self.npm_identifier,
+            hash: self.hash,
             name: self.name,
-        }
+        })
     }
 }
 
