@@ -1,4 +1,6 @@
-![Bun2Nix Logo](./docs/src/favicon.svg)
+<div style="display: flex; flex-direction: column; align-items: center; width: 100%;">
+    <img alt="Bun2nix Logo" src="./docs/src/favicon.svg" alt="Bun2nix Logo" width="150" height="150">
+</div>
 
 # Bun2Nix
 
