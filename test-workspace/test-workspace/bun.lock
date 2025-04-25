@@ -1,0 +1,22 @@
+{
+  "lockfileVersion": 1,
+  "workspaces": {
+    "": {
+      "name": "test-workspace",
+    },
+    "packages/pkg1": {
+      "name": "pkg1",
+    },
+    "packages/pkg2": {
+      "name": "pkg2",
+      "dependencies": {
+        "pkg1": "workspace:*",
+      },
+    },
+  },
+  "packages": {
+    "pkg1": ["pkg1@workspace:packages/pkg1"],
+
+    "pkg2": ["pkg2@workspace:packages/pkg2"],
+  }
+}

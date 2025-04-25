@@ -27,6 +27,21 @@ impl<'de> Visitor<'de> for PackageVisitor {
         let mut packages = Vec::new();
 
         while let Some((name, values)) = map.next_entry::<String, Vec<serde_json::Value>>()? {
+            // Special handling for workspace packages which may have a different format
+            if values.len() == 1 {
+                if let Some(npm_id) = values[0].as_str() {
+                    if npm_id.contains("workspace:") {
+                        // This is a workspace package reference
+                        // We don't need a hash for workspace packages as they're local
+                        let dummy_hash = "sha512-workspaceDummyHash".to_string();
+                        let meta = MetaData::default();
+                        let pkg = Package::new(name, npm_id.to_string(), dummy_hash, meta.binaries);
+                        packages.push(pkg);
+                        continue;
+                    }
+                }
+            }
+
             if values.len() < 4 {
                 return Err(de::Error::custom(format!(
                     "Invalid package entry for {}: expected at least 4 values",
@@ -47,10 +62,13 @@ impl<'de> Visitor<'de> for PackageVisitor {
                 .ok_or_else(|| de::Error::custom("Invalid hash format"))?
                 .to_string();
 
-            assert!(
-                hash.contains("sha512-"),
-                "Expected hash to be in sri format and contain sha512"
-            );
+            // Don't enforce sha512 for workspace packages
+            if !npm_identifier.contains("workspace:") {
+                assert!(
+                    hash.contains("sha512-"),
+                    "Expected hash to be in sri format and contain sha512"
+                );
+            }
 
             let pkg = Package::new(name, npm_identifier, hash, meta.binaries);
 

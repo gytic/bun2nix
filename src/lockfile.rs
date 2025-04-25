@@ -85,6 +85,20 @@ impl Lockfile {
         self.packages
     }
 
+    /// # Lockfile Workspaces
+    ///
+    /// Get a reference to the lockfile's workspaces
+    pub fn workspaces(&self) -> &HashMap<String, Workspace> {
+        &self.workspaces
+    }
+
+    /// # Has Workspaces
+    ///
+    /// Check if the lockfile has any non-root workspaces
+    pub fn has_workspaces(&self) -> bool {
+        self.workspaces.iter().any(|(key, _)| !key.is_empty())
+    }
+
     /// # Parse to Value
     ///
     /// Parse the lockfile into a serde json value
@@ -124,5 +138,7 @@ impl FromStr for Lockfile {
 pub struct Workspace {
     /// The name of the workspace
     pub name: Option<String>,
-    dependencies: HashMap<String, String>,
+    /// Dependencies of the workspace
+    #[serde(default)]
+    pub dependencies: HashMap<String, String>,
 }

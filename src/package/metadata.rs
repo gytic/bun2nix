@@ -16,6 +16,9 @@ pub struct MetaData {
     /// Optional peer dependencies
     pub optional_peers: Vec<String>,
 
+    /// Package regular dependencies
+    pub dependencies: HashMap<String, String>,
+
     /// Package binaries
     #[serde(rename = "bin")]
     pub binaries: Binaries,
