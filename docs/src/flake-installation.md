@@ -81,7 +81,7 @@ mkBunDerivation {
 
   bunNix = ./bun.nix;
 
-  index = ./index.ts;
+  index = "index.ts";
 }
 ```
 
