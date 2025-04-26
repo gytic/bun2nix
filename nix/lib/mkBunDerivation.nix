@@ -53,6 +53,8 @@ stdenv.mkDerivation (
     buildPhase =
       assert lib.assertMsg (args.index != null)
         "`index` input to `mkBunDerivation` pointing to your javascript index file must be set in order to use the default buildPhase";
+      assert lib.assertMsg (lib.isString args.index)
+        "`index` should be a string value pointing to your index file from the root of your repository. If you use a nix path here (./index.ts (BAD) vs 'index.ts'(GOOD)) this will not be able to resolve dependencies correctly as the path version will be copied to the nix store separately";
       ''
         runHook preBuild
 
