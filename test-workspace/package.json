@@ -1,1 +1,7 @@
-{ "name": "test-workspace", "workspaces": ["packages/*"], "dependencies": {} }
+{
+  "name": "test-workspace",
+  "workspaces": [
+    "packages/*"
+  ],
+  "dependencies": {}
+}

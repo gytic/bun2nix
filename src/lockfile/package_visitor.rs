@@ -32,8 +32,9 @@ impl<'de> Visitor<'de> for PackageVisitor {
                 if let Some(npm_id) = values[0].as_str() {
                     if npm_id.contains("workspace:") {
                         // This is a workspace package reference
-                        // We don't need a hash for workspace packages as they're local
-                        let dummy_hash = "sha512-workspaceDummyHash".to_string();
+                        // We don't need a real hash for workspace packages as they're local
+                        // But it needs to be a valid SRI hash format
+                        let dummy_hash = "sha512-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==".to_string();
                         let meta = MetaData::default();
                         let pkg = Package::new(name, npm_id.to_string(), dummy_hash, meta.binaries);
                         packages.push(pkg);

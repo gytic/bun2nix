@@ -4,13 +4,13 @@
     out_path = "@workspace/app";
     name = "@workspace/app@workspace:packages/app";
     url = "https://registry.npmjs.org/@workspace/app/-/app-workspace:packages/app.tgz";
-    hash = "sha512-workspaceDummyHash";
+    hash = "sha512-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==";
   };
   "@workspace/lib" = {
     out_path = "@workspace/lib";
     name = "@workspace/lib@workspace:packages/lib";
     url = "https://registry.npmjs.org/@workspace/lib/-/lib-workspace:packages/lib.tgz";
-    hash = "sha512-workspaceDummyHash";
+    hash = "sha512-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==";
   };
   "chalk" = {
     out_path = "chalk";
