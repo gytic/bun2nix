@@ -72,7 +72,10 @@ stdenv.mkDerivation (
                 echo "Linking workspace package ${name} from ${workspaceRoot}/${workspacePath}"
                 mkdir -p $(dirname "node_modules/${pkg.out_path}")
 
-                if [ ! -d "${workspaceRoot}/${workspacePath}" ]; then
+                if [ -d "${workspaceRoot}/${workspacePath}" ]; then
+                  # Primary path exists, use it
+                  rsync -a --copy-links "${workspaceRoot}/${workspacePath}/" "node_modules/${pkg.out_path}/"
+                else
                   echo "Warning: Workspace package ${name} directory not found at ${workspaceRoot}/${workspacePath}"
                   
                   # Fallback to common workspace paths
@@ -81,20 +84,15 @@ stdenv.mkDerivation (
                   if [ -d "${workspaceRoot}/packages/$SIMPLE_NAME" ]; then
                     echo "Found alternative at ${workspaceRoot}/packages/$SIMPLE_NAME"
                     rsync -a --copy-links "${workspaceRoot}/packages/$SIMPLE_NAME/" "node_modules/${pkg.out_path}/"
-                    continue
+                  else
+                    if [ -d "${workspaceRoot}/$SIMPLE_NAME" ]; then
+                      echo "Found alternative at ${workspaceRoot}/$SIMPLE_NAME"
+                      rsync -a --copy-links "${workspaceRoot}/$SIMPLE_NAME/" "node_modules/${pkg.out_path}/"
+                    else
+                      echo "Could not find workspace package directory"
+                    fi
                   fi
-                  
-                  if [ -d "${workspaceRoot}/$SIMPLE_NAME" ]; then
-                    echo "Found alternative at ${workspaceRoot}/$SIMPLE_NAME"
-                    rsync -a --copy-links "${workspaceRoot}/$SIMPLE_NAME/" "node_modules/${pkg.out_path}/"
-                    continue
-                  fi
-                  
-                  echo "Could not find workspace package directory"
-                  continue
                 fi
-
-                rsync -a --copy-links "${workspaceRoot}/${workspacePath}/" "node_modules/${pkg.out_path}/"
               ''
           ) packages
         )}
