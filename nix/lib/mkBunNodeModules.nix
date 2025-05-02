@@ -41,12 +41,14 @@ runCommand "node-modules"
         let
           # Check if this is a workspace package (URL contains "workspace:")
           isWorkspace = lib.strings.hasInfix "workspace:" pkg.url;
-          
-          src = if isWorkspace 
-            then null
-            else fetchurl {
-              inherit (pkg) name url hash;
-            };
+
+          src =
+            if isWorkspace then
+              null
+            else
+              fetchurl {
+                inherit (pkg) name url hash;
+              };
 
           binaries =
             if pkg ? binaries then
@@ -57,12 +59,12 @@ runCommand "node-modules"
               )
             else
               "";
-              
+
           # For workspace packages, we'll create an empty directory instead of extracting the package
-          workspaceSetup = ''
+          installWorkspacePackage = ''
             echo "Setting up workspace package ${name}..."
             mkdir -p "$out/node_modules/${pkg.out_path}"
-            
+
             # Create a placeholder package.json to satisfy dependencies
             cat > "$out/node_modules/${pkg.out_path}/package.json" << EOF
             {
@@ -72,16 +74,16 @@ runCommand "node-modules"
             }
             EOF
           '';
-          
+
           # For regular packages, we'll extract them as usual
-          regularSetup = ''
+          installNpmPackage = ''
             echo "Installing package ${name}..."
             mkdir -p "$out/node_modules/${pkg.out_path}"
             extract "${src}" "$out/node_modules/${pkg.out_path}"
           '';
         in
         ''
-          ${if isWorkspace then workspaceSetup else regularSetup}
+          ${if isWorkspace then installWorkspacePackage else installNpmPackage}
           ${binaries}
         ''
       ) packages

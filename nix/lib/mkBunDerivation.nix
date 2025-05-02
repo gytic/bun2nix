@@ -18,14 +18,14 @@
     "--bytecode"
   ],
   # New fields for workspace support
-  workspaceRoot ? null,        # Root directory containing all workspace packages
-  workspaces ? {},             # Map of package name to source directory
+  workspaceRoot ? null, # Root directory containing all workspace packages
+  workspaces ? { }, # Map of package name to source directory
   ...
 }@args:
 let
   bunDeps = mkBunNodeModules (import bunNix);
   packages = import bunNix;
-  
+
   # Check if there are workspace packages
   hasWorkspaces = lib.any (pkg: lib.strings.hasInfix "workspace:" pkg.url) (lib.attrValues packages);
 in
@@ -53,43 +53,61 @@ stdenv.mkDerivation (
       # Handle workspace packages automatically if present
       ${lib.optionalString hasWorkspaces ''
         echo "Setting up workspace packages..."
-        
-        # If workspaceRoot is provided, use a standardized workspace layout
-        ${lib.optionalString (workspaceRoot != null) ''
-          # Loop through all packages to detect workspace packages and link them
-          ${lib.concatStrings (lib.mapAttrsToList (name: pkg: 
-            lib.optionalString (lib.strings.hasInfix "workspace:" pkg.url) ''
-              # Extract workspace identifier from npm identifier
-              WORKSPACE_PATH=$(echo "${pkg.name}" | sed -n 's/.*workspace:\(.*\)/\1/p')
-              if [ -n "$WORKSPACE_PATH" ]; then
-                echo "Linking workspace package ${name} from ${workspaceRoot}/$WORKSPACE_PATH"
+      ''}
+
+      # Setup workspace packages if workspaceRoot is provided
+      ${lib.optionalString (hasWorkspaces && workspaceRoot != null) ''
+        # Loop through all packages to detect workspace packages and link them
+        ${lib.concatStrings (
+          lib.mapAttrsToList (
+            name: pkg:
+            if !(lib.strings.hasInfix "workspace:" pkg.url) then
+              ""
+            else
+              let
+                workspacePath = builtins.replaceStrings [ "workspace:" ] [ "" ] pkg.url;
+              in
+              ''
+                # Extract workspace identifier from npm identifier
+                echo "Linking workspace package ${name} from ${workspaceRoot}/${workspacePath}"
                 mkdir -p $(dirname "node_modules/${pkg.out_path}")
-                if [ -d "${workspaceRoot}/$WORKSPACE_PATH" ]; then
-                  rsync -a --copy-links "${workspaceRoot}/$WORKSPACE_PATH/" "node_modules/${pkg.out_path}/"
-                else
-                  echo "Warning: Workspace package ${name} directory not found at ${workspaceRoot}/$WORKSPACE_PATH"
+
+                if [ ! -d "${workspaceRoot}/${workspacePath}" ]; then
+                  echo "Warning: Workspace package ${name} directory not found at ${workspaceRoot}/${workspacePath}"
+                  
                   # Fallback to common workspace paths
                   SIMPLE_NAME=$(echo "${name}" | sed -e 's|^@[^/]*/||')
+                  
                   if [ -d "${workspaceRoot}/packages/$SIMPLE_NAME" ]; then
                     echo "Found alternative at ${workspaceRoot}/packages/$SIMPLE_NAME"
                     rsync -a --copy-links "${workspaceRoot}/packages/$SIMPLE_NAME/" "node_modules/${pkg.out_path}/"
-                  elif [ -d "${workspaceRoot}/$SIMPLE_NAME" ]; then
+                    continue
+                  fi
+                  
+                  if [ -d "${workspaceRoot}/$SIMPLE_NAME" ]; then
                     echo "Found alternative at ${workspaceRoot}/$SIMPLE_NAME"
                     rsync -a --copy-links "${workspaceRoot}/$SIMPLE_NAME/" "node_modules/${pkg.out_path}/"
+                    continue
                   fi
+                  
+                  echo "Could not find workspace package directory"
+                  continue
                 fi
-              fi
-            ''
-          ) packages)}
-        ''}
-        
-        # If specific workspaces are provided, use those mappings
-        ${lib.concatStrings (lib.mapAttrsToList (name: path: ''
+
+                rsync -a --copy-links "${workspaceRoot}/${workspacePath}/" "node_modules/${pkg.out_path}/"
+              ''
+          ) packages
+        )}
+      ''}
+
+      # Setup explicitly provided workspaces
+      ${lib.concatStrings (
+        lib.mapAttrsToList (name: path: ''
           echo "Linking workspace package ${name} from ${path}"
           mkdir -p $(dirname "node_modules/${name}")
           rsync -a --copy-links "${path}/" "node_modules/${name}/"
-        '') workspaces)}
-      ''}
+        '') workspaces
+      )}
 
       mkdir tmp
       export HOME=$TMPDIR

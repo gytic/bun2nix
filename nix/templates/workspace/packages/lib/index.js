@@ -1,4 +1,4 @@
-const isOdd = require('is-odd');
+const isOdd = require("is-odd");
 
 function isEven(num) {
   return !isOdd(num);
@@ -6,5 +6,5 @@ function isEven(num) {
 
 module.exports = {
   isOdd,
-  isEven
+  isEven,
 };

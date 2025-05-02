@@ -1,4 +1,4 @@
-import { isOdd, isEven } from '@workspace/lib';
+import { isOdd, isEven } from "@workspace/lib";
 
 const RESET_COLOUR = "\x1b[0m";
 
