@@ -17,6 +17,7 @@
     "--sourcemap"
     "--bytecode"
   ],
+  embeddedFiles ? null,
   # New fields for workspace support
   workspaceRoot ? null, # Root directory containing all workspace packages
   workspaces ? { }, # Map of package name to source directory
@@ -122,7 +123,7 @@ stdenv.mkDerivation (
       ''
         runHook preBuild
 
-        bun build ${lib.concatStringsSep " " buildFlags} ${args.index} --outfile ${pname}
+        bun build ${lib.concatStringsSep " " buildFlags} ${args.index} ${args.embeddedFiles} --outfile ${pname}
 
         runHook postBuild
       '';
