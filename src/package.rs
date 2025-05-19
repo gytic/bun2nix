@@ -99,13 +99,27 @@ impl Package<Extracted> {
         Ok(Package {
             data: Normalized {
                 out_path: Normalized::convert_name_to_out_path(&self.name),
-                url: self.to_npm_url()?,
+                // TODO: Larger-scale refactor to remove assumption of npm registry
+                url: if self.is_workspace() {
+                    "".to_string()
+                } else {
+                    self.to_npm_url()?
+                },
                 binaries: self.data.binaries.normalize(&self.name),
             },
             npm_identifier: self.npm_identifier,
             hash: self.hash,
             name: self.name,
         })
+    }
+
+    /// # Workspace detection
+    ///
+    /// Determines whether or not a package is a workspace reference.
+    /// Workspace packages are local references and do not require generated urls.
+    #[inline]
+    pub fn is_workspace(&self) -> bool {
+        self.npm_identifier.contains("workspace")
     }
 }
 
