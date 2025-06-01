@@ -7,8 +7,8 @@ pub use nix_escaper::NixEscaper;
 use rinja::Template;
 
 use crate::{
-    package::{Extracted, Normalized},
     Package,
+    package::{Extracted, Normalized},
 };
 
 /// # Nix Expression
