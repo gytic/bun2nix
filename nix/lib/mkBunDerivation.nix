@@ -7,8 +7,6 @@
   ...
 }:
 {
-  pname,
-  version,
   src,
   bunNix,
   buildFlags ? [
@@ -22,16 +20,40 @@
   workspaces ? { }, # Map of package name to source directory
   ...
 }@args:
+assert lib.assertMsg (args ? pname || args ? packageJson)
+  "Either `pname` or `packageJson` must be set in order to assign a name to the package. It may be assigned manually with `pname` which always takes priority or read from the `name` field of `packageJson`.";
+assert lib.assertMsg (args ? version || args ? packageJson)
+  "Either `version` or `packageJson` must be set in order to assign a version to the package. It may be assigned manually with `version` which always takes priority or read from the `version` field of `packageJson`.";
 let
   bunDeps = mkBunNodeModules (import bunNix);
   packages = import bunNix;
 
   # Check if there are workspace packages
   hasWorkspaces = lib.any (pkg: lib.strings.hasInfix "workspace:" pkg.url) (lib.attrValues packages);
+
+  pkgInfo =
+    if args ? packageJson then
+      let
+        packageJson = builtins.fromJSON (builtins.readFile args.packageJson);
+      in
+      assert lib.assertMsg (packageJson ? name && packageJson ? version && packageJson ? module)
+        "In order to use a package.json to fill the `pname`, `version` and `index` fields of mkBunDerivation it must at least contain the fields `name`, `version` and `module`.";
+      {
+        pname = args.pname or packageJson.name;
+        version = args.version or packageJson.version;
+        index = args.index or packageJson.module;
+      }
+    else
+      {
+        pname = args.pname;
+        version = args.version;
+        index = args.index;
+      };
 in
 stdenv.mkDerivation (
   {
-    inherit pname version src;
+    inherit (pkgInfo) pname version;
+    inherit src;
 
     nativeBuildInputs = [
       rsync
@@ -115,14 +137,14 @@ stdenv.mkDerivation (
 
     # Create a react static html site as per the script
     buildPhase =
-      assert lib.assertMsg (args.index != null)
-        "`index` input to `mkBunDerivation` pointing to your javascript index file must be set in order to use the default buildPhase";
-      assert lib.assertMsg (lib.isString args.index)
-        "`index` should be a string value pointing to your index file from the root of your repository. If you use a nix path here (./index.ts (BAD) vs 'index.ts'(GOOD)) this will not be able to resolve dependencies correctly as the path version will be copied to the nix store separately";
+      assert lib.assertMsg (pkgInfo ? index)
+        "`index` input to `mkBunDerivation` pointing to your javascript index file must be set in order to use the default buildPhase. This may also be inferred from the `module` field of `packageJson`";
+      assert lib.assertMsg (lib.isString pkgInfo.index)
+        "`index` (or the module field of packageJson) should be a string value pointing to your index file from the root of your repository. If you use a nix path here (./index.ts (BAD) vs 'index.ts'(GOOD)) this will not be able to resolve dependencies correctly as the path version will be copied to the nix store separately";
       ''
         runHook preBuild
 
-        bun build ${lib.concatStringsSep " " buildFlags} ${args.index} --outfile ${pname}
+        bun build ${lib.concatStringsSep " " buildFlags} ${pkgInfo.index} --outfile ${pkgInfo.pname}
 
         runHook postBuild
       '';
@@ -133,7 +155,7 @@ stdenv.mkDerivation (
 
       mkdir -p $out/bin
 
-      cp ./${pname} $out/bin
+      cp ./${pkgInfo.pname} $out/bin
 
       runHook postInstall
     '';
@@ -142,7 +164,9 @@ stdenv.mkDerivation (
     dontFixup = true;
   }
   // lib.optionalAttrs (!(args ? buildPhase) && !(args ? installPhase)) {
-    meta.mainProgram = pname;
+    meta = {
+      mainProgram = pkgInfo.pname;
+    };
   }
   // args
 )

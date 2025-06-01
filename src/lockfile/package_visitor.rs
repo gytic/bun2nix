@@ -3,8 +3,8 @@ use std::fmt;
 use serde::de::{self, MapAccess, Visitor};
 
 use crate::{
-    package::{Extracted, MetaData},
     Package,
+    package::{Extracted, MetaData},
 };
 
 /// # Package Visitor
