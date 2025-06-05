@@ -1,15 +1,16 @@
 {
+  inputs,
   pkgs,
   ...
 }:
 let
-  cargoTOML = builtins.fromTOML (builtins.readFile ../Cargo.toml);
+  cargoTOML = builtins.fromTOML (builtins.readFile (inputs.self + "/Cargo.toml"));
 in
 pkgs.rustPlatform.buildRustPackage {
   pname = cargoTOML.package.name;
   version = cargoTOML.package.version;
 
-  src = ../.;
+  src = inputs.self;
 
   buildInputs = with pkgs; [
     pkg-config
@@ -17,7 +18,7 @@ pkgs.rustPlatform.buildRustPackage {
   ];
 
   cargoLock = {
-    lockFile = ../Cargo.lock;
+    lockFile = inputs.self + "/Cargo.lock";
   };
 
   meta = with pkgs.lib; {
