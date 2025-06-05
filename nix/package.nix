@@ -1,15 +1,16 @@
 {
+  flake,
   pkgs,
   ...
 }:
 let
-  cargoTOML = builtins.fromTOML (builtins.readFile ../Cargo.toml);
+  cargoTOML = builtins.fromTOML (builtins.readFile (flake + "/Cargo.toml"));
 in
 pkgs.rustPlatform.buildRustPackage {
   pname = cargoTOML.package.name;
   version = cargoTOML.package.version;
 
-  src = ../.;
+  src = flake;
 
   buildInputs = with pkgs; [
     pkg-config
@@ -17,7 +18,7 @@ pkgs.rustPlatform.buildRustPackage {
   ];
 
   cargoLock = {
-    lockFile = ../Cargo.lock;
+    lockFile = flake + "/Cargo.lock";
   };
 
   meta = with pkgs.lib; {
