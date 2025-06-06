@@ -6,3 +6,6 @@
   - [In a pre-existing flake](./flake-installation.md)
 - [Using the command line tool](./using-the-command-line-tool.md)
 - [Building Packages](./building-packages.md)
+  - [`mkBunDerivation`](./functions/mkBunDerivation.md)
+  - [`writeBunScriptBin`](./functions/writeBunScriptBin.md)
+  - [`mkBunNodeModules`](./functions/mkBunNodeModules.md)
