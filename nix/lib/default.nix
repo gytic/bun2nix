@@ -9,6 +9,7 @@ eachSystem (
   in
   rec {
     mkBunNodeModules = pkgs.callPackage ./mkBunNodeModules.nix { };
+    writeBunScriptBin = pkgs.callPackage ./writeBunScriptBin.nix { };
 
     mkBunDerivation = pkgs.callPackage ./mkBunDerivation.nix { inherit mkBunNodeModules; };
 
