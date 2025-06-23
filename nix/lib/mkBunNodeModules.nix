@@ -7,7 +7,11 @@
   runCommand,
   ...
 }:
-packages:
+{
+  packages,
+  dontPatchShebangs ? false,
+  ...
+}:
 runCommand "node-modules"
   {
     nativeBuildInputs = [
@@ -89,9 +93,11 @@ runCommand "node-modules"
       ) packages
     )}
 
-    # Force bun instead of node for script execution
-    makeWrapper ${bun}/bin/bun $out/bin/node
-    export PATH="$out/bin:$PATH"
+    ${lib.optionalString (!dontPatchShebangs) ''
+      # Force bun instead of node for script execution
+      makeWrapper ${bun}/bin/bun $out/bin/node
+      export PATH="$out/bin:$PATH"
 
-    patchShebangs $out/node_modules
+      patchShebangs $out/node_modules
+    ''}
   ''

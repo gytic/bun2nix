@@ -18,6 +18,7 @@
   # New fields for workspace support
   workspaceRoot ? null, # Root directory containing all workspace packages
   workspaces ? { }, # Map of package name to source directory
+  dontPatchShebangs ? false,
   ...
 }@args:
 assert lib.assertMsg (args ? pname || args ? packageJson)
@@ -25,8 +26,8 @@ assert lib.assertMsg (args ? pname || args ? packageJson)
 assert lib.assertMsg (args ? version || args ? packageJson)
   "Either `version` or `packageJson` must be set in order to assign a version to the package. It may be assigned manually with `version` which always takes priority or read from the `version` field of `packageJson`.";
 let
-  bunDeps = mkBunNodeModules (import bunNix);
   packages = import bunNix;
+  bunDeps = mkBunNodeModules { inherit packages dontPatchShebangs; };
 
   # Check if there are workspace packages
   hasWorkspaces = lib.any (pkg: lib.strings.hasInfix "workspace:" pkg.url) (lib.attrValues packages);
@@ -99,10 +100,10 @@ stdenv.mkDerivation (
                   rsync -a --copy-links "${workspaceRoot}/${workspacePath}/" "node_modules/${pkg.out_path}/"
                 else
                   echo "Warning: Workspace package ${name} directory not found at ${workspaceRoot}/${workspacePath}"
-                  
+
                   # Fallback to common workspace paths
                   SIMPLE_NAME=$(echo "${name}" | sed -e 's|^@[^/]*/||')
-                  
+
                   if [ -d "${workspaceRoot}/packages/$SIMPLE_NAME" ]; then
                     echo "Found alternative at ${workspaceRoot}/packages/$SIMPLE_NAME"
                     rsync -a --copy-links "${workspaceRoot}/packages/$SIMPLE_NAME/" "node_modules/${pkg.out_path}/"
