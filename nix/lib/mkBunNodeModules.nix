@@ -7,8 +7,8 @@
   runCommand,
   ...
 }:
-packages:
 {
+  packages,
   dontPatchShebangs ? false,
   ...
 }:

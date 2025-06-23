@@ -9,9 +9,16 @@ Example usage of `mkBunNodeModules` might look like:
 ```nix
   bunNix = import ./bun.nix;
 
-  node_modules = mkBunNodeModules bunNix;
+  node_modules = mkBunNodeModules { packages = bunNix };
 ```
 
 ## Arguments
 
-`mkBunNodeModules` takes a single argument, the contents of the `bun.nix` file.
+The full list of accepted arguments is:
+
+| Argument            | Purpose                                                         |
+| ------------------- | --------------------------------------------------------------- |
+| `packages`          | The contents of the `bun.nix` file.                             |
+| `dontPatchShebangs` | (Optional) Prevent patching shebangs in `node_modules` scripts. |
+
+By default, shebangs in scripts inside `node_modules` are patched to use `bun` instead of `node`. Use `dontPatchShebangs = true;` if you want to preserve the original shebangs (for example, to maintain compatibility with tools that expect Node.js).

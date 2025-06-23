@@ -26,8 +26,8 @@ assert lib.assertMsg (args ? pname || args ? packageJson)
 assert lib.assertMsg (args ? version || args ? packageJson)
   "Either `version` or `packageJson` must be set in order to assign a version to the package. It may be assigned manually with `version` which always takes priority or read from the `version` field of `packageJson`.";
 let
-  bunDeps = mkBunNodeModules (import bunNix) { inherit dontPatchShebangs; };
   packages = import bunNix;
+  bunDeps = mkBunNodeModules { inherit packages dontPatchShebangs; };
 
   # Check if there are workspace packages
   hasWorkspaces = lib.any (pkg: lib.strings.hasInfix "workspace:" pkg.url) (lib.attrValues packages);
