@@ -19,6 +19,7 @@
   workspaceRoot ? null, # Root directory containing all workspace packages
   workspaces ? { }, # Map of package name to source directory
   dontPatchShebangs ? false,
+  nativeBuildInputs ? [ ],
   ...
 }@args:
 assert lib.assertMsg (args ? pname || args ? packageJson)
@@ -55,11 +56,6 @@ stdenv.mkDerivation (
   {
     inherit (pkgInfo) pname version;
     inherit src;
-
-    nativeBuildInputs = [
-      rsync
-      bun
-    ];
 
     # Load node_modules based on the expression generated from the lockfile
     configurePhase = ''
@@ -170,4 +166,10 @@ stdenv.mkDerivation (
     };
   }
   // args
+  // {
+    nativeBuildInputs = nativeBuildInputs ++ [
+      rsync
+      bun
+    ];
+  }
 )
