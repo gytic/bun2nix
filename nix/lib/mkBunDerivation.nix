@@ -68,9 +68,20 @@ lib.extendMkDerivation {
         dontPatchShebangs
         ;
 
-      configurePhase =
-        args.configurePhase or ''
-          runHook preConfigure
+      preConfigurePhases =
+        args.preConfigurePhases or [
+          "preNodeModulesInstallFixupPhase"
+          "installNodeModulesPhase"
+        ];
+
+      preNodeModulesInstallFixupPhase =
+        args.preNodeModulesInstallFixupPhase or ''
+          patchShebangs .
+        '';
+
+      installNodeModulesPhase =
+        args.installNodeModulesPhase or ''
+          runHook preInstallNodeModulesPhase
 
           # Unfortunately a full copy of node_modules does need to be done instead of a symlink as many packages will write to their install location
           rsync -a --copy-links --chmod=ugo+w --exclude=".bin" ${bunDeps}/node_modules/ ./node_modules/
@@ -140,7 +151,7 @@ lib.extendMkDerivation {
           mkdir tmp
           export HOME=$TMPDIR
 
-          runHook postConfigure
+          runHook postInstallNodeModulesPhase
         '';
 
       buildPhase =
