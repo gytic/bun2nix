@@ -68,9 +68,16 @@ lib.extendMkDerivation {
         dontPatchShebangs
         ;
 
-      preConfigurePhases = args.preConfigurePhases or [
-        "installNodeModulesPhase"
-      ];
+      preConfigurePhases =
+        args.preConfigurePhases or [
+          "preNodeModulesInstallFixupPhase"
+          "installNodeModulesPhase"
+        ];
+
+      preNodeModulesInstallFixupPhase =
+        args.preNodeModulesInstallFixupPhase or ''
+          patchShebangs .
+        '';
 
       installNodeModulesPhase =
         args.installNodeModulesPhase or ''
