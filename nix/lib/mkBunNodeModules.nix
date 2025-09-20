@@ -44,7 +44,7 @@ runCommand "node-modules"
         name: pkg:
         let
           # Check if this is a workspace package (URL contains "workspace:")
-          isWorkspace = lib.strings.hasInfix "workspace:" pkg.url;
+          isWorkspace = lib.strings.hasInfix "workspace:" pkg.url |> lib.traceValSeq;
 
           src =
             if isWorkspace then
