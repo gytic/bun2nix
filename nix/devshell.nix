@@ -1,49 +1,33 @@
 { pkgs, ... }:
-pkgs.mkShell (
-  {
-    packages = with pkgs; [
-      # Rust dependencies
-      rustc
-      cargo
-      rustfmt
-      clippy
+let
+  inherit (pkgs) lib stdenv;
 
-      # Database
-      sqlx-cli
-      sqlite
+  moldHook =
+    pkgs.makeSetupHook
+      {
+        name = "mold-hook";
 
-      # SSL
-      pkg-config
-      openssl
+        propagatedBuildInputs = with pkgs; [
+          mold
+        ];
+      }
+      (
+        pkgs.writeText "moldHook.sh" ''
+          export RUSTFLAGS="-C link-arg=-fuse-ld=mold"
+        ''
+      );
+in
+pkgs.mkShell {
+  packages = with pkgs; [
+    rustc
+    cargo
+    rustfmt
+    clippy
 
-      # Docs
-      mdbook
+    mdbook
 
-      # Javascript dependencies
-      bun
-    ];
+    bun
 
-    env = with pkgs; {
-      LD_LIBRARY_PATH = lib.makeLibraryPath [ openssl ];
-      DATABASE_URL = "sqlite://.cache/bun2nix";
-    };
-
-    shellHook = ''
-      mkdir -p .cache
-      touch .cache/bun2nix
-    '';
-  }
-  # Mold does not support MacOS
-  // (
-    with pkgs;
-    lib.optionalAttrs (!stdenv.isDarwin) {
-      packages = [
-        mold
-      ];
-
-      env = {
-        RUSTFLAGS = "-C link-arg=-fuse-ld=mold";
-      };
-    }
-  )
-)
+    (lib.optional (!stdenv.isDarwin) moldHook)
+  ];
+}
