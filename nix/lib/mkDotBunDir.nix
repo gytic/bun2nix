@@ -12,7 +12,7 @@
   dontPatchShebangs ? false,
   ...
 }:
-runCommand "node-modules"
+runCommand ".bun"
   {
     nativeBuildInputs = [
       libarchive
