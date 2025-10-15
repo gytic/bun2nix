@@ -26,7 +26,7 @@ impl<'de> Visitor<'de> for PackageVisitor {
         while let Some((name, values)) = map.next_entry::<String, Vec<serde_json::Value>>()? {
             match values.len() {
                 1 => deserialize_workspace_package(name, values, &mut packages)?,
-                4 => deserialize_npm_package(name, values, &mut packages)?,
+                4 => deserialize_npm_package(values, &mut packages)?,
                 _ => {
                     return Err(de::Error::custom(format!(
                         "Invalid package entry for {}: expected at least 4 values",
@@ -64,7 +64,7 @@ where
         return Ok(());
     };
 
-    let pkg = Package::new(name, Fetcher::CopyToStore { path });
+    let pkg = Package::from_workspace_identifier(name, Fetcher::CopyToStore { path });
 
     packages.push(pkg);
 
@@ -72,7 +72,6 @@ where
 }
 
 fn deserialize_npm_package<E>(
-    name: String,
     values: Vec<serde_json::Value>,
     packages: &mut Vec<Package>,
 ) -> Result<(), E>
@@ -94,11 +93,11 @@ where
         "Expected hash to be in sri format and contain sha512"
     );
 
-    let fetcher = Fetcher::from_raw_npm_identifier(npm_identifier_raw, hash).map_err(|_| {
+    let fetcher = Fetcher::new_npm_package(&npm_identifier_raw, hash).map_err(|_| {
         de::Error::custom("Failed to create npm url for npm package while deserializing")
     })?;
 
-    let pkg = Package::new(name, fetcher);
+    let pkg = Package::from_raw_npm_identifier(npm_identifier_raw, fetcher);
     packages.push(pkg);
 
     Ok(())

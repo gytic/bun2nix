@@ -16,7 +16,8 @@ use crate::error::{Error, Result};
 pub enum Fetcher {
     #[template(path = "fetchurl.nix_template")]
     FetchUrl { url: String, hash: String },
-    #[template(path = "copy-to-store.nix_template")]
+    #[template(source = "", ext = "nix_template")]
+    // #[template(path = "copy-to-store.nix_template")]
     CopyToStore { path: String },
     #[default]
     #[template(source = "", ext = "nix_template")]
@@ -24,20 +25,9 @@ pub enum Fetcher {
 }
 
 impl Fetcher {
-    pub fn from_raw_npm_identifier(ident: String, hash: String) -> Result<Self> {
-        let npm_identifier_file_safe = ident.replace("/", "+");
-
-        Self::from_file_safe_npm_identifier(npm_identifier_file_safe, hash)
-    }
-
-    pub fn from_file_safe_npm_identifier(ident: String, hash: String) -> Result<Self> {
-        assert!(
-            !ident.contains("/"),
-            "File safe npm identifier cannot contain a `/` character, please use the from raw method instead"
-        );
-
+    pub fn new_npm_package(npm_identifier_raw: &str, hash: String) -> Result<Self> {
         Ok(Self::FetchUrl {
-            url: Self::to_npm_url(&ident)?,
+            url: Self::to_npm_url(&npm_identifier_raw)?,
             hash,
         })
     }

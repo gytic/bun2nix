@@ -26,10 +26,22 @@ pub struct Package {
 }
 
 impl Package {
-    /// # Package Constructor
-    ///
-    /// Produce a new instance of a package
-    pub fn new(name: String, fetcher: Fetcher) -> Self {
+    pub fn from_raw_npm_identifier(name: String, fetcher: Fetcher) -> Self {
+        let npm_identifier_file_safe = name.replace("/", "+");
+
+        Self::from_file_safe_npm_identifier(npm_identifier_file_safe, fetcher)
+    }
+
+    pub fn from_file_safe_npm_identifier(name: String, fetcher: Fetcher) -> Self {
+        assert!(
+            !name.contains("/"),
+            "File safe npm identifier cannot contain a `/` character, please use the from raw method instead"
+        );
+
+        Self { name, fetcher }
+    }
+
+    pub fn from_workspace_identifier(name: String, fetcher: Fetcher) -> Self {
         Self { name, fetcher }
     }
 }

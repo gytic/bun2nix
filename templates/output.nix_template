@@ -3,7 +3,7 @@
 # Set of Bun packages to install
 # Consume this with `pkgs.callPackage` providing
 # the `root` arg
-{ fetchurl, copyPathToStore, root, ... }:
+{ fetchurl, ... }:
 {
   {%- for pkg in packages %}
   "{{ pkg.name }}" = {{ pkg.fetcher }};
