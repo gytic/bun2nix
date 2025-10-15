@@ -2,9 +2,10 @@
 
 mod nix_escaper;
 
-pub use crate::error::Result;
 pub use nix_escaper::NixEscaper;
-use rinja::Template;
+
+use crate::error::Result;
+use askama::Template;
 
 use crate::Package;
 
@@ -12,7 +13,7 @@ use crate::Package;
 ///
 /// A chunk of nix code to be written to stdout or a file
 #[derive(Template)]
-#[template(path = "output.jinja")]
+#[template(path = "output.nix_template")]
 pub struct NixExpression {
     packages: Vec<Package>,
 }

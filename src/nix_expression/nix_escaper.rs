@@ -1,6 +1,6 @@
 use std::fmt::{self, Write};
 
-use rinja::filters::Escaper;
+use askama::filters::Escaper;
 
 #[derive(Clone, Copy)]
 /// # Nix Escaper

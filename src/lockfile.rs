@@ -7,8 +7,8 @@ use serde::{Deserialize, Deserializer, Serialize};
 use serde_json::Value;
 
 use crate::{
-    error::{Error, Result},
     Package,
+    error::{Error, Result},
 };
 
 mod package_visitor;

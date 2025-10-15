@@ -2,10 +2,7 @@ use std::fmt;
 
 use serde::de::{self, MapAccess, Visitor};
 
-use crate::{
-    package::{CopyToStore, FetchUrl, Fetcher},
-    Package,
-};
+use crate::{Package, package::Fetcher};
 
 /// # Package Visitor
 ///
@@ -67,9 +64,7 @@ where
         return Ok(());
     };
 
-    let fetcher = CopyToStore { path };
-
-    let pkg = Package::new(name, Fetcher::CopyToStore(fetcher));
+    let pkg = Package::new(name, Fetcher::CopyToStore { path });
 
     packages.push(pkg);
 
@@ -99,11 +94,11 @@ where
         "Expected hash to be in sri format and contain sha512"
     );
 
-    let fetcher = FetchUrl::from_raw_npm_identifier(npm_identifier_raw, hash).map_err(|_| {
+    let fetcher = Fetcher::from_raw_npm_identifier(npm_identifier_raw, hash).map_err(|_| {
         de::Error::custom("Failed to create npm url for npm package while deserializing")
     })?;
 
-    let pkg = Package::new(name, Fetcher::FetchUrl(fetcher));
+    let pkg = Package::new(name, fetcher);
     packages.push(pkg);
 
     Ok(())

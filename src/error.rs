@@ -34,5 +34,5 @@ pub enum Error {
     )]
     UnsupportedLockfileVersion(u8),
     #[error("Failed to render template: '{}'", 0)]
-    TemplateError(#[from] rinja::Error),
+    TemplateError(#[from] askama::Error),
 }

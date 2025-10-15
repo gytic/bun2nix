@@ -8,11 +8,11 @@ pub mod lockfile;
 pub mod nix_expression;
 pub mod package;
 
+use askama::Template;
 pub use error::{Error, Result};
 pub use lockfile::Lockfile;
 use nix_expression::NixExpression;
 pub use package::Package;
-use rinja::Template;
 
 /// # Convert Bun Lockfile to a Nix expression
 ///

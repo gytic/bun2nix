@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 
 mod fetcher;
 
-pub use fetcher::{CopyToStore, FetchUrl, Fetcher};
+pub use fetcher::Fetcher;
 
 #[derive(Default, Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase", default)]
