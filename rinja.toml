@@ -1,3 +1,0 @@
-[[escaper]]
-path = "crate::nix_expression::NixEscaper"
-extensions = ["nix_template"]
