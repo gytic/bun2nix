@@ -7,9 +7,8 @@ use serde::{Deserialize, Deserializer, Serialize};
 use serde_json::Value;
 
 use crate::{
-    Package,
     error::{Error, Result},
-    package::Extracted,
+    Package,
 };
 
 mod package_visitor;
@@ -74,14 +73,14 @@ pub struct Lockfile {
     /// The list of all packages needed by the lockfile
     #[serde(default)]
     #[serde(deserialize_with = "Lockfile::deserialize_packages")]
-    pub packages: Vec<Package<Extracted>>,
+    pub packages: Vec<Package>,
 }
 
 impl Lockfile {
     /// # Lockfile Packages
     ///
     /// Consume the parsed lockfile and output it's packages set
-    pub fn packages(self) -> Vec<Package<Extracted>> {
+    pub fn packages(self) -> Vec<Package> {
         self.packages
     }
 
@@ -110,9 +109,7 @@ impl Lockfile {
     /// # Deserialize Packages
     ///
     /// Use the `PackagesVisitor` to deserialize the packages into a `HashSet`
-    pub fn deserialize_packages<'de, D>(
-        data: D,
-    ) -> std::result::Result<Vec<Package<Extracted>>, D::Error>
+    pub fn deserialize_packages<'de, D>(data: D) -> std::result::Result<Vec<Package>, D::Error>
     where
         D: Deserializer<'de>,
     {

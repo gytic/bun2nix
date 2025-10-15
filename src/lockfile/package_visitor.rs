@@ -3,8 +3,8 @@ use std::fmt;
 use serde::de::{self, MapAccess, Visitor};
 
 use crate::{
+    package::{CopyToStore, FetchUrl, Fetcher},
     Package,
-    package::{Extracted, MetaData},
 };
 
 /// # Package Visitor
@@ -14,7 +14,7 @@ use crate::{
 pub struct PackageVisitor;
 
 impl<'de> Visitor<'de> for PackageVisitor {
-    type Value = Vec<Package<Extracted>>;
+    type Value = Vec<Package>;
 
     fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         formatter.write_str("a map of package names to tuples")
@@ -28,8 +28,8 @@ impl<'de> Visitor<'de> for PackageVisitor {
 
         while let Some((name, values)) = map.next_entry::<String, Vec<serde_json::Value>>()? {
             match values.len() {
-                1 => Self::deserialize_workspace_package(name, values, &mut packages)?,
-                4 => Self::deserialize_npm_package(name, values, &mut packages)?,
+                1 => deserialize_workspace_package(name, values, &mut packages)?,
+                4 => deserialize_npm_package(name, values, &mut packages)?,
                 _ => {
                     return Err(de::Error::custom(format!(
                         "Invalid package entry for {}: expected at least 4 values",
@@ -43,64 +43,68 @@ impl<'de> Visitor<'de> for PackageVisitor {
     }
 }
 
-impl PackageVisitor {
-    fn deserialize_workspace_package<E>(
-        name: String,
-        values: Vec<serde_json::Value>,
-        packages: &mut Vec<Package<Extracted>>,
-    ) -> Result<(), E>
-    where
-        E: de::Error,
-    {
-        let Some(npm_id) = values[0].as_str() else {
-            return Ok(());
-        };
+fn drain_after_substring(mut input: String, sub: &str) -> Option<String> {
+    let sub_start = input.find(sub)?;
 
-        if !npm_id.contains("workspace:") {
-            return Ok(());
-        }
+    let sub_end = sub_start + sub.len();
 
-        // This is a workspace package reference
-        // We don't need a real hash for workspace packages as they're local
-        // But it needs to be a valid SRI hash format
-        let dummy_hash = "sha512-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==".to_string();
-        let meta = MetaData::default();
-        let pkg = Package::new(name, npm_id.to_string(), dummy_hash, meta.binaries);
-        packages.push(pkg);
+    Some(input.drain(sub_end..).collect())
+}
 
-        Ok(())
-    }
+fn deserialize_workspace_package<E>(
+    name: String,
+    values: Vec<serde_json::Value>,
+    packages: &mut Vec<Package>,
+) -> Result<(), E>
+where
+    E: de::Error,
+{
+    let Some(id) = values[0].as_str() else {
+        return Ok(());
+    };
 
-    fn deserialize_npm_package<E>(
-        name: String,
-        values: Vec<serde_json::Value>,
-        packages: &mut Vec<Package<Extracted>>,
-    ) -> Result<(), E>
-    where
-        E: de::Error,
-    {
-        let npm_identifier = values[0]
-            .as_str()
-            .ok_or_else(|| de::Error::custom("Invalid npm_identifier format"))?
-            .to_string();
+    let Some(path) = drain_after_substring(id.to_string(), "workspace:") else {
+        return Ok(());
+    };
 
-        let meta: MetaData = serde_json::from_str(&values[2].to_string())
-            .map_err(|e| de::Error::custom(format!("Invalid metadata format: {}", e)))?;
+    let fetcher = CopyToStore { path };
 
-        let hash = values[3]
-            .as_str()
-            .ok_or_else(|| de::Error::custom("Invalid hash format"))?
-            .to_string();
+    let pkg = Package::new(name, Fetcher::CopyToStore(fetcher));
 
-        // For npm packages (not workspace packages), assert that the hash is in sri format
-        assert!(
-            hash.contains("sha512-"),
-            "Expected hash to be in sri format and contain sha512"
-        );
+    packages.push(pkg);
 
-        let pkg = Package::new(name, npm_identifier, hash, meta.binaries);
-        packages.push(pkg);
+    Ok(())
+}
 
-        Ok(())
-    }
+fn deserialize_npm_package<E>(
+    name: String,
+    values: Vec<serde_json::Value>,
+    packages: &mut Vec<Package>,
+) -> Result<(), E>
+where
+    E: de::Error,
+{
+    let npm_identifier_raw = values[0]
+        .as_str()
+        .ok_or_else(|| de::Error::custom("Invalid npm_identifier format"))?
+        .to_string();
+
+    let hash = values[3]
+        .as_str()
+        .ok_or_else(|| de::Error::custom("Invalid hash format"))?
+        .to_string();
+
+    assert!(
+        hash.contains("sha512-"),
+        "Expected hash to be in sri format and contain sha512"
+    );
+
+    let fetcher = FetchUrl::from_raw_npm_identifier(npm_identifier_raw, hash).map_err(|_| {
+        de::Error::custom("Failed to create npm url for npm package while deserializing")
+    })?;
+
+    let pkg = Package::new(name, Fetcher::FetchUrl(fetcher));
+    packages.push(pkg);
+
+    Ok(())
 }
