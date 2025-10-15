@@ -1,8 +1,9 @@
 {
   lib,
-  mkBunNodeModules,
-  bun2nixHook,
+  mkDotBunDir,
+  bun,
   stdenv,
+  fetchurl,
   ...
 }:
 
@@ -40,8 +41,8 @@ lib.extendMkDerivation {
       "mkBunDerivation: Either `version` or `packageJson` must be set in order to assign a version to the package. It may be assigned manually with `version` which always takes priority or read from the `version` field of `packageJson`.";
 
     let
-      packages = import bunNix;
-      bunDeps = mkBunNodeModules { inherit packages dontPatchShebangs; };
+      packages = (import bunNix) { inherit fetchurl; };
+      bunDeps = mkDotBunDir { inherit packages dontPatchShebangs; };
 
       package = if packageJson != null then (builtins.fromJSON (builtins.readFile packageJson)) else { };
 
@@ -79,11 +80,14 @@ lib.extendMkDerivation {
         args.installNodeModulesPhase or ''
           runHook preInstallNodeModulesPhase
 
-          ln -sf ${bunDeps} ./node_modules/.bin
+          echo "Bun Deps: '${bunDeps}'"
 
-          # Unfortunately a full copy of node_modules does need to be done instead of a symlink as many packages will write to their install location
-          rsync -a --copy-links --chmod=ugo+w --exclude=".bin" ${bunDeps}/node_modules/ ./node_modules/
+          export HOME=$(mktemp -d)
+          mkdir node_modules
 
+          ln -sf ${bunDeps} "node_modules/.bin"
+
+          bun install --linker=isolated --verbose --backend=symlink 
 
           runHook postInstallNodeModulesPhase
         '';
@@ -107,7 +111,7 @@ lib.extendMkDerivation {
         '';
 
       nativeBuildInputs = nativeBuildInputs ++ [
-        bun2nixHook
+        bun
       ];
     }
   );
