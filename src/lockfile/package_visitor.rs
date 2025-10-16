@@ -97,7 +97,7 @@ where
         de::Error::custom("Failed to create npm url for npm package while deserializing")
     })?;
 
-    let pkg = Package::from_raw_npm_identifier(npm_identifier_raw, fetcher);
+    let pkg = Package::from_file_safe_npm_identifier(npm_identifier_raw, fetcher);
     packages.push(pkg);
 
     Ok(())

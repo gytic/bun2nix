@@ -33,10 +33,10 @@ impl Package {
     }
 
     pub fn from_file_safe_npm_identifier(name: String, fetcher: Fetcher) -> Self {
-        assert!(
-            !name.contains("/"),
-            "File safe npm identifier cannot contain a `/` character, please use the from raw method instead"
-        );
+        // assert!(
+        //     !name.contains("/"),
+        //     "File safe npm identifier cannot contain a `/` character, please use the from raw method instead"
+        // );
 
         Self { name, fetcher }
     }

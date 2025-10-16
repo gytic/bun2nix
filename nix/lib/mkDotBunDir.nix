@@ -44,30 +44,31 @@ let
         ];
       }
       ''
-       mkdir "$out"
+        mkdir -p "$out"
 
-       bsdtar --extract \
-         --file "${tarball}" \
-         --directory "$out" \
-         --strip-components=1 \
-         --no-same-owner \
-         --no-same-permissions
+        bsdtar --extract \
+          --file "${tarball}" \
+          --directory "$out" \
+          --strip-components=1 \
+          --no-same-owner \
+          --no-same-permissions
 
-        chmod -R a+X "$out"
+         chmod -R a+X "$out"
 
-        ${lib.optionalString (!dontPatchShebangs) ''
-          patchShebangs "$out"
-        ''}
+         ${lib.optionalString (!dontPatchShebangs) ''
+           patchShebangs "$out"
+         ''}
       '';
+
+  # TODO: see https://github.com/oven-sh/bun/blob/642d04b9f2296ae41d842acdf120382c765e632e/docs/install/cache.md?plain=1#L24
 
   toNamedPath =
     name: pkg:
-    runCommandLocal "pkg-${name}"
-      { }
-      ''
-        mkdir "$out"
-        ln -sf "${pkg}" "$out/${name}"
-      '';
+    runCommandLocal "pkg-${name}" { } ''
+      mkdir -p "$out/${name}/.."
+
+      ln -sf "${pkg}" "$out/${name}@@@1"
+    '';
 
   patched = if dontPatchShebangs then packages else (builtins.mapAttrs extractPackage packages);
 

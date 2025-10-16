@@ -4,6 +4,9 @@
   bun,
   stdenv,
   fetchurl,
+  rsync,
+  strace,
+  writeShellApplication,
   ...
 }:
 
@@ -49,6 +52,11 @@ lib.extendMkDerivation {
       pname = args.pname or package.name or null;
       version = args.version or package.version or null;
       index = args.index or package.module or null;
+
+      bun2nixNoOp = writeShellApplication {
+        name = "bun2nix";
+        text = "";
+      };
     in
 
     assert lib.assertMsg (pname != null)
@@ -83,11 +91,25 @@ lib.extendMkDerivation {
           echo "Bun Deps: '${bunDeps}'"
 
           export HOME=$(mktemp -d)
-          mkdir node_modules
+          export BUN_INSTALL_CACHE_DIR=$(mktemp -d)
 
-          ln -sf ${bunDeps} "node_modules/.bin"
+          cp -r ${bunDeps}/. $BUN_INSTALL_CACHE_DIR
 
-          bun install --linker=isolated --verbose --backend=symlink 
+          if [ ! -f "$BUN_INSTALL_CACHE_DIR/@types/react@19.0.10@@@1/package.json" ]; then
+            echo "missing react pkg json"
+            ls -la $BUN_INSTALL_CACHE_DIR
+            exit 1
+          fi
+
+          if [ ! -f "$BUN_INSTALL_CACHE_DIR/tailwindcss@4.0.0-73c5c46324e78b9b@@@1/package.json" ]; then
+            echo "missing tailwind pkg json"
+            ls -la $BUN_INSTALL_CACHE_DIR
+            exit 1
+          fi
+
+          strace bun install --linker=isolated --verbose &
+          sleep 5
+          exit 1
 
           runHook postInstallNodeModulesPhase
         '';
@@ -112,6 +134,9 @@ lib.extendMkDerivation {
 
       nativeBuildInputs = nativeBuildInputs ++ [
         bun
+        bun2nixNoOp
+        rsync
+        strace
       ];
     }
   );
