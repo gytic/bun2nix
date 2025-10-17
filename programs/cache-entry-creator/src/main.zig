@@ -1,13 +1,62 @@
 const std = @import("std");
+const clap = @import("clap");
 const mem = std.mem;
+const path = std.path;
 const wyhash = @import("./wyhash.zig").Wyhash11.hash;
 
 const wyhash_seed: u64 = 0;
 
-pub fn main() !void {
-    const hash = wyhash.Wyhash11.hash(0, "beta.9");
+const cli_error = error{MissingOutDirFlag};
 
-    std.debug.print("Hash: {x}", .{hash});
+/// Tool for producing correctly named and positioned bun cache entries
+///
+/// Does the following:
+/// - Create $out dir
+/// - Calculates the correct output location for the package
+/// - Symlinks the package contents to the calculated output location
+/// - Creates any parent directories
+///
+pub fn main() !void {
+    var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
+    defer arena.deinit();
+
+    const allocator = arena.allocator();
+
+    const params = comptime clap.parseParamsComptime(
+        \\--help             Display this help and exit.
+        \\--out <path>       The $out directory to create and write to
+        \\--name <str>       The package name (and version) as found in `bun.lock`
+        \\--package <path>   The contents of the package to copy
+        \\
+    );
+
+    const parsers = comptime .{
+        .path = clap.parsers.string,
+        .str = clap.parsers.string,
+    };
+
+    var diag = clap.Diagnostic{};
+    var res = clap.parse(clap.Help, &params, parsers, .{
+        .diagnostic = &diag,
+        .allocator = allocator,
+        .assignment_separators = "=:",
+    }) catch |err| {
+        try diag.reportToFile(.stderr(), err);
+        return err;
+    };
+    defer res.deinit();
+
+    if (res.args.help != 0)
+        return clap.usageToFile(.stdout(), clap.Help, &params);
+
+    const out = res.args.out orelse
+        return clap.usageToFile(.stdout(), clap.Help, &params);
+    const name = res.args.name orelse
+        return clap.usageToFile(.stdout(), clap.Help, &params);
+    const package = res.args.package orelse
+        return clap.usageToFile(.stdout(), clap.Help, &params);
+
+    std.debug.print("out: {s}, name: {s}, package: {s}\n", .{ out, name, package });
 }
 
 /// Produce a correct bun cache folder name for a given npm identifier

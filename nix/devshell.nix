@@ -24,6 +24,8 @@ pkgs.mkShell {
     rustfmt
     clippy
 
+    zig
+
     mdbook
 
     bun

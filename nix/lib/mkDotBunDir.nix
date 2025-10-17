@@ -6,6 +6,7 @@
   makeWrapper,
   lib,
   libarchive,
+  cacheEntryCreator,
   ...
 }:
 {
@@ -60,23 +61,26 @@ let
          ''}
       '';
 
-  # TODO: see https://github.com/oven-sh/bun/blob/642d04b9f2296ae41d842acdf120382c765e632e/docs/install/cache.md?plain=1#L24
-
   toNamedPath =
     name: pkg:
     runCommandLocal "pkg-${name}" { } ''
+      "${lib.getExe cacheEntryCreator}" \
+        "$out" \
+        "${name}" \
+        "${pkg}"
+
       mkdir -p "$out/${name}/.."
 
       ln -sf "${pkg}" "$out/${name}@@@1"
     '';
-
-  patched = if dontPatchShebangs then packages else (builtins.mapAttrs extractPackage packages);
-
-  packagePaths = builtins.mapAttrs toNamedPath patched;
 in
 symlinkJoin {
   name = ".bun";
-  paths = builtins.attrValues packagePaths;
+  paths = lib.pipe packages [
+    (builtins.mapAttrs extractPackage)
+    (builtins.mapAttrs toNamedPath)
+    builtins.attrValues
+  ];
 }
 
 # runCommand ".bun"
