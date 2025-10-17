@@ -38,14 +38,14 @@ impl Fetcher {
     ///
     /// ## Usage
     ///```rust
-    /// use bun2nix::Package;
+    /// use bun2nix::package::Fetcher;
     ///
-    /// let package = Package {
-    ///     npm_identifier: "@alloc/quick-lru@5.2.0".to_owned(),
-    ///     ..Default::default()
-    /// };
+    /// let npm_identifier = "@alloc/quick-lru@5.2.0";
     ///
-    /// assert_eq!(package.to_npm_url().unwrap(), "https://registry.npmjs.org/@alloc/quick-lru/-/quick-lru-5.2.0.tgz")
+    /// assert_eq!(
+    ///     Fetcher::to_npm_url(npm_identifier).unwrap(),
+    ///     "https://registry.npmjs.org/@alloc/quick-lru/-/quick-lru-5.2.0.tgz"
+    /// );
     /// ```
     pub fn to_npm_url(ident: &str) -> Result<String> {
         let Some((user, name_and_ver)) = ident.split_once("/") else {
