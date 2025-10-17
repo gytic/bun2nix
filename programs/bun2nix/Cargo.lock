@@ -114,7 +114,6 @@ dependencies = [
  "serde",
  "serde_json",
  "thiserror",
- "wyhash",
 ]
 
 [[package]]
@@ -240,12 +239,6 @@ checksum = "ce25767e7b499d1b604768e7cde645d14cc8584231ea6b295e9c9eb22c02e1d1"
 dependencies = [
  "proc-macro2",
 ]
-
-[[package]]
-name = "rand_core"
-version = "0.9.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "99d9a13982dcf210057a8a78572b2217b667c3beacbf3a0d8b454f6f82837d38"
 
 [[package]]
 name = "rustc-hash"
@@ -438,13 +431,4 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "21a0236b59786fed61e2a80582dd500fe61f18b5dca67a4a067d0bc9039339cf"
 dependencies = [
  "memchr",
-]
-
-[[package]]
-name = "wyhash"
-version = "0.6.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ca4d373340c479fd1e779f7a763acee85da3e423b1a9a9acccf97babcc92edbb"
-dependencies = [
- "rand_core",
 ]
