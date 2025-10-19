@@ -13,7 +13,7 @@ let
 
   evalTemplate =
     template:
-    pkgs.callPackage (../templates/${template}/default.nix) {
+    pkgs.callPackage ../templates/${template}/default.nix {
       inherit (flake.lib.${system}) mkBunDerivation;
     };
 

@@ -8,6 +8,7 @@
   strace,
   writeShellApplication,
   cache-entry-creator,
+  copyPathToStore,
   ...
 }:
 
@@ -23,6 +24,7 @@ lib.extendMkDerivation {
   extendDrvArgs = (
     _finalAttrs:
     {
+      src,
       packageJson ? null,
       bunNix,
       dontPatchShebangs ? false,
@@ -45,8 +47,11 @@ lib.extendMkDerivation {
       "mkBunDerivation: Either `version` or `packageJson` must be set in order to assign a version to the package. It may be assigned manually with `version` which always takes priority or read from the `version` field of `packageJson`.";
 
     let
-      packages = (import bunNix) { inherit fetchurl; };
-      bunDeps = mkDotBunDir { 
+      packages = (import bunNix) {
+        inherit fetchurl copyPathToStore;
+        root = src;
+      };
+      bunDeps = mkDotBunDir {
         inherit packages dontPatchShebangs cache-entry-creator;
       };
 

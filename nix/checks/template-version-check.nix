@@ -3,7 +3,7 @@
   ...
 }:
 let
-  cargoToml = builtins.fromTOML (builtins.readFile ../../Cargo.toml);
+  cargoToml = builtins.fromTOML (builtins.readFile ../../programs/bun2nix/Cargo.toml);
 
   currentVersion = cargoToml.package.version;
 

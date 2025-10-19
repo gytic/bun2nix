@@ -36,7 +36,7 @@ let
   };
 
   extractPackage =
-    name: tarball:
+    name: pkg:
     runCommandLocal "patch-${name}"
       {
         nativeBuildInputs = [
@@ -47,18 +47,27 @@ let
       ''
         mkdir -p "$out"
 
-        bsdtar --extract \
-          --file "${tarball}" \
-          --directory "$out" \
-          --strip-components=1 \
-          --no-same-owner \
-          --no-same-permissions
+        ${
+          if (lib.hasSuffix ".tgz" pkg) then
+            ''
+              bsdtar --extract \
+                --file "${pkg}" \
+                --directory "$out" \
+                --strip-components=1 \
+                --no-same-owner \
+                --no-same-permissions
+            ''
+          else
+            ''
+              cp -r "${pkg}" "$out"
+            ''
+        }
 
-         chmod -R a+X "$out"
+        chmod -R a+X "$out"
 
-         ${lib.optionalString (!dontPatchShebangs) ''
-           patchShebangs "$out"
-         ''}
+        ${lib.optionalString (!dontPatchShebangs) ''
+          patchShebangs "$out"
+        ''}
       '';
 
   toNamedPath =
@@ -68,10 +77,6 @@ let
         --out "$out" \
         --name "${name}" \
         --package "${pkg}"
-
-      # mkdir -p "$out/${name}/.."
-      #
-      # ln -sf "${pkg}" "$out/${name}@@@1"
     '';
 in
 symlinkJoin {
