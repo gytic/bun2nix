@@ -1,137 +1,129 @@
+{ lib, ... }:
 {
-  lib,
-  mkBunCache,
-  bun,
-  stdenv,
-  fetchurl,
-  rsync,
-  strace,
-  writeShellApplication,
-  cache-entry-creator,
-  copyPathToStore,
-  ...
-}:
-
-lib.extendMkDerivation {
-  constructDrv = stdenv.mkDerivation;
-  excludeDrvArgNames = [
-    "packageJson"
-    "index"
-    "bunNix"
-    "workspaceRoot"
-    "workspaces"
-  ];
-  extendDrvArgs = (
-    _finalAttrs:
+  perSystem =
+    { pkgs, self', ... }:
     {
-      src,
-      packageJson ? null,
-      bunNix,
-      dontPatchShebangs ? false,
-      nativeBuildInputs ? [ ],
-      buildFlags ? [
-        "--compile"
-        "--minify"
-        "--sourcemap"
-        "--bytecode"
-      ],
-      # Bun binaries built by this derivation become broken by the default fixupPhase
-      dontFixup ? !(args ? buildPhase),
-      ...
-    }@args:
+      packages.mkBunDerivation =
 
-    assert lib.assertMsg (args ? pname || packageJson != null)
-      "mkBunDerivation: Either `pname` or `packageJson` must be set in order to assign a name to the package. It may be assigned manually with `pname` which always takes priority or read from the `name` field of `packageJson`.";
+        lib.extendMkDerivation {
+          constructDrv = pkgs.stdenv.mkDerivation;
+          excludeDrvArgNames = [
+            "packageJson"
+            "index"
+            "bunNix"
+            "workspaceRoot"
+            "workspaces"
+          ];
+          extendDrvArgs = _finalAttrs:
+            {
+              src,
+              packageJson ? null,
+              bunNix,
+              dontPatchShebangs ? false,
+              nativeBuildInputs ? [ ],
+              buildFlags ? [
+                "--compile"
+                "--minify"
+                "--sourcemap"
+                "--bytecode"
+              ],
+              # Bun binaries built by this derivation become broken by the default fixupPhase
+              dontFixup ? !(args ? buildPhase),
+              ...
+            }@args:
 
-    assert lib.assertMsg (args ? version || packageJson != null)
-      "mkBunDerivation: Either `version` or `packageJson` must be set in order to assign a version to the package. It may be assigned manually with `version` which always takes priority or read from the `version` field of `packageJson`.";
+            assert lib.assertMsg (args ? pname || packageJson != null)
+              "mkBunDerivation: Either `pname` or `packageJson` must be set in order to assign a name to the package. It may be assigned manually with `pname` which always takes priority or read from the `name` field of `packageJson`.";
 
-    let
-      packages = (import bunNix) {
-        inherit fetchurl copyPathToStore;
-        root = src;
-      };
-      bunDeps = mkBunCache {
-        inherit packages dontPatchShebangs cache-entry-creator;
-      };
+            assert lib.assertMsg (args ? version || packageJson != null)
+              "mkBunDerivation: Either `version` or `packageJson` must be set in order to assign a version to the package. It may be assigned manually with `version` which always takes priority or read from the `version` field of `packageJson`.";
 
-      package = if packageJson != null then (builtins.fromJSON (builtins.readFile packageJson)) else { };
+            let
+              packages = (import bunNix) {
+                inherit (pkgs) fetchurl copyPathToStore;
+                root = src;
+              };
+              bunDeps = self'.lib.mkBunCache {
+                inherit packages dontPatchShebangs;
+                inherit (self'.packages) cache-entry-creator;
+              };
 
-      pname = args.pname or package.name or null;
-      version = args.version or package.version or null;
-      index = args.index or package.module or null;
+              package = if packageJson != null then (builtins.fromJSON (builtins.readFile packageJson)) else { };
 
-      bun2nixNoOp = writeShellApplication {
-        name = "bun2nix";
-        text = "";
-      };
-    in
+              pname = args.pname or package.name or null;
+              version = args.version or package.version or null;
+              index = args.index or package.module or null;
 
-    assert lib.assertMsg (pname != null)
-      "mkBunDerivation: Either `name` must be specified in the given `packageJson` file, or passed as the `name` argument";
+              bun2nixNoOp = pkgs.writeShellApplication {
+                name = "bun2nix";
+                text = "";
+              };
+            in
 
-    assert lib.assertMsg (version != null)
-      "mkBunDerivation: Either `version` must be specified in the given `packageJson` file, or passed as the `version` argument";
+            assert lib.assertMsg (pname != null)
+              "mkBunDerivation: Either `name` must be specified in the given `packageJson` file, or passed as the `name` argument";
 
-    {
-      inherit
-        pname
-        version
-        dontFixup
-        dontPatchShebangs
-        ;
+            assert lib.assertMsg (version != null)
+              "mkBunDerivation: Either `version` must be specified in the given `packageJson` file, or passed as the `version` argument";
 
-      preConfigurePhases =
-        args.preConfigurePhases or [
-          "preNodeModulesInstallFixupPhase"
-          "installNodeModulesPhase"
-        ];
+            {
+              inherit
+                pname
+                version
+                dontFixup
+                dontPatchShebangs
+                ;
 
-      preNodeModulesInstallFixupPhase =
-        args.preNodeModulesInstallFixupPhase or ''
-          patchShebangs .
-        '';
+              preConfigurePhases =
+                args.preConfigurePhases or [
+                  "preNodeModulesInstallFixupPhase"
+                  "installNodeModulesPhase"
+                ];
 
-      installNodeModulesPhase =
-        args.installNodeModulesPhase or ''
-          runHook preInstallNodeModulesPhase
+              preNodeModulesInstallFixupPhase =
+                args.preNodeModulesInstallFixupPhase or ''
+                  patchShebangs .
+                '';
 
-          echo "Bun Deps: '${bunDeps}'"
+              installNodeModulesPhase =
+                args.installNodeModulesPhase or ''
+                  runHook preInstallNodeModulesPhase
 
-          export HOME=$(mktemp -d)
-          export BUN_INSTALL_CACHE_DIR=$(mktemp -d)
+                  echo "Bun Deps: '${bunDeps}'"
 
-          cp -r ${bunDeps}/. $BUN_INSTALL_CACHE_DIR
+                  export HOME=$(mktemp -d)
+                  export BUN_INSTALL_CACHE_DIR=$(mktemp -d)
 
-          bun install --linker=isolated --verbose
+                  cp -r ${bunDeps}/. $BUN_INSTALL_CACHE_DIR
 
-          runHook postInstallNodeModulesPhase
-        '';
+                  bun install --linker=isolated --verbose
 
-      buildPhase =
-        args.buildPhase or (
-          assert lib.assertMsg (builtins.isString index)
-            "mkBunDerivation: to use the default buildPhase, either `module` must be specified in the given `packageJson` file, or passed as the `index` argument, and it should not be a nix store path, but a path relative to the workspace directory";
-          ''
-            runHook preBuild
-            bun build ${lib.concatStringsSep " " buildFlags} ${index} --outfile ${pname}
-            runHook postBuild
-          ''
-        );
+                  runHook postInstallNodeModulesPhase
+                '';
 
-      installPhase =
-        args.installPhase or ''
-          runHook preInstall
-          install -Dm755 ${pname} $out/bin/${pname}
-          runHook postInstall
-        '';
+              buildPhase =
+                args.buildPhase or (
+                  assert lib.assertMsg (builtins.isString index)
+                    "mkBunDerivation: to use the default buildPhase, either `module` must be specified in the given `packageJson` file, or passed as the `index` argument, and it should not be a nix store path, but a path relative to the workspace directory";
+                  ''
+                    runHook preBuild
+                    bun build ${lib.concatStringsSep " " buildFlags} ${index} --outfile ${pname}
+                    runHook postBuild
+                  ''
+                );
 
-      nativeBuildInputs = nativeBuildInputs ++ [
-        bun
-        bun2nixNoOp
-        rsync
-        strace
-      ];
-    }
-  );
+              installPhase =
+                args.installPhase or ''
+                  runHook preInstall
+                  install -Dm755 ${pname} $out/bin/${pname}
+                  runHook postInstall
+                '';
+
+              nativeBuildInputs = nativeBuildInputs ++ [
+                pkgs.bun
+                bun2nixNoOp
+              ];
+            };
+        };
+    };
 }

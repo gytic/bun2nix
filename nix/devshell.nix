@@ -1,36 +1,41 @@
-{ pkgs, ... }:
-let
-  inherit (pkgs) lib stdenv;
+{
+  perSystem =
+    { pkgs, ... }:
+    let
+      inherit (pkgs) lib stdenv;
 
-  moldHook =
-    pkgs.makeSetupHook
-      {
-        name = "mold-hook";
+      moldHook =
+        pkgs.makeSetupHook
+          {
+            name = "mold-hook";
 
-        propagatedBuildInputs = with pkgs; [
-          mold
+            propagatedBuildInputs = with pkgs; [
+              mold
+            ];
+          }
+          (
+            pkgs.writeText "moldHook.sh" ''
+              export RUSTFLAGS="-C link-arg=-fuse-ld=mold"
+            ''
+          );
+    in
+    {
+      devShells.default = pkgs.mkShell {
+        packages = with pkgs; [
+          rustc
+          cargo
+          rustfmt
+          clippy
+
+          zig
+          zon2nix
+
+          mdbook
+
+          bun
+
+          (lib.optional (!stdenv.isDarwin) moldHook)
         ];
-      }
-      (
-        pkgs.writeText "moldHook.sh" ''
-          export RUSTFLAGS="-C link-arg=-fuse-ld=mold"
-        ''
-      );
-in
-pkgs.mkShell {
-  packages = with pkgs; [
-    rustc
-    cargo
-    rustfmt
-    clippy
-
-    zig
-    zon2nix
-
-    mdbook
-
-    bun
-
-    (lib.optional (!stdenv.isDarwin) moldHook)
-  ];
+      };
+    };
 }

@@ -1,44 +1,50 @@
 {
-  pkgs,
-  ...
-}:
-let
-  cargoToml = builtins.fromTOML (builtins.readFile ../../programs/bun2nix/Cargo.toml);
+  perSystem =
 
-  currentVersion = cargoToml.package.version;
+    {
+      pkgs,
+      ...
+    }:
+    let
+      cargoToml = builtins.fromTOML (builtins.readFile ../../programs/bun2nix/Cargo.toml);
 
-  templatesDir = ../templates;
-in
-pkgs.stdenv.mkDerivation {
-  name = "template-versions-check";
+      currentVersion = cargoToml.package.version;
 
-  dontBuild = true;
+      templatesDir = ../templates;
+    in
+    {
+      checks.templateVersionsMatchCargoToml = pkgs.stdenv.mkDerivation {
+        name = "template-versions-check";
 
-  src = ./.;
+        dontBuild = true;
 
-  doCheck = true;
+        src = ./.;
 
-  checkPhase = ''
-    echo "Checking template tag versions match current cargo toml version..."
-    templates=$(ls ${templatesDir})
+        doCheck = true;
 
-    for template in $templates; do
-      echo "Checking '$template' template version..."
+        checkPhase = ''
+          echo "Checking template tag versions match current cargo toml version..."
+          templates=$(ls ${templatesDir})
 
-      version=$(
-        cat "${templatesDir}/$template/flake.nix" | \
-        grep -Po 'bun2nix\.url = "github:baileyluTCD/bun2nix\?tag=\K[0-9]+\.[0-9]+\.[0-9]+'
-      )
+          for template in $templates; do
+            echo "Checking '$template' template version..."
 
-      if ! [[ $version == ${currentVersion} ]]; then
-        echo "Tag version $version does not match ${currentVersion} for template '$template'."
-        exit 1
-      fi
+            version=$(
+              cat "${templatesDir}/$template/flake.nix" | \
+              grep -Po 'bun2nix\.url = "github:baileyluTCD/bun2nix\?tag=\K[0-9]+\.[0-9]+\.[0-9]+'
+            )
 
-    done
-  '';
+            if ! [[ $version == ${currentVersion} ]]; then
+              echo "Tag version $version does not match ${currentVersion} for template '$template'."
+              exit 1
+            fi
 
-  installPhase = ''
-    mkdir "$out"
-  '';
+          done
+        '';
+
+        installPhase = ''
+          mkdir "$out"
+        '';
+      };
+    };
 }

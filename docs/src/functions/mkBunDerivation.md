@@ -35,8 +35,7 @@ mkBunDerivation {
 >
 > - `name` is a field that is acceptable for use as the name of the binary produced by your package.
 > - `version` is a field denoting your package version in proper semantic versioning.
-> - `module` is a field pointing towards your `index.ts file or equivalent.
-If you notice any strange errors while using the implict build scheme try specifying the values manually and contribute a new descriptive assert message to `mkBunDerivation`.
+> - `module` is a field pointing towards your `index.ts file or equivalent. If you notice any strange errors while using the implict build scheme try specifying the values manually and contribute a new descriptive assert message to `mkBunDerivation\`.
 
 ## Arguments
 
