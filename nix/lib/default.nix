@@ -8,13 +8,13 @@ eachSystem (
     pkgs = inputs.nixpkgs.legacyPackages.${system};
   in
   rec {
-    mkDotBunDir = pkgs.callPackage ./mkDotBunDir.nix {
+    mkBunCache = pkgs.callPackage ./mkBunCache.nix {
       inherit (flake.packages.${system}) cache-entry-creator;
     };
     writeBunScriptBin = pkgs.callPackage ./writeBunScriptBin.nix { };
 
     mkBunDerivation = pkgs.callPackage ./mkBunDerivation.nix {
-      inherit mkDotBunDir;
+      inherit mkBunCache;
       inherit (flake.packages.${system}) cache-entry-creator;
     };
 

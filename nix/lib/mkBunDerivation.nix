@@ -1,6 +1,6 @@
 {
   lib,
-  mkDotBunDir,
+  mkBunCache,
   bun,
   stdenv,
   fetchurl,
@@ -51,7 +51,7 @@ lib.extendMkDerivation {
         inherit fetchurl copyPathToStore;
         root = src;
       };
-      bunDeps = mkDotBunDir {
+      bunDeps = mkBunCache {
         inherit packages dontPatchShebangs cache-entry-creator;
       };
 
