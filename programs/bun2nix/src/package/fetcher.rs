@@ -7,27 +7,36 @@ use serde::{Deserialize, Serialize};
 
 use crate::error::{Error, Result};
 
-#[derive(
-    Template, Default, Debug, Serialize, Deserialize, Clone, Eq, Ord, PartialEq, PartialOrd, Hash,
-)]
+#[derive(Template, Debug, Serialize, Deserialize, Clone, Eq, Ord, PartialEq, PartialOrd, Hash)]
 /// # Package Fetcher
 ///
 /// Nix-translated fetcher for a given package
 pub enum Fetcher {
+    /// A package which must be retrieved with nix's `pkgs.fetchurl`
     #[template(path = "fetchurl.nix_template")]
-    FetchUrl { url: String, hash: String },
-    #[template(source = "", ext = "nix_template")]
-    // #[template(path = "copy-to-store.nix_template")]
-    CopyToStore { path: String },
-    #[default]
-    #[template(source = "", ext = "nix_template")]
-    Unknown,
+    FetchUrl {
+        /// The url to fetch the package from
+        url: String,
+        /// The hash of the downloaded results
+        /// This can be derived from the bun lockfile
+        hash: String,
+    },
+    /// A package can be a path copied to the store directly
+    #[template(path = "copy-to-store.nix_template")]
+    CopyToStore {
+        /// The path from the root to copy to the store
+        path: String,
+    },
 }
 
 impl Fetcher {
-    pub fn new_npm_package(npm_identifier_raw: &str, hash: String) -> Result<Self> {
+    /// # From NPM Package
+    ///
+    /// Initialize a fetcher from an npm identifier and
+    /// it's hash
+    pub fn new_npm_package(ident: &str, hash: String) -> Result<Self> {
         Ok(Self::FetchUrl {
-            url: Self::to_npm_url(&npm_identifier_raw)?,
+            url: Self::to_npm_url(ident)?,
             hash,
         })
     }

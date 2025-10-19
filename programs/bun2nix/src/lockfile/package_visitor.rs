@@ -64,7 +64,7 @@ where
         return Ok(());
     };
 
-    let pkg = Package::from_workspace_identifier(name, Fetcher::CopyToStore { path });
+    let pkg = Package::new(name, Fetcher::CopyToStore { path });
 
     packages.push(pkg);
 
@@ -97,7 +97,7 @@ where
         de::Error::custom("Failed to create npm url for npm package while deserializing")
     })?;
 
-    let pkg = Package::from_file_safe_npm_identifier(npm_identifier_raw, fetcher);
+    let pkg = Package::new(npm_identifier_raw, fetcher);
     packages.push(pkg);
 
     Ok(())

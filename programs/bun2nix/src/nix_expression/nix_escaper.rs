@@ -18,10 +18,6 @@ impl Escaper for NixEscaper {
     }
 
     fn write_escaped_char<W: Write>(&self, mut fmt: W, c: char) -> fmt::Result {
-        match c {
-            '\\' => fmt.write_str("\\\\"),
-            '$' => fmt.write_str("\\${}"),
-            _ => fmt.write_char(c),
-        }
+        fmt.write_char(c)
     }
 }

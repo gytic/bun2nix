@@ -71,7 +71,6 @@ pub struct Lockfile {
     pub workspaces: HashMap<String, Workspace>,
 
     /// The list of all packages needed by the lockfile
-    #[serde(default)]
     #[serde(deserialize_with = "Lockfile::deserialize_packages")]
     pub packages: Vec<Package>,
 }

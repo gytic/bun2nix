@@ -5,14 +5,13 @@ use std::{
     hash::{Hash, Hasher},
 };
 
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 
 mod fetcher;
 
-use crate::wyhash::wyhash;
 pub use fetcher::Fetcher;
 
-#[derive(Default, Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Clone)]
 #[serde(rename_all = "camelCase", default)]
 /// # Package
 ///
@@ -27,22 +26,11 @@ pub struct Package {
 }
 
 impl Package {
-    pub fn from_raw_npm_identifier(name: String, fetcher: Fetcher) -> Self {
-        let npm_identifier_file_safe = name.replace("/", "+");
-
-        Self::from_file_safe_npm_identifier(npm_identifier_file_safe, fetcher)
-    }
-
-    pub fn from_file_safe_npm_identifier(name: String, fetcher: Fetcher) -> Self {
-        // assert!(
-        //     !name.contains("/"),
-        //     "File safe npm identifier cannot contain a `/` character, please use the from raw method instead"
-        // );
-
-        Self { name, fetcher }
-    }
-
-    pub fn from_workspace_identifier(name: String, fetcher: Fetcher) -> Self {
+    /// # Create New Package
+    ///
+    /// Creates a given package using it's name
+    /// and fetcher information
+    pub fn new(name: String, fetcher: Fetcher) -> Self {
         Self { name, fetcher }
     }
 }
