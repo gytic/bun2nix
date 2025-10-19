@@ -6,7 +6,7 @@
   makeWrapper,
   lib,
   libarchive,
-  cacheEntryCreator,
+  cache-entry-creator,
   ...
 }:
 {
@@ -64,14 +64,14 @@ let
   toNamedPath =
     name: pkg:
     runCommandLocal "pkg-${name}" { } ''
-      "${lib.getExe cacheEntryCreator}" \
-        "$out" \
-        "${name}" \
-        "${pkg}"
+      "${lib.getExe cache-entry-creator}" \
+        --out "$out" \
+        --name "${name}" \
+        --package "${pkg}"
 
-      mkdir -p "$out/${name}/.."
-
-      ln -sf "${pkg}" "$out/${name}@@@1"
+      # mkdir -p "$out/${name}/.."
+      #
+      # ln -sf "${pkg}" "$out/${name}@@@1"
     '';
 in
 symlinkJoin {

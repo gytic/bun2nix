@@ -7,6 +7,7 @@
   rsync,
   strace,
   writeShellApplication,
+  cache-entry-creator,
   ...
 }:
 
@@ -45,7 +46,9 @@ lib.extendMkDerivation {
 
     let
       packages = (import bunNix) { inherit fetchurl; };
-      bunDeps = mkDotBunDir { inherit packages dontPatchShebangs; };
+      bunDeps = mkDotBunDir { 
+        inherit packages dontPatchShebangs cache-entry-creator;
+      };
 
       package = if packageJson != null then (builtins.fromJSON (builtins.readFile packageJson)) else { };
 
@@ -95,21 +98,7 @@ lib.extendMkDerivation {
 
           cp -r ${bunDeps}/. $BUN_INSTALL_CACHE_DIR
 
-          if [ ! -f "$BUN_INSTALL_CACHE_DIR/@types/react@19.0.10@@@1/package.json" ]; then
-            echo "missing react pkg json"
-            ls -la $BUN_INSTALL_CACHE_DIR
-            exit 1
-          fi
-
-          if [ ! -f "$BUN_INSTALL_CACHE_DIR/tailwindcss@4.0.0-73c5c46324e78b9b@@@1/package.json" ]; then
-            echo "missing tailwind pkg json"
-            ls -la $BUN_INSTALL_CACHE_DIR
-            exit 1
-          fi
-
-          strace bun install --linker=isolated --verbose &
-          sleep 5
-          exit 1
+          bun install --linker=isolated --verbose
 
           runHook postInstallNodeModulesPhase
         '';
