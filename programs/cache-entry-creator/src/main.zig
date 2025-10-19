@@ -1,12 +1,21 @@
 const std = @import("std");
 const clap = @import("clap");
+
+const wyhash = @import("./wyhash.zig").Wyhash11.hash;
+
 const mem = std.mem;
 const path = std.path;
-const wyhash = @import("./wyhash.zig").Wyhash11.hash;
+const fs = std.fs;
+
+const MakeError = std.fs.Dir.MakeError;
 
 const wyhash_seed: u64 = 0;
 
 const cli_error = error{MissingOutDirFlag};
+
+pub const std_options = std.Options{
+    .log_level = .debug,
+};
 
 /// Tool for producing correctly named and positioned bun cache entries
 ///
@@ -56,8 +65,37 @@ pub fn main() !void {
     const package = res.args.package orelse
         return clap.usageToFile(.stdout(), clap.Help, &params);
 
-    std.debug.print("out: {s}, name: {s}, package: {s}\n", .{ out, name, package });
+    const link_name = try cached_npm_package_folder_print_basename(
+        allocator,
+        name,
+    );
+    defer allocator.free(link_name);
+
+    std.log.info("Creating entry for `{s}`...\n", .{name});
+
+    const link_out = try std.fmt.allocPrint(allocator, "{s}/{s}@@@1", .{ out, link_name });
+    defer allocator.free(link_out);
+
+    std.log.debug("Link out: `{s}`.\n", .{link_out});
+
+    const link_parent = try fs.path.resolve(allocator, &[_][]const u8{ link_out, ".." });
+    defer allocator.free(link_parent);
+
+    std.log.debug("Link parent `{s}`.\n", .{link_parent});
+
+    try fs.cwd().makePath(link_parent);
+    std.log.debug("Created parent directory.\n", .{});
+
+    try fs.symLinkAbsolute(
+        package,
+        link_out,
+        .{ .is_directory = true },
+    );
+
+    std.log.info("Successfully created cache entry symlink for `{s}`.\n", .{name});
 }
+
+const PackageParseError = error{NoAtInPackageIdentifier};
 
 /// Produce a correct bun cache folder name for a given npm identifier
 ///
@@ -66,33 +104,42 @@ pub fn cached_npm_package_folder_print_basename(
     allocator: mem.Allocator,
     pkg: []const u8,
 ) ![]u8 {
-    if (mem.indexOf(u8, pkg, "-")) |preIndex| {
-        const name_and_ver = pkg[0..preIndex];
-        const pre_and_build = pkg[preIndex + 1 ..];
+    const version_start = mem.lastIndexOfScalar(u8, pkg, '@') orelse {
+        return PackageParseError.NoAtInPackageIdentifier;
+    };
+    const name = pkg[0..version_start];
+    const ver = pkg[version_start..];
 
-        if (mem.indexOf(u8, pre_and_build, "+")) |buildIndex| {
+    if (mem.indexOfScalar(u8, ver, '-')) |preIndex| {
+        const version = ver[0..preIndex];
+        const pre_and_build = ver[preIndex + 1 ..];
+
+        if (mem.indexOfScalar(u8, pre_and_build, '+')) |buildIndex| {
             const pre = pre_and_build[0..buildIndex];
             const build = pre_and_build[buildIndex + 1 ..];
 
-            return std.fmt.allocPrint(allocator, "{s}-{x}+{X}", .{
-                name_and_ver,
+            return std.fmt.allocPrint(allocator, "{s}{s}-{x}+{X}", .{
+                name,
+                version,
                 wyhash(wyhash_seed, pre),
                 wyhash(wyhash_seed, build),
             });
         }
 
-        return std.fmt.allocPrint(allocator, "{s}-{x}", .{
-            name_and_ver,
+        return std.fmt.allocPrint(allocator, "{s}{s}-{x}", .{
+            name,
+            version,
             wyhash(wyhash_seed, pre_and_build),
         });
     }
 
-    if (mem.indexOf(u8, pkg, "+")) |buildIndex| {
-        const name_and_ver = pkg[0..buildIndex];
-        const build = pkg[buildIndex + 1 ..];
+    if (mem.indexOfScalar(u8, ver, '+')) |buildIndex| {
+        const version = ver[0..buildIndex];
+        const build = ver[buildIndex + 1 ..];
 
-        return std.fmt.allocPrint(allocator, "{s}+{X}", .{
-            name_and_ver,
+        return std.fmt.allocPrint(allocator, "{s}{s}+{X}", .{
+            name,
+            version,
             wyhash(wyhash_seed, build),
         });
     }
@@ -108,26 +155,42 @@ test "cached_npm_package_folder_print_basename functions" {
         testing_allocator,
         "react@1.2.3-beta.1+build.123",
     );
+    defer testing_allocator.free(a);
+
     const b = try cached_npm_package_folder_print_basename(
         testing_allocator,
         "tailwindcss@4.0.0-beta.9",
     );
+    defer testing_allocator.free(b);
+
     const c = try cached_npm_package_folder_print_basename(
         testing_allocator,
         "react@1.2.3+build.123",
     );
+    defer testing_allocator.free(c);
+
     const d = try cached_npm_package_folder_print_basename(
         testing_allocator,
         "react@1.2.3",
     );
+    defer testing_allocator.free(d);
+
+    const e = try cached_npm_package_folder_print_basename(
+        testing_allocator,
+        "undici-types@6.20.0",
+    );
+    defer testing_allocator.free(e);
+
+    const f = try cached_npm_package_folder_print_basename(
+        testing_allocator,
+        "@types/react-dom@19.0.4",
+    );
+    defer testing_allocator.free(f);
 
     try expectEqualSlices(u8, "react@1.2.3-c0734e9369ab610d+F48F05ED5AABC3A0", a);
     try expectEqualSlices(u8, "tailwindcss@4.0.0-73c5c46324e78b9b", b);
     try expectEqualSlices(u8, "react@1.2.3+F48F05ED5AABC3A0", c);
     try expectEqualSlices(u8, "react@1.2.3", d);
-
-    testing_allocator.free(a);
-    testing_allocator.free(b);
-    testing_allocator.free(c);
-    testing_allocator.free(d);
+    try expectEqualSlices(u8, "undici-types@6.20.0", e);
+    try expectEqualSlices(u8, "@types/react-dom@19.0.4", f);
 }

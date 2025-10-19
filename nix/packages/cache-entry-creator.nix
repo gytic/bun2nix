@@ -11,6 +11,10 @@ pkgs.stdenvNoCC.mkDerivation {
     zig.hook
   ];
 
+  postPatch = ''
+    ln -s ${pkgs.callPackage ../../programs/cache-entry-creator/deps.nix { }} $ZIG_GLOBAL_CACHE_DIR/p
+'';
+
   buildPhase = ''
     zig build --release=fast
   '';

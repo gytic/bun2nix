@@ -25,6 +25,7 @@ pkgs.mkShell {
     clippy
 
     zig
+    zon2nix
 
     mdbook
 
