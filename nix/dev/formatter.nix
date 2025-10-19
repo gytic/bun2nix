@@ -9,6 +9,7 @@
       nixfmt.enable = true;
       statix.enable = true;
       shfmt.enable = true;
+      shellcheck.enable = true;
       rustfmt.enable = true;
       prettier.enable = true;
       toml-sort.enable = true;
