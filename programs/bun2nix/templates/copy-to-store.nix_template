@@ -1,1 +1,1 @@
-copyPathToStore "${root}/{{ path }}"
+copyPathToStore "./{{ path }}"
