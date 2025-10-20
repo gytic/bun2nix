@@ -24,6 +24,7 @@ in
       fetchBunDeps.function =
         {
           bunNix,
+          overrides ? { },
           ...
         }@args:
         let
@@ -32,12 +33,22 @@ in
           packages = lib.filterAttrs attrIsDerivation (pkgs.callPackage bunNix { });
 
           extractPackage = config.fetchBunDeps.extractPackage args;
+          overridePackage = config.fetchBunDeps.overridePackage args;
           toCacheEntry = config.fetchBunDeps.toCacheEntry args;
         in
+
+        assert lib.asserts.assertEachOneOf "overrides" (builtins.attrNames overrides) (
+          builtins.attrNames packages
+        );
+
+        assert lib.assertMsg (builtins.all builtins.isFunction (builtins.attrValues overrides))
+          "All attr values of `overrides` must be functions taking the old, unoverrided package and returning the new source.";
+
         pkgs.symlinkJoin {
           name = "bun-cache";
           paths = lib.pipe packages [
             (builtins.mapAttrs extractPackage)
+            (builtins.mapAttrs overridePackage)
             (builtins.mapAttrs toCacheEntry)
             builtins.attrValues
           ];
