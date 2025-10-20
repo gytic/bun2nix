@@ -4,6 +4,32 @@
 readonly bunDefaultFlagsArray=(@bun_default_flags@)
 
 function bunSetInstallCacheDir {
+  if ! [ -v bunDeps ]; then
+    printf '\033[31mError:\033[0m %s.\n' "$(
+      cat <<'EOF'
+Please set `bunDeps` in order to use `bun2nix.hook` or
+`bun2nix.mkDerivation` to build your package.
+
+# Example
+```nix
+stdenv.mkDerivation {
+  <other inputs>
+
+  nativeBuildInputs = [
+    bun2nix.hook
+  ];
+
+  bunDeps = bun2nix.fetchBunDeps {
+    bunNix = ./bun.nix;
+  };
+}
+```
+EOF
+    )" >&2
+
+    exit 1
+  fi
+
   BUN_INSTALL_CACHE_DIR=$(mktemp -d)
   export BUN_INSTALL_CACHE_DIR
 
@@ -49,6 +75,15 @@ function bunCheckPhase {
 
 function bunInstallPhase {
   runHook preInstall
+
+  if ! [ -v pname ]; then
+    printf '\033[31mError:\033[0m %s.\n' "'pname' was not defined, please make sure you are running this in a nix build script"
+    exit 1
+  fi
+  if ! [ -v out ]; then
+    printf '\033[31mError:\033[0m %s.\n' "'out' was not defined, please make sure you are running this in a nix build script"
+    exit 1
+  fi
 
   install -Dm755 "$pname" "$out/bin/$pname"
 
