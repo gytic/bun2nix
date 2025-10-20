@@ -52,19 +52,31 @@ in
             "bun2nix.mkDerivation: Either `version` or `packageJson` must be set in order to assign a version to the package. It may be assigned manually with `version` which always takes priority or read from the `version` field of `packageJson`.";
 
           let
-            package = if packageJson != null then (builtins.fromJSON (builtins.readFile packageJson)) else { };
+            pkgJsonContents = builtins.readFile packageJson;
+            package = if packageJson != null then (builtins.fromJSON pkgJsonContents) else { };
 
             pname = args.pname or package.name or null;
             version = args.version or package.version or null;
             module = args.module or package.module or null;
           in
 
-          assert lib.assertMsg (pname != null)
-            "bun2nix.mkDerivation: Either `name` must be specified in the given `packageJson` file, or passed as the `name` argument";
+          assert lib.assertMsg (pname != null) ''
+            bun2nix.mkDerivation: Either `name` must be specified in the given `packageJson` file, or passed as the `name` argument.
 
-          assert lib.assertMsg (version != null)
-            "bun2nix.mkDerivation: Either `version` must be specified in the given `packageJson` file, or passed as the `version` argument";
+            `package.json`:
+            ```json
+            ${pkgJsonContents}
+            ```
+          '';
 
+          assert lib.assertMsg (version != null) ''
+            bun2nix.mkDerivation: Either `version` must be specified in the given `packageJson` file, or passed as the `version` argument.
+
+            `package.json`:
+            ```json
+            ${pkgJsonContents}
+            ```
+          '';
           {
             inherit
               pname
