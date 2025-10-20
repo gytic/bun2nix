@@ -1,16 +1,13 @@
+{ config, self, ... }:
 {
   perSystem =
-
     {
       pkgs,
       ...
     }:
     let
-      cargoToml = builtins.fromTOML (builtins.readFile ../../programs/bun2nix/Cargo.toml);
-
-      currentVersion = cargoToml.package.version;
-
-      templatesDir = ../templates;
+      currentVersion = config.cargoTOML.package.version;
+      templatesDir ="${self}/templates/";
     in
     {
       checks.templateVersionsMatchCargoToml = pkgs.stdenv.mkDerivation {
@@ -24,18 +21,18 @@
 
         checkPhase = ''
           echo "Checking template tag versions match current cargo toml version..."
-          templates=$(ls ${templatesDir})
+          templates="$(ls ${templatesDir})"
 
-          for template in $templates; do
-            echo "Checking '$template' template version..."
+          for template in "$templates"; do
+            echo "Checking \"$template\" template version..."
 
             version=$(
               cat "${templatesDir}/$template/flake.nix" | \
               grep -Po 'bun2nix\.url = "github:baileyluTCD/bun2nix\?tag=\K[0-9]+\.[0-9]+\.[0-9]+'
             )
 
-            if ! [[ $version == ${currentVersion} ]]; then
-              echo "Tag version $version does not match ${currentVersion} for template '$template'."
+            if ! [[ "$version" == "${currentVersion}" ]]; then
+              echo "Tag version \"$version\" does not match \"${currentVersion}\" for template \"$template\"'."
               exit 1
             fi
 

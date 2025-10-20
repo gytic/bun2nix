@@ -1,4 +1,12 @@
-{ self, lib, ... }:
+{
+  self,
+  lib,
+  config,
+  ...
+}:
+let
+  rootConfig = config;
+in
 {
   perSystem =
     { pkgs, config, ... }:
@@ -6,11 +14,11 @@
       packages.bun2nix = pkgs.rustPlatform.buildRustPackage (
         finalAttrs:
         let
-          cargoTOML = builtins.fromTOML (builtins.readFile "${finalAttrs.src}/Cargo.toml");
+          pkgInfo = rootConfig.cargoTOML.package;
         in
         {
-          pname = cargoTOML.package.name;
-          inherit (cargoTOML.package) version;
+          pname = pkgInfo.name;
+          inherit (pkgInfo) version;
 
           src = "${self}/programs/bun2nix";
 
