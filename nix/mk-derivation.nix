@@ -22,7 +22,7 @@ in
   };
 
   config.perSystem =
-    { pkgs, ... }:
+    { config, pkgs, ... }:
     {
       mkDerivation.function = lib.extendMkDerivation {
         constructDrv = pkgs.stdenv.mkDerivation;
@@ -38,7 +38,6 @@ in
           {
             packageJson ? null,
             bunDeps,
-            config,
             dontPatchShebangs ? false,
             nativeBuildInputs ? [ ],
             # Bun binaries built by this derivation become broken by the default fixupPhase
@@ -57,7 +56,7 @@ in
 
             pname = args.pname or package.name or null;
             version = args.version or package.version or null;
-            index = args.index or package.module or null;
+            module = args.module or package.module or null;
           in
 
           assert lib.assertMsg (pname != null)
@@ -80,7 +79,7 @@ in
             ];
 
             bunBuildFlags = [
-              "${index}"
+              "${module}"
               "--outfile"
               "${pname}"
               "--compile"
