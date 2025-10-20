@@ -2,7 +2,7 @@
 {
   perSystem =
     {
-      pkgs,
+      final,
       ...
     }:
     let
@@ -11,7 +11,7 @@
       evaluatePackages = builtins.map (
         { name, ... }:
         {
-          "${name}" = pkgs.callPackage "${templates}/${name}/default.nix" { };
+          "${name}" = final.callPackage "${templates}/${name}/default.nix" { };
         }
       );
     in
