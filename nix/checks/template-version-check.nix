@@ -7,7 +7,7 @@
     }:
     let
       currentVersion = config.cargoTOML.package.version;
-      templatesDir ="${self}/templates/";
+      templatesDir = "${self}/templates/";
     in
     {
       checks.templateVersionsMatchCargoToml = pkgs.stdenv.mkDerivation {
@@ -21,9 +21,9 @@
 
         checkPhase = ''
           echo "Checking template tag versions match current cargo toml version..."
-          templates="$(ls ${templatesDir})"
+          templates=$(ls ${templatesDir})
 
-          for template in "$templates"; do
+          for template in $templates; do
             echo "Checking \"$template\" template version..."
 
             version=$(
