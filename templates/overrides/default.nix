@@ -4,8 +4,7 @@
   ...
 }:
 bun2nix.mkDerivation {
-  pname = "overrides-bun2nix-example";
-  version = "1.0.0";
+  packageJson = ./package.json;
 
   src = ./.;
 
@@ -29,6 +28,4 @@ bun2nix.mkDerivation {
       exit 1
     fi
   '';
-
-  module = "index.ts";
 }
