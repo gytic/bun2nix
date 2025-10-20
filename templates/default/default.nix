@@ -5,7 +5,9 @@ bun2nix.mkDerivation {
 
   src = ./.;
 
-  bunNix = ./bun.nix;
+  bunDeps = bun2nix.fetchBunDeps {
+    bunNix = ./bun.nix;
+  };
 
   module = "index.ts";
 }

@@ -10,7 +10,7 @@
         in
         {
           pname = "bun2nix-cache-entry-creator";
-          inherit (config) version;
+          inherit (config.cargoTOML.package) version;
 
           src = "${self}/programs/cache-entry-creator";
 

@@ -13,7 +13,7 @@ in
         If `patchShebangs` is enabled patch all
         scripts to use bun as their executor.
       '';
-      type = types.functionTo types.functionTo types.functionTo types.package;
+      type = types.functionTo (types.functionTo (types.functionTo types.package));
     };
   };
 

@@ -1,11 +1,17 @@
-{ bun2nix, ... }:
-bun2nix.mkDerivation {
+{ stdenv, bun2nix, ... }:
+stdenv.mkDerivation {
   pname = "react-bun2nix-example";
   version = "1.0.0";
 
   src = ./.;
 
-  bunNix = ./bun.nix;
+  nativeBuildInputs = [
+    bun2nix.hook
+  ];
+
+  bunDeps = bun2nix.fetchBunDeps {
+    bunNix = ./bun.nix;
+  };
 
   buildPhase = ''
     bun run build \

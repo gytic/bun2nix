@@ -27,7 +27,9 @@ in
           ...
         }@args:
         let
-          packages = pkgs.callPackage bunNix { };
+          attrIsDerivation = _: value: lib.isDerivation value;
+
+          packages = lib.filterAttrs attrIsDerivation (pkgs.callPackage bunNix { });
 
           extractPackage = config.fetchBunDeps.extractPackage args;
           toCacheEntry = config.fetchBunDeps.toCacheEntry args;

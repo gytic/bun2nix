@@ -11,7 +11,7 @@ in
         symlink in the place where bun would expect
         to find it's cache entry.
       '';
-      type = types.functionTo types.functionTo types.functionTo types.package;
+      type = types.functionTo (types.functionTo (types.functionTo types.package));
     };
   };
 

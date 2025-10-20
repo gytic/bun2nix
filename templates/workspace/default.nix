@@ -7,7 +7,10 @@ bun2nix.mkDerivation {
   version = "1.0.0";
 
   src = ./.;
-  bunNix = ./bun.nix;
+
+  bunDeps = bun2nix.fetchBunDeps {
+    bunNix = ./bun.nix;
+  };
 
   module = "packages/app/index.js";
 }
