@@ -1,11 +1,11 @@
 # shellcheck shell=bash
 
 # shellcheck disable=SC2034
-readonly bunDefaultFlagsArray=(@bun_default_flags@)
+readonly bunDefaultFlagsArray=(@bunDefaultFlags@)
 
 function bunSetInstallCacheDir {
   if ! [ -v bunDeps ]; then
-    printf '\033[31mError:\033[0m %s.\n' "$(
+    printf '\n\033[31mError:\033[0m %s.\n\n' "$(
       cat <<'EOF'
 Please set `bunDeps` in order to use `bun2nix.hook` or
 `bun2nix.mkDerivation` to build your package.
@@ -47,6 +47,14 @@ function bunPatchPhase {
   runHook postPatch
 }
 
+function bunNodeModulesInstallPhase {
+  runHook preBunNodeModulesInstallPhase
+
+  bun install
+
+  runHook postBunNodeModulesInstallPhase
+}
+
 function bunBuildPhase {
   runHook preBuild
 
@@ -55,6 +63,7 @@ function bunBuildPhase {
     bunBuildFlags bunBuildFlagsArray
 
   echoCmd 'bun build flags' "${flagsArray[@]}"
+  ls -la
   bun build "${flagsArray[@]}"
 
   runHook postBuild
@@ -90,8 +99,8 @@ function bunInstallPhase {
   runHook postInstall
 }
 
-# shellcheck disable=SC2154
-addEnvHooks "$targetOffset" bunSetInstallCacheDir
+appendToVar preConfigurePhases bunSetInstallCacheDir
+appendToVar preBuildPhases bunNodeModulesInstallPhase
 
 if [ -z "${dontUseBunPatch-}" ] && [ -z "${patchPhase-}" ]; then
   patchPhase=bunPatchPhase

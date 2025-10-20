@@ -24,10 +24,13 @@ in
     {
       mkDerivation.hook = pkgs.makeSetupHook {
         name = "bun2nix-hook";
-        propagatedNativeBuildInputs = with config; [
+        propagatedBuildInputs = with config; [
           mkDerivation.bun2nixNoOp
           fetchBunDeps.bunWithFakeNode
         ];
+        substitutions = {
+          bunDefaultFlags = [ ];
+        };
       } ./hook.sh;
     };
 }
