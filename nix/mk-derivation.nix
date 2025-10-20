@@ -11,6 +11,11 @@ in
 
         Similar to `stdenv.mkDerivation` but comes with
         additional specifics for creating bun packages.
+
+        A lot of the implementation details exist inside
+        the setup hook consumed by this function. This function's
+        main role is to provide a more idiomatic interface for simple
+        builds while the hook serves anything more custom.
       '';
       type = types.functionTo types.package;
     };
