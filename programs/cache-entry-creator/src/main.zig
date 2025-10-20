@@ -17,32 +17,41 @@ pub const std_options = std.Options{
     .log_level = .debug,
 };
 
-/// Tool for producing correctly named and positioned bun cache entries
-///
-/// Does the following:
-/// - Create $out dir
-/// - Calculates the correct output location for the package
-/// - Symlinks the package contents to the calculated output location
-/// - Creates any parent directories
-///
+/// CLI help message
+const cli_help =
+    \\ Tool for producing correctly named and positioned bun cache entries.
+    \\
+    \\ Does the following (roughly):
+    \\ - Creates $out dir
+    \\ - Calculates the correct output location for the package
+    \\ - Symlinks the package contents to the calculated output location
+    \\ - Creates any parent directories
+    \\
+    \\ Args:
+    \\
+;
+
+/// CLI parameters
+const params = clap.parseParamsComptime(
+    \\--help             Display this help and exit.
+    \\--out <path>       The $out directory to create and write to
+    \\--name <str>       The package name (and version) as found in `bun.lock`
+    \\--package <path>   The contents of the package to copy
+    \\
+);
+
+/// Clap parser string matchers
+const parsers = .{
+    .path = clap.parsers.string,
+    .str = clap.parsers.string,
+};
+
+/// Main entry point
 pub fn main() !void {
     var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
     defer arena.deinit();
 
     const allocator = arena.allocator();
-
-    const params = comptime clap.parseParamsComptime(
-        \\--help             Display this help and exit.
-        \\--out <path>       The $out directory to create and write to
-        \\--name <str>       The package name (and version) as found in `bun.lock`
-        \\--package <path>   The contents of the package to copy
-        \\
-    );
-
-    const parsers = comptime .{
-        .path = clap.parsers.string,
-        .str = clap.parsers.string,
-    };
 
     var diag = clap.Diagnostic{};
     var res = clap.parse(clap.Help, &params, parsers, .{
@@ -55,46 +64,93 @@ pub fn main() !void {
     };
     defer res.deinit();
 
-    if (res.args.help != 0)
+    if (res.args.help != 0) {
+        std.debug.print(cli_help, .{});
         return clap.usageToFile(.stdout(), clap.Help, &params);
+    }
 
-    const out = res.args.out orelse
+    const linker = PkgLinker.init(res.args.out, res.args.name, res.args.package) orelse {
+        std.debug.print(cli_help, .{});
         return clap.usageToFile(.stdout(), clap.Help, &params);
-    const name = res.args.name orelse
-        return clap.usageToFile(.stdout(), clap.Help, &params);
-    const package = res.args.package orelse
-        return clap.usageToFile(.stdout(), clap.Help, &params);
+    };
 
-    const link_name = try cached_npm_package_folder_print_basename(
+    const cache_entry_location = try cached_npm_package_folder_print_basename(
         allocator,
-        name,
+        linker.name,
     );
-    defer allocator.free(link_name);
+    defer allocator.free(cache_entry_location);
 
-    std.log.info("Creating entry for `{s}`...\n", .{name});
+    try linker.create_cache_entry(allocator, cache_entry_location);
 
-    const link_out = try std.fmt.allocPrint(allocator, "{s}/{s}@@@1", .{ out, link_name });
-    defer allocator.free(link_out);
-
-    std.log.debug("Link out: `{s}`.\n", .{link_out});
-
-    const link_parent = try fs.path.resolve(allocator, &[_][]const u8{ link_out, ".." });
-    defer allocator.free(link_parent);
-
-    std.log.debug("Link parent `{s}`.\n", .{link_parent});
-
-    try fs.cwd().makePath(link_parent);
-    std.log.debug("Created parent directory.\n", .{});
-
-    try fs.symLinkAbsolute(
-        package,
-        link_out,
-        .{ .is_directory = true },
-    );
-
-    std.log.info("Successfully created cache entry symlink for `{s}`.\n", .{name});
+    std.log.info("Successfully created cache entry symlink for `{s}`.\n", .{linker.name});
 }
 
+/// # Package Linker
+///
+/// Responsible for sym-linking the packages to their resulting directory
+/// in the out path
+pub const PkgLinker = struct {
+    out: []const u8,
+    name: []const u8,
+    package: []const u8,
+
+    /// Create a new package linker
+    pub fn init(out: ?[]const u8, name: ?[]const u8, package: ?[]const u8) ?PkgLinker {
+        return PkgLinker{
+            .out = out orelse return null,
+            .name = name orelse return null,
+            .package = package orelse return null,
+        };
+    }
+
+    /// # Create cache entry
+    ///
+    /// Creates a new cache entry at the output location passed.
+    ///
+    /// Only the leaf nodes may be symlinks hence yhis creates one of two cases:
+    ///
+    /// typescript@4.0.0
+    /// - Create a symlink at $out/typescript@4.0.0
+    ///
+    /// @types/bun
+    /// - Create parent directory $out/@types
+    /// - Create a symlink at $out/@types/bun
+    pub fn create_cache_entry(
+        linker: PkgLinker,
+        allocator: mem.Allocator,
+        cache_entry_location: []u8,
+    ) !void {
+        std.log.info("Creating entry for `{s}`...\n", .{linker.name});
+
+        const link_out_absolute = try std.fmt.allocPrint(
+            allocator,
+            "{s}/{s}@@@1",
+            .{ linker.out, cache_entry_location },
+        );
+        defer allocator.free(link_out_absolute);
+
+        std.log.debug("Link out path: `{s}`.\n", .{link_out_absolute});
+
+        const link_parent_dir = try fs.path.resolve(
+            allocator,
+            &[_][]const u8{ link_out_absolute, ".." },
+        );
+        defer allocator.free(link_parent_dir);
+
+        std.log.debug("Link parent dir: `{s}`.\n", .{link_parent_dir});
+
+        try fs.cwd().makePath(link_parent_dir);
+        std.log.debug("Created parent directory.\n", .{});
+
+        try fs.symLinkAbsolute(
+            linker.package,
+            link_out_absolute,
+            .{ .is_directory = true },
+        );
+    }
+};
+
+/// Error which can occur parsing a packaeg
 const PackageParseError = error{NoAtInPackageIdentifier};
 
 /// Produce a correct bun cache folder name for a given npm identifier
