@@ -2,15 +2,14 @@
   perSystem =
     {
       pkgs,
-      flake,
-      system,
+      config,
       ...
     }:
     {
       checks.writeBunScriptBin =
 
         let
-          inherit (flake.lib.${system}) writeBunScriptBin;
+          inherit (config) writeBunScriptBin;
 
           script = writeBunScriptBin {
             name = "hello-world-bun-script";
@@ -35,7 +34,7 @@
           checkPhase = ''
             output=$(${script}/bin/hello-world-bun-script)
 
-            if ! [[ $output == "Hello World!" ]]; then
+            if ! [[ "$output" == "Hello World!" ]]; then
               echo "Sample bun script did not produce expected output"
               exit 1
             fi

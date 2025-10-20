@@ -1,3 +1,4 @@
+{ self, ... }:
 {
   perSystem =
     { pkgs, ... }:
@@ -33,30 +34,28 @@
       };
     in
     {
-      packages.docs =
+      packages.docs = pkgs.stdenv.mkDerivation {
+        name = "bun2nix-docs";
 
-        pkgs.stdenv.mkDerivation {
-          name = "bun2nix-docs";
+        src = "${self}/docs";
 
-          src = ../../docs;
+        nativeBuildInputs = with pkgs; [
+          mdbook
+        ];
 
-          nativeBuildInputs = with pkgs; [
-            mdbook
-          ];
+        buildPhase = ''
+          mdbook build
+        '';
 
-          buildPhase = ''
-            mdbook build
-          '';
+        installPhase = ''
+          mkdir -p $out/lib/bun2nix-docs
+          mkdir -p $out/bin
 
-          installPhase = ''
-            mkdir -p $out/lib/bun2nix-docs
-            mkdir -p $out/bin
+          cp -R ./book/* $out/lib/bun2nix-docs/
+          ln -s ${serve-book}/bin/serve-book $out/bin/serve-book
+        '';
 
-            cp -R ./book/* $out/lib/bun2nix-docs/
-            ln -s ${serve-book}/bin/serve-book $out/bin/serve-book
-          '';
-
-          meta.mainProgram = "serve-book";
-        };
+        meta.mainProgram = "serve-book";
+      };
     };
 }
