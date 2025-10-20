@@ -1,14 +1,13 @@
-# Workspace template for bun2nix
 {
-  mkBunDerivation,
+  bun2nix,
+  ...
 }:
-
-mkBunDerivation {
+bun2nix.mkDerivation {
   pname = "workspace-test-app";
   version = "1.0.0";
 
   src = ./.;
   bunNix = ./bun.nix;
 
-  index = "packages/app/index.js";
+  module = "packages/app/index.js";
 }

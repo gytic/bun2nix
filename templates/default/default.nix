@@ -1,5 +1,5 @@
-{ mkBunDerivation, ... }:
-mkBunDerivation {
+{ bun2nix, ... }:
+bun2nix.mkDerivation {
   pname = "minimal-bun2nix-example";
   version = "1.0.0";
 
@@ -7,5 +7,5 @@ mkBunDerivation {
 
   bunNix = ./bun.nix;
 
-  index = "index.ts";
+  module = "index.ts";
 }
