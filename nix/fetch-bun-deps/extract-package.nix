@@ -26,7 +26,7 @@ in
           ...
         }:
         name: pkg:
-        pkgs.runCommandLocal "patch-${name}"
+        pkgs.runCommandLocal "extract-${name}"
           {
             nativeBuildInputs = [
               config.fetchBunDeps.bunWithFakeNode
