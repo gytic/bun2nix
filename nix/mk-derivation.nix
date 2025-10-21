@@ -86,11 +86,7 @@ in
               bunDeps
               ;
 
-            bunDefaultFlags = [
-              "--linker=isolated"
-            ];
-
-            bunBuildFlags = [
+            bunBuildFlags = lib.optional (module != null) [
               "${module}"
               "--outfile"
               "${pname}"
