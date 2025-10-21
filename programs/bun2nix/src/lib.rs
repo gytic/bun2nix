@@ -26,6 +26,7 @@ pub fn convert_lockfile_to_nix_expression(contents: String) -> Result<String> {
 
     let mut packages = lockfile.packages();
     packages.sort();
+    packages.dedup_by(|a, b| a.name == b.name);
 
     Ok(NixExpression::new(packages)?.render()?)
 }
