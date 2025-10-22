@@ -26,7 +26,7 @@ in
         name = "bun2nix-hook";
         propagatedBuildInputs = with config; [
           mkDerivation.bun2nixNoOp
-          fetchBunDeps.bunWithFakeNode
+          pkgs.bun
         ];
         substitutions = {
           bunDefaultFlags = [ ];

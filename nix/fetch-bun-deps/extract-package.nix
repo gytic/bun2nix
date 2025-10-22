@@ -24,12 +24,15 @@ in
         {
           patchShebangs ? true,
           ...
-        }:
+        }@args:
+        let
+          bunWithNode = config.fetchBunDeps.bunWithNode args;
+        in
         name: pkg:
         pkgs.runCommandLocal "extract-${name}"
           {
             nativeBuildInputs = [
-              config.fetchBunDeps.bunWithFakeNode
+              bunWithNode
               pkgs.libarchive
             ];
           }
