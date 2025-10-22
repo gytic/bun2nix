@@ -174,7 +174,7 @@ pub fn cached_npm_package_folder_print_basename(
             const pre = pre_and_build[0..buildIndex];
             const build = pre_and_build[buildIndex + 1 ..];
 
-            return std.fmt.allocPrint(allocator, "{s}{s}-{x}+{X}", .{
+            return std.fmt.allocPrint(allocator, "{s}{s}-{x:0>16}+{X:0>16}", .{
                 name,
                 version,
                 wyhash(wyhash_seed, pre),
@@ -182,7 +182,7 @@ pub fn cached_npm_package_folder_print_basename(
             });
         }
 
-        return std.fmt.allocPrint(allocator, "{s}{s}-{x}", .{
+        return std.fmt.allocPrint(allocator, "{s}{s}-{x:0>16}", .{
             name,
             version,
             wyhash(wyhash_seed, pre_and_build),
@@ -193,7 +193,7 @@ pub fn cached_npm_package_folder_print_basename(
         const version = ver[0..buildIndex];
         const build = ver[buildIndex + 1 ..];
 
-        return std.fmt.allocPrint(allocator, "{s}{s}+{X}", .{
+        return std.fmt.allocPrint(allocator, "{s}{s}+{X:0>16}", .{
             name,
             version,
             wyhash(wyhash_seed, build),
@@ -206,47 +206,23 @@ pub fn cached_npm_package_folder_print_basename(
 const expectEqualSlices = std.testing.expectEqualSlices;
 const testing_allocator = std.testing.allocator;
 
-test "cached_npm_package_folder_print_basename functions" {
-    const a = try cached_npm_package_folder_print_basename(
-        testing_allocator,
-        "react@1.2.3-beta.1+build.123",
-    );
-    defer testing_allocator.free(a);
+test "cached_npm_package_folder_print_basename function" {
+    const tests = &[_]struct { []const u8, []const u8 }{
+        .{ "react@1.2.3-beta.1+build.123", "react@1.2.3-c0734e9369ab610d+F48F05ED5AABC3A0" },
+        .{ "tailwindcss@4.0.0-beta.9", "tailwindcss@4.0.0-73c5c46324e78b9b" },
+        .{ "react@1.2.3+build.123", "react@1.2.3+F48F05ED5AABC3A0" },
+        .{ "react@1.2.3", "react@1.2.3" },
+        .{ "undici-types@6.20.0", "undici-types@6.20.0" },
+        .{ "@types/react-dom@19.0.4", "@types/react-dom@19.0.4" },
+        .{ "react-compiler-runtime@19.0.0-beta-e552027-20250112", "react-compiler-runtime@19.0.0-0f3fc645a5103715" },
+    };
 
-    const b = try cached_npm_package_folder_print_basename(
-        testing_allocator,
-        "tailwindcss@4.0.0-beta.9",
-    );
-    defer testing_allocator.free(b);
+    for (tests) |case| {
+        const input, const output = case;
 
-    const c = try cached_npm_package_folder_print_basename(
-        testing_allocator,
-        "react@1.2.3+build.123",
-    );
-    defer testing_allocator.free(c);
+        const res = try cached_npm_package_folder_print_basename(testing_allocator, input);
+        defer testing_allocator.free(res);
 
-    const d = try cached_npm_package_folder_print_basename(
-        testing_allocator,
-        "react@1.2.3",
-    );
-    defer testing_allocator.free(d);
-
-    const e = try cached_npm_package_folder_print_basename(
-        testing_allocator,
-        "undici-types@6.20.0",
-    );
-    defer testing_allocator.free(e);
-
-    const f = try cached_npm_package_folder_print_basename(
-        testing_allocator,
-        "@types/react-dom@19.0.4",
-    );
-    defer testing_allocator.free(f);
-
-    try expectEqualSlices(u8, "react@1.2.3-c0734e9369ab610d+F48F05ED5AABC3A0", a);
-    try expectEqualSlices(u8, "tailwindcss@4.0.0-73c5c46324e78b9b", b);
-    try expectEqualSlices(u8, "react@1.2.3+F48F05ED5AABC3A0", c);
-    try expectEqualSlices(u8, "react@1.2.3", d);
-    try expectEqualSlices(u8, "undici-types@6.20.0", e);
-    try expectEqualSlices(u8, "@types/react-dom@19.0.4", f);
+        try expectEqualSlices(u8, output, res);
+    }
 }
