@@ -10,7 +10,7 @@ Bun2nix is a fast rust based tool for converting lockfiles generated with the [J
 
 Here are some of the advantages of using bun/bun2nix over the alternatives:
 
-- Much faster than other similar lang2nix tools for the javascript ecosystem - a full cached install will only take around 50ms for a medium project with 2k packages
+- Much faster than other similar lang2nix tools for the javascript ecosystem - a full install will only take around 50ms for a medium project with 2k packages
 - Build aot complied binaries easily with bun that fit the nix model much better than npm scripts
 - Quality error messages because of the static types in rust
 

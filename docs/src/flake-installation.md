@@ -59,21 +59,23 @@ Add the following to `package.json`:
 
 ## 4. Build your package with nix
 
-Finally, a convenient package builder is exposed inside `bun2nix` - `mkBunDerivation`.
+Finally, a convenient package builder is exposed inside `bun2nix` - `mkDerivation`.
 
 Add the following to `flake.nix`:
 
+> A nice way to do this might be with the [overlay](./overlay.md)
+
 ```nix
 my-package = pkgs.callPackage ./default.nix {
-    inherit (bun2nix.lib.${system}) mkBunDerivation;
+    inherit bun2nix.packages.${system}.default;
 };
 ```
 
 And place this in a file called `default.nix`
 
 ```nix
-{ mkBunDerivation, ... }:
-mkBunDerivation {
+{ bun2nix, ... }:
+bun2nix.mkDerivation {
   pname = "bun2nix-example";
   version = "1.0.0";
 
@@ -81,8 +83,8 @@ mkBunDerivation {
 
   bunNix = ./bun.nix;
 
-  index = "index.ts";
+  module = "index.ts";
 }
 ```
 
-A list of available options for `mkBunDerivation` can be seen at [the building packages page](./building-packages.md).
+A list of available options for `mkDerivation` can be seen at [the building packages page](./building-packages.md), along with other useful things for building bun packages.
