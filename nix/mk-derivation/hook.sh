@@ -50,9 +50,18 @@ function bunPatchPhase {
 function bunNodeModulesInstallPhase {
   runHook preBunNodeModulesInstallPhase
 
-  bun install
+  bun install --ignore-scripts
 
   runHook postBunNodeModulesInstallPhase
+}
+
+function bunLifecycleScriptsPhase {
+  runHook preBunNodeModulesFixupPhase
+
+  chmod -R u+rwx ./node_modules
+  bun install
+
+  runHook postBunNodeModulesFixupPhase
 }
 
 function bunBuildPhase {
@@ -101,6 +110,10 @@ function bunInstallPhase {
 
 appendToVar preConfigurePhases bunSetInstallCacheDir
 appendToVar preBuildPhases bunNodeModulesInstallPhase
+
+if [ -z "${dontRunLifecycleScripts-}" ]; then
+  appendToVar preBuildPhases bunLifecycleScriptsPhase
+fi
 
 if [ -z "${dontUseBunPatch-}" ] && [ -z "${patchPhase-}" ]; then
   patchPhase=bunPatchPhase
