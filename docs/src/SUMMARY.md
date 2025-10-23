@@ -10,3 +10,4 @@
   - [`hook`](./building-packages/hook.md)
   - [`fetchBunDeps`](./building-packages/fetchBunDeps.md)
   - [`writeBunScriptBin`](./building-packages/writeBunScriptBin.md)
+- [V2 Update Guide](./v2-update-guide.md)
