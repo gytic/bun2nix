@@ -12,12 +12,14 @@
         text = ''
           echo "Starting 'mdbook serve' from script bundled with documentation..."
 
-          if [[ ! -f "Cargo.toml" ]]; then
-              echo "Error: Cargo.toml not found" >&2
+          cargo_toml="programs/bun2nix/Cargo.toml"
+
+          if [[ ! -f "$cargo_toml" ]]; then
+              echo "Error: $cargo_toml not found" >&2
               exit 1
           fi
 
-          package_name="$(toml get Cargo.toml package.name)"
+          package_name="$(toml get "$cargo_toml" package.name)"
 
           if [[ "$package_name" != '"bun2nix"' ]]; then
               echo "Error: Unexpected package name: $package_name (expected 'bun2nix')"
