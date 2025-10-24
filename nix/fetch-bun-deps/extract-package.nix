@@ -55,7 +55,7 @@ in
                 ''
             }
 
-            chmod -R a+X "$out"
+            chmod -R u+rwx "$out"
 
             ${lib.optionalString patchShebangs ''
               patchShebangs "$out"
