@@ -72,7 +72,6 @@ function bunBuildPhase {
     bunBuildFlags bunBuildFlagsArray
 
   echoCmd 'bun build flags' "${flagsArray[@]}"
-  ls -la
   bun build "${flagsArray[@]}"
 
   runHook postBuild
