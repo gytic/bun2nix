@@ -39,6 +39,10 @@ stdenv.mkDerivation {
 }
 ```
 
+## Troubleshooting
+
+The default behaviour of `bun2nix` is to hard-link installs from the nix store. Unfortunately, this is not guaranteed to work the same on all systems - if you see strange permissions errors from `bun install` try setting `bunInstallFlags` to `--backend=symlink`, which works but may be marginally slower.
+
 ## Useful Functional Information
 
 The `bun2nix` hook installs the fake [bun install cache](https://github.com/oven-sh/bun/blob/642d04b9f2296ae41d842acdf120382c765e632e/docs/install/cache.md#L24) created by [`fetchBunDeps`](./fetchBunDeps.md) at `$BUN_INSTALL_CACHE_DIR`.
@@ -54,6 +58,7 @@ The full list of extra arguments `bun2nix.hook` adds to a derivation are:
 | `bunDeps`                 | The output of [`fetchBunDeps`](./fetchBunDeps.md) (or any other nix derivation which produces a bun compatible install cache). This is required.                                                                                                                                              |
 | `bunBuildFlags`           | Flags to pass to bun in the default bun build phase                                                                                                                                                                                                                                           |
 | `bunCheckFlags`           | Flags to pass to bun in the default bun check phase                                                                                                                                                                                                                                           |
+| `bunInstallFlags`         | Flags to pass to `bun install`                                                                                                                                                                                                                                                                |
 | `dontRunLifecycleScripts` | By default, after `bunNodeModulesInstallPhase` runs `bun install --ignore-scripts`, `bunLifecycleScriptsPhase` runs any missing lifecycle scripts after making the `node_modules` directory writable and executable. This attribute can be used to disable running `bunLifecycleScriptsPhase` |
 | `dontRunLifecycleScripts` | By default, after `bunNodeModulesInstallPhase` runs `bun install --ignore-scripts`, `bunLifecycleScriptsPhase` runs any missing lifecycle scripts after making the `node_modules` directory writable and executable. This attribute can be used to disable running `bunLifecycleScriptsPhase` |
 | `dontUseBunPatch`         | Don't patch any shebangs in your `src` directory to use bun as their interpreter                                                                                                                                                                                                              |

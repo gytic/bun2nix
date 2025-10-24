@@ -50,7 +50,10 @@ function bunPatchPhase {
 function bunNodeModulesInstallPhase {
   runHook preBunNodeModulesInstallPhase
 
-  bun install --ignore-scripts
+  concatTo flagsArray bunDefaultFlagsArray \
+    bunInstallFlags bunInstallFlagsArray
+
+  bun install --ignore-scripts "${flagsArray[@]}"
 
   runHook postBunNodeModulesInstallPhase
 }
@@ -58,8 +61,12 @@ function bunNodeModulesInstallPhase {
 function bunLifecycleScriptsPhase {
   runHook preBunNodeModulesFixupPhase
 
+  local flagsArray=()
+  concatTo flagsArray bunDefaultFlagsArray \
+    bunInstallFlags bunInstallFlagsArray
+
   chmod -R u+rwx ./node_modules
-  bun install
+  bun install "${flagsArray[@]}"
 
   runHook postBunNodeModulesFixupPhase
 }
