@@ -26,6 +26,7 @@ impl<'de> Visitor<'de> for PackageVisitor {
         while let Some((name, values)) = map.next_entry::<String, Vec<serde_json::Value>>()? {
             match values.len() {
                 1 => deserialize_workspace_package(name, values, &mut packages)?,
+                2 => deserialize_file_package(name, values, &mut packages)?,
                 4 => deserialize_npm_package(values, &mut packages)?,
                 _ => {
                     return Err(de::Error::custom(format!(
@@ -61,6 +62,29 @@ where
     };
 
     let Some(path) = drain_after_substring(id.to_string(), "workspace:") else {
+        return Ok(());
+    };
+
+    let pkg = Package::new(name, Fetcher::CopyToStore { path });
+
+    packages.push(pkg);
+
+    Ok(())
+}
+
+fn deserialize_file_package<E>(
+    name: String,
+    values: Vec<serde_json::Value>,
+    packages: &mut Vec<Package>,
+) -> Result<(), E>
+where
+    E: de::Error,
+{
+    let Some(id) = values[0].as_str() else {
+        return Ok(());
+    };
+
+    let Some(path) = drain_after_substring(id.to_string(), "@") else {
         return Ok(());
     };
 

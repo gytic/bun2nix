@@ -7,8 +7,8 @@
 # it manually.
 { fetchurl, ... }:
 {
-  "@workspace/app" = ./packages/app;
-  "@workspace/lib" = ./packages/lib;
+  "@workspace/app" = packages/app;
+  "@workspace/lib" = packages/lib;
   "is-number@6.0.0" = fetchurl {
     url = "https://registry.npmjs.org/is-number/-/is-number-6.0.0.tgz";
     hash = "sha512-Wu1VHeILBK8KAWJUAiSZQX94GmOE45Rg6/538fKwiloUu21KncEkYGPqob2oSZ5mUT73vLGrHQjKw3KMPwfDzg==";
