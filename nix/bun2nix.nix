@@ -1,5 +1,4 @@
 {
-  self,
   lib,
   config,
   ...
@@ -21,7 +20,7 @@ in
             pname = pkgInfo.name;
             inherit (pkgInfo) version;
 
-            src = "${self}/programs/bun2nix";
+            src = ../programs/bun2nix;
 
             cargoLock = {
               lockFile = "${finalAttrs.src}/Cargo.lock";

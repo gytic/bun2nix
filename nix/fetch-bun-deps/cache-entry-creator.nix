@@ -1,4 +1,4 @@
-{ self, config, ... }:
+{ config, ... }:
 {
   perSystem =
     { pkgs, ... }:
@@ -12,7 +12,7 @@
           pname = "bun2nix-cache-entry-creator";
           inherit (config.cargoTOML.package) version;
 
-          src = "${self}/programs/cache-entry-creator";
+          src = ../../programs/cache-entry-creator;
 
           nativeBuildInputs = with pkgs; [
             zig.hook
