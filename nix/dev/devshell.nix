@@ -1,6 +1,6 @@
 {
   perSystem =
-    { pkgs, ... }:
+    { pkgs, self', ... }:
     let
       inherit (pkgs) lib stdenv;
 
@@ -33,6 +33,7 @@
           mdbook
 
           bun
+          self'.packages.bun2nix
 
           (lib.optional (!stdenv.isDarwin) moldHook)
         ];
