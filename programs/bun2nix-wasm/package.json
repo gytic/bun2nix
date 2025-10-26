@@ -1,0 +1,16 @@
+{
+  "name": "bun2nix-wasm",
+  "module": "index.ts",
+  "bin": "index.ts",
+  "type": "module",
+  "scripts": {
+    "install": "bun2nix -o bun.nix"
+  },
+  "private": true,
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  }
+}
