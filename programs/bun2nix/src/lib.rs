@@ -14,9 +14,14 @@ pub use lockfile::Lockfile;
 use nix_expression::NixExpression;
 pub use package::Package;
 
+#[cfg(target_arch = "wasm32")]
+use wasm_bindgen::prelude::*;
+
 /// # Convert Bun Lockfile to a Nix expression
 ///
 /// Takes a string input of the contents of a bun lockfile and converts it into a ready to use Nix expression which fetches the packages
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
+#[cfg_attr(target_arch = "wasm32", no_mangle)]
 pub fn convert_lockfile_to_nix_expression(contents: String) -> Result<String> {
     let lockfile = contents.parse::<Lockfile>()?;
 

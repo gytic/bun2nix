@@ -36,3 +36,13 @@ pub enum Error {
     #[error("Failed to render template: '{}'", 0)]
     TemplateError(#[from] askama::Error),
 }
+
+#[cfg(target_arch = "wasm32")]
+use wasm_bindgen::JsValue;
+
+#[cfg(target_arch = "wasm32")]
+impl From<Error> for JsValue {
+    fn from(err: Error) -> JsValue {
+        JsValue::from_str(&err.to_string())
+    }
+}
