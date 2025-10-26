@@ -33,8 +33,10 @@
           mdbook
 
           bun
-          wasm-pack
           self'.packages.bun2nix
+
+          wasm-pack
+          lld
 
           (lib.optional (!stdenv.isDarwin) moldHook)
         ];

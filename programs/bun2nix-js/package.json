@@ -1,5 +1,5 @@
 {
-  "name": "bun2nix-wasm",
+  "name": "bun2nix",
   "module": "index.ts",
   "bin": "index.ts",
   "type": "module",
