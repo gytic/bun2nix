@@ -44,6 +44,7 @@
 
             cp -R ./dist "$out"
             cp ${README} "$out/dist/README.md"
+            rm "$out/dist/.gitignore" # include wasm bundle in upload
           '';
 
           doCheck = true;
