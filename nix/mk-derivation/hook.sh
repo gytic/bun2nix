@@ -59,7 +59,7 @@ function bunNodeModulesInstallPhase {
 }
 
 function bunLifecycleScriptsPhase {
-  runHook preBunNodeModulesFixupPhase
+  runHook preBunLifecycleScriptsPhase
 
   local flagsArray=()
   concatTo flagsArray bunDefaultFlagsArray \
@@ -68,7 +68,7 @@ function bunLifecycleScriptsPhase {
   chmod -R u+rwx ./node_modules
   bun install "${flagsArray[@]}"
 
-  runHook postBunNodeModulesFixupPhase
+  runHook postBunLifecycleScriptsPhase
 }
 
 function bunBuildPhase {
