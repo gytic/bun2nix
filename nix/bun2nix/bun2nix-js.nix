@@ -40,21 +40,29 @@
           '';
 
           installPhase = ''
+            runHook preInstall
+
             mkdir "$out"
 
             cp -R ./dist "$out"
             cp ${README} "$out/dist/README.md"
             rm "$out/dist/.gitignore" # include wasm bundle in upload
+
+            runHook postInstall
           '';
 
           doCheck = true;
 
           checkPhase = ''
+            runHook preCheck
+
             version="$(jq '.version' dist/package.json)"
             if ! [[ "$version" == "\"${config.cargoTOML.package.version}\"" ]]; then
               echo "Tag version \"$version\" does not match \"${config.cargoTOML.package.version}\" bun2nix js package'."
               exit 1
             fi
+
+            runHook postCheck
           '';
         });
       };
