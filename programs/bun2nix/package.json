@@ -1,19 +1,13 @@
 {
   "name": "bun2nix",
   "version": "2.0.0",
-  "module": "index.js",
-  "bin": "index.js",
-  "devDependencies": {
-    "@types/bun": "latest"
-  },
-  "peerDependencies": {
-    "typescript": "^5"
-  },
+  "module": "index.ts",
+  "bin": "index.ts",
   "scripts": {
     "postinstall": "bun2nix -o bun.nix",
     "build:wasm": "RUSTFLAGS=\"\" wasm-pack build --target nodejs --out-dir ./dist --out-name bun2nix-wasm --no-pack",
-    "build": "bun run build:wasm && bun run scripts/prepare.ts",
-    "start": "bun run build && bun run dist/index.js"
+    "build": "bun run build:wasm && cp package.json index.ts ./dist",
+    "start": "bun run build && bun run dist/index.ts"
   },
   "type": "module",
   "dependencies": {
