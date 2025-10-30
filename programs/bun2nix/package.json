@@ -1,0 +1,26 @@
+{
+  "name": "bun2nix",
+  "version": "2.0.0",
+  "module": "index.ts",
+  "devDependencies": {
+    "@types/bun": "latest",
+    "webpack": "^5.102.1",
+    "webpack-cli": "^6.0.1",
+    "webpack-dev-server": "^4.0.0",
+    "copy-webpack-plugin": "^11.0.0"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "private": true,
+  "scripts": {
+    "postinstall": "bun2nix -o bun.nix",
+    "build:wasm": "RUSTFLAGS=\"\" wasm-pack build --target nodejs --out-dir ./dist --out-name bun2nix-wasm --no-pack",
+    "build": "bun run build:wasm && bun run scripts/prepare.ts",
+    "start": "bun run build && bun run dist/index.js"
+  },
+  "type": "module",
+  "dependencies": {
+    "sade": "^1.8.1"
+  }
+}
