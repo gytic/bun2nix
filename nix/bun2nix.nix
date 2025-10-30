@@ -42,22 +42,6 @@ in
           }
         );
         default = bun2nix;
-        bun2nix-wasm = bun2nix.overrideAttrs (
-          _finalAttrs: _previousAttrs: {
-            nativeBuildInputs = with pkgs; [
-              wasm-pack
-            ];
-
-            buildPhase = ''
-              wasm-pack build
-            '';
-
-            installPhase = ''
-              mkdir $out
-              mv ./pkg $out
-            '';
-          }
-        );
       };
     };
 

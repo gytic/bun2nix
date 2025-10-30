@@ -35,6 +35,7 @@
           bun
           self'.packages.bun2nix
 
+          wasm-bindgen-cli_0_2_104
           wasm-pack
           lld
 
