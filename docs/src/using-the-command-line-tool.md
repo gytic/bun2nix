@@ -14,7 +14,27 @@ However, if you run without the `-o` flag it will produce a text output over std
 
 ## Options
 
-Currently, the options available from the command line tool are as follows:
+### WASM CLI
+
+Currently, the options available from the web assembly command line tool are as follows:
+
+```
+Description
+  Convert Bun (v1.2+) packages to Nix expressions
+
+Usage
+  $ bun2nix [options]
+
+Options
+  -l, --lock-file      The Bun (v1.2+) lockfile to use to produce the Nix expression  (default bun.lock)
+  -o, --output-file    The output file to write to - if no file location is provided, print to stdout instead
+  -v, --version        Displays current version
+  -h, --help           Displays this message
+```
+
+### Native CLI
+
+Currently, the options available from the native command line tool are as follows:
 
 ```
 Convert Bun (v1.2+) packages to Nix expressions

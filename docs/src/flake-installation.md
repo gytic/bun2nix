@@ -30,9 +30,23 @@ nixConfig = {
 };
 ```
 
-## 2. Add the binary to your environment
+## 2. Get a `bun2nix` binary
 
-Next, add the bun2nix program into your developer environment by adding it to your [devshell](https://fasterthanli.me/series/building-a-rust-service-with-nix/part-10).
+### Recommended: Use the NPM package
+
+`bun2nix` has a cross-platform web-assembly based NPM package available for usage. This should
+be the default choice as it allows those who do not have nix installed to work on your project
+and keep the generated `bun.nix` file up to date.
+Simply install and run it with:
+
+```
+bun install --dev bun2nix
+bunx bun2nix
+```
+
+### Add the binary to your environment with nix
+
+Alternatively, add the native `bun2nix` CLI program into your developer environment by adding it to your [dev-shell](https://fasterthanli.me/series/building-a-rust-service-with-nix/part-10).
 
 ```nix
 devShells.default = pkgs.mkShell {
