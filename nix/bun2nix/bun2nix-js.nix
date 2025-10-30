@@ -2,6 +2,9 @@
 {
   perSystem =
     { final, ... }:
+    let
+      README = ../../README.md;
+    in
     {
       packages = {
         bun2nix-js = final.pkgs.rustPlatform.buildRustPackage (finalAttrs: {
@@ -40,6 +43,7 @@
             mkdir "$out"
 
             cp -R ./dist "$out"
+            cp ${README} "$out/dist/README.md"
           '';
 
           doCheck = true;
