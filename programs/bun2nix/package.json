@@ -1,7 +1,8 @@
 {
   "name": "bun2nix",
   "version": "2.0.0",
-  "module": "index.ts",
+  "module": "index.js",
+  "bin": "index.js",
   "devDependencies": {
     "@types/bun": "latest",
     "webpack": "^5.102.1",
