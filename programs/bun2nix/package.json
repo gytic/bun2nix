@@ -12,7 +12,6 @@
   "peerDependencies": {
     "typescript": "^5"
   },
-  "private": true,
   "scripts": {
     "postinstall": "bun2nix -o bun.nix",
     "build:wasm": "RUSTFLAGS=\"\" wasm-pack build --target nodejs --out-dir ./dist --out-name bun2nix-wasm --no-pack",
