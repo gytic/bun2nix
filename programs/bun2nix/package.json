@@ -9,6 +9,12 @@
     "build": "bun run build:wasm && cp package.json index.ts ./dist",
     "start": "bun run build && bun run dist/index.ts"
   },
+  "keywords": [
+    "bun",
+    "nix",
+    "build",
+    "deterministic"
+  ],
   "type": "module",
   "dependencies": {
     "sade": "^1.8.1"
