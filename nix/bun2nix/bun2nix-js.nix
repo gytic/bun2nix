@@ -45,8 +45,10 @@
             mkdir "$out"
 
             cp -R ./dist "$out"
-            cp ${README} "$out/dist/README.md"
-            rm "$out/dist/.gitignore" # include wasm bundle in upload
+
+            tail -n +5 "${README}" > "$out/dist/README.md"
+
+            rm "$out/dist/.gitignore"
 
             runHook postInstall
           '';
