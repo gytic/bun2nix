@@ -27,17 +27,13 @@ in
           pkgs.stdenvNoCC.mkDerivation {
             name = "bun-with-fake-node";
 
-            nativeBuildInputs = with pkgs; [
-              makeWrapper
-            ];
-
             dontUnpack = true;
             dontBuild = true;
 
             installPhase = ''
               cp -r "${pkgs.bun}/." "$out"
-              chmod +w $out/bin
-              makeWrapper "$out/bin/bun" "$out/bin/node"
+              chmod u+w "$out/bin"
+              ln -s "$out/bin/bun" "$out/bin/node"
             '';
           }
         else
