@@ -5,7 +5,7 @@
 - Guaranteed correct bun installs via building the bun cache instead of creating the `node_modules/` directory manually
 - Faster incremental builds via better caching
 - Rewritten nix API designed to be both more idiomatic and flexible
-- New NPM packaged web assembly CLI - run the `bun2nix` CLI with nothing but `bunx bun2nix`
+- New NPM packaged web assembly CLI - run the `bun2nix` CLI with nothing but `bunx bun2nix` - see the [NPM page](https://www.npmjs.com/package/bun2nix).
 
 ## Updating
 
