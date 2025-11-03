@@ -33,7 +33,10 @@ in
             installPhase = ''
               cp -r "${pkgs.bun}/." "$out"
               chmod u+w "$out/bin"
-              ln -s "$out/bin/bun" "$out/bin/node"
+
+              for node_binary in "node" "npm" "npx"; do
+                ln -s "$out/bin/bun" "$out/bin/$node_binary"
+              done
             '';
           }
         else
