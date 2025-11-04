@@ -37,12 +37,48 @@ in
     };
   };
 
-  config.perSystem = _: {
-    fetchBunDeps.overridePackage =
-      {
-        overrides ? { },
-        ...
-      }:
-      name: pkg: if (overrides ? "${name}") then overrides.${name} pkg else pkg;
-  };
+  config.perSystem =
+    { pkgs, ... }:
+    {
+      fetchBunDeps.overridePackage =
+        {
+          overrides ? { },
+          ...
+        }:
+        let
+          isTarball = pkg: lib.hasSuffix ".tgz" pkg;
+
+          preExtractPackage =
+            name: pkg:
+            pkgs.runCommandLocal "pre-extract-${name}"
+              {
+                nativeBuildInputs = [
+                  pkgs.libarchive
+                ];
+              }
+              ''
+                mkdir -p "$out"
+
+                ${
+                  if (isTarball pkg) then
+                    ''
+                      bsdtar --extract \
+                        --file "${pkg}" \
+                        --directory "$out" \
+                        --strip-components=1 \
+                        --no-same-owner \
+                        --no-same-permissions
+                    ''
+                  else
+                    ''
+                      cp -r "${pkg}" "$out"
+                    ''
+                }
+
+                chmod -R u+rwx "$out"
+              '';
+        in
+        name: pkg:
+        if (overrides ? "${name}") then (overrides.${name} (preExtractPackage name pkg)) else pkg;
+    };
 }

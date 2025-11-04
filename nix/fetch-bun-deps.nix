@@ -34,7 +34,6 @@ in
 
           extractPackage = config.fetchBunDeps.extractPackage args;
           overridePackage = config.fetchBunDeps.overridePackage args;
-          toCacheEntry = config.fetchBunDeps.toCacheEntry args;
         in
 
         assert lib.asserts.assertEachOneOf "overrides" (builtins.attrNames overrides) (
@@ -47,9 +46,8 @@ in
         pkgs.symlinkJoin {
           name = "bun-cache";
           paths = lib.pipe packages [
-            (builtins.mapAttrs extractPackage)
             (builtins.mapAttrs overridePackage)
-            (builtins.mapAttrs toCacheEntry)
+            (builtins.mapAttrs extractPackage)
             builtins.attrValues
           ];
         };

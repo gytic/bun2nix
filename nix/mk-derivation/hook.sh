@@ -33,7 +33,7 @@ EOF
   BUN_INSTALL_CACHE_DIR=$(mktemp -d)
   export BUN_INSTALL_CACHE_DIR
 
-  cp -r "$bunDeps"/. "$BUN_INSTALL_CACHE_DIR"
+  cp -r "$bunDeps"/share/bun-cache/. "$BUN_INSTALL_CACHE_DIR"
 }
 
 function bunPatchPhase {
