@@ -27,9 +27,11 @@ in
             };
 
             passthru = with config; {
-              mkDerivation = mkDerivation.function;
               inherit (mkDerivation) hook;
+              inherit writeBunScriptBin;
+
               fetchBunDeps = fetchBunDeps.function;
+              mkDerivation = mkDerivation.function;
             };
 
             meta = {
