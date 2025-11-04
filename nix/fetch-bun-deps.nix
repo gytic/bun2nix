@@ -32,7 +32,7 @@ in
 
           packages = lib.filterAttrs attrIsDerivation (pkgs.callPackage bunNix { });
 
-          extractPackage = config.fetchBunDeps.extractPackage args;
+          buildPackage = config.fetchBunDeps.buildPackage args;
           overridePackage = config.fetchBunDeps.overridePackage args;
         in
 
@@ -47,7 +47,7 @@ in
           name = "bun-cache";
           paths = lib.pipe packages [
             (builtins.mapAttrs overridePackage)
-            (builtins.mapAttrs extractPackage)
+            (builtins.mapAttrs buildPackage)
             builtins.attrValues
           ];
         };
