@@ -7,7 +7,10 @@ in
   options.perSystem = mkPerSystemOption {
     options.fetchBunDeps.extractPackage = mkOption {
       description = ''
-        Generic package extraction script for use in fetchBunDeps
+        Generic package extraction script for use in fetchBunDeps.
+
+        If the package is a tarball, extract it,
+        otherwise make a copy of the input directory in $out
       '';
       type = types.package;
     };
@@ -37,6 +40,8 @@ in
 
           pkg="$1"
           out="$2"
+
+          mkdir -p "$out"
 
           if [[ "$pkg" = *.tgz ]]; then
             bsdtar --extract \

@@ -49,14 +49,13 @@ in
           preExtractPackage =
             name: pkg:
             pkgs.runCommandLocal "pre-extract-${name}" { } ''
-              mkdir -p "$out"
-
               "${lib.getExe config.fetchBunDeps.extractPackage}" \
                 ${pkg} \
                 $out
             '';
+
+          overridePkg = name: pkg: overrides.${name} (preExtractPackage name pkg);
         in
-        name: pkg:
-        if (overrides ? "${name}") then (overrides.${name} (preExtractPackage name pkg)) else pkg;
+        name: pkg: if (overrides ? "${name}") then (overridePkg name pkg) else pkg;
     };
 }

@@ -50,16 +50,13 @@ in
           ];
 
           extractPhase = ''
-            bun_package_out="$out/share/bun-packages"
-            mkdir -p "$bun_package_out"
-
             "${lib.getExe config.fetchBunDeps.extractPackage}" \
               ${pkg} \
-              $bun_package_out
+              "$out/share/bun-packages"
           '';
 
           patchPhase = lib.optionalString patchShebangs ''
-            patchShebangs "$bun_package_out"
+            patchShebangs "$out/share/bun-packages"
           '';
 
           cacheEntryPhase = ''
