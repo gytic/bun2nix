@@ -3,5 +3,10 @@
   "workspaces": [
     "packages/*"
   ],
-  "dependencies": {}
+  "scripts": {
+    "postinstall": "bun2nix -o bun.nix"
+  },
+  "devDependencies": {
+    "bun2nix": "^2.0.0-beta-10"
+  }
 }
