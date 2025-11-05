@@ -34,14 +34,23 @@
       eachSystem = nixpkgs.lib.genAttrs (import systems);
 
       # Access the package set for a given system
-      pkgsFor = eachSystem (system: import nixpkgs { inherit system; });
+      pkgsFor = eachSystem (
+        system:
+        import nixpkgs {
+          inherit system;
+          # Use the bun2nix overlay, which puts `bun2nix` in pkgs
+          # You can, of course, still access
+          # inputs.bun2nix.packages.${system}.default instead
+          # and use that to build your package instead
+          overlays = [ bun2nix.overlays.default ];
+        }
+      );
     in
     {
       packages = eachSystem (system: {
-        # Produce a package for this template with bun2nix
-        default = pkgsFor.${system}.callPackage ./default.nix {
-          inherit (bun2nix.lib.${system}) mkBunDerivation;
-        };
+        # Produce a package for this template with bun2nix in
+        # the overlay
+        default = pkgsFor.${system}.callPackage ./default.nix { };
       });
 
       devShells = eachSystem (system: {
@@ -50,7 +59,8 @@
             bun
 
             # Add the bun2nix binary to our devshell
-            bun2nix.packages.${system}.default
+            # Optional now that we have a binary on npm
+            bun2nix
           ];
 
           shellHook = ''

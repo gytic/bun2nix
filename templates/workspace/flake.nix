@@ -24,30 +24,48 @@
   outputs =
     {
       nixpkgs,
-      flake-utils,
+      systems,
       bun2nix,
       ...
     }:
-    flake-utils.lib.eachDefaultSystem (
-      system:
-      let
-        pkgs = import nixpkgs { inherit system; };
+    let
+      # Read each system from the nix-systems input
+      eachSystem = nixpkgs.lib.genAttrs (import systems);
 
-        # Call our package with the bun2nix library functions
-        app = pkgs.callPackage ./default.nix {
-          inherit (bun2nix.lib.${system}) mkBunDerivation;
-        };
-      in
-      {
-        packages.default = app;
+      # Access the package set for a given system
+      pkgsFor = eachSystem (
+        system:
+        import nixpkgs {
+          inherit system;
+          # Use the bun2nix overlay, which puts `bun2nix` in pkgs
+          # You can, of course, still access
+          # inputs.bun2nix.packages.${system}.default instead
+          # and use that to build your package instead
+          overlays = [ bun2nix.overlays.default ];
+        }
+      );
+    in
+    {
+      packages = eachSystem (system: {
+        # Produce a package for this template with bun2nix in
+        # the overlay
+        default = pkgsFor.${system}.callPackage ./default.nix { };
+      });
 
-        devShells.default = pkgs.mkShell {
-          packages = with pkgs; [
+      devShells = eachSystem (system: {
+        default = pkgsFor.${system}.mkShell {
+          packages = with pkgsFor.${system}; [
             bun
+
             # Add the bun2nix binary to our devshell
-            bun2nix.packages.${system}.default
+            # Optional now that we have a binary on npm
+            bun2nix
           ];
+
+          shellHook = ''
+            bun install --frozen-lockfile
+          '';
         };
-      }
-    );
+      });
+    };
 }
