@@ -50,20 +50,32 @@ in
           ];
 
           extractPhase = ''
+            runHook preExtract
+
             "${lib.getExe config.fetchBunDeps.extractPackage}" \
               --package "${pkg}" \
               --out "$out/share/bun-packages/${name}"
+
+            runHook postExtract
           '';
 
-          patchPhase = lib.optionalString patchShebangs ''
-            patchShebangs "$out/share/bun-packages"
+          patchPhase = ''
+            runHook prePatch
+
+            ${lib.optionalString patchShebangs ''patchShebangs "$out/share/bun-packages"''}
+
+            runHook postPatch
           '';
 
           cacheEntryPhase = ''
+            runHook preCacheEntry
+
             "${lib.getExe self'.packages.cacheEntryCreator}" \
               --out "$out/share/bun-cache" \
               --name "${name}" \
               --package "$out/share/bun-packages/${name}"
+
+            runHook postCacheEntry
           '';
 
           preferLocalBuild = true;
