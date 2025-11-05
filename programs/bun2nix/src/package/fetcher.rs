@@ -21,6 +21,15 @@ pub enum Fetcher {
         /// This can be derived from the bun lockfile
         hash: String,
     },
+    /// A package which must be retrieved with nix's `pkgs.fetchtarball`
+    #[template(path = "fetchtarball.nix_template")]
+    FetchTarball {
+        /// The url to fetch the package from
+        url: String,
+        /// The hash of the downloaded results
+        /// This can be derived from the bun lockfile
+        hash: String,
+    },
     /// A package can be a path copied to the store directly
     #[template(path = "copy-to-store.nix_template")]
     CopyToStore {
@@ -30,15 +39,22 @@ pub enum Fetcher {
 }
 
 impl Fetcher {
-    /// # From NPM Package
+    /// # From NPM Package Name
     ///
     /// Initialize a fetcher from an npm identifier and
     /// it's hash
     pub fn new_npm_package(ident: &str, hash: String) -> Result<Self> {
-        Ok(Self::FetchUrl {
-            url: Self::to_npm_url(ident)?,
-            hash,
-        })
+        let url = Self::to_npm_url(ident)?;
+
+        Ok(Self::FetchUrl { url, hash })
+    }
+
+    /// # From NPM Url
+    ///
+    /// Initialize a fetcher from an npm url and
+    /// it's hash
+    pub fn new_tarball_package(url: String, hash: String) -> Self {
+        Self::FetchTarball { url, hash }
     }
 
     /// # NPM url converter

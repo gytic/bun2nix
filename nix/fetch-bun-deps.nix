@@ -28,9 +28,9 @@ in
           ...
         }@args:
         let
-          attrIsDerivation = _: value: lib.isDerivation value;
+          attrIsBunPkg = _: value: lib.isStorePath value;
 
-          packages = lib.filterAttrs attrIsDerivation (pkgs.callPackage bunNix { });
+          packages = lib.filterAttrs attrIsBunPkg (pkgs.callPackage bunNix { });
 
           buildPackage = config.fetchBunDeps.buildPackage args;
           overridePackage = config.fetchBunDeps.overridePackage args;

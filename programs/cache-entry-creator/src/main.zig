@@ -74,7 +74,7 @@ pub fn main() !void {
         return clap.usageToFile(.stdout(), clap.Help, &params);
     };
 
-    const cache_entry_location = try cached_npm_package_folder_print_basename(
+    const cache_entry_location = try cachedFolderPrintBasename(
         allocator,
         linker.name,
     );
@@ -153,10 +153,20 @@ pub const PkgLinker = struct {
 /// Error which can occur parsing a packaeg
 const PackageParseError = error{NoAtInPackageIdentifier};
 
+pub fn cachedFolderPrintBasename(
+    allocator: mem.Allocator,
+    input: []const u8,
+) ![]u8 {
+    return if (mem.startsWith(u8, input, "tarball:"))
+        cachedTarballFolderPrintBasename(allocator, input)
+    else
+        cachedNpmPackageFolderPrintBasename(allocator, input);
+}
+
 /// Produce a correct bun cache folder name for a given npm identifier
 ///
 /// Adapted from [here](https://github.com/oven-sh/bun/blob/134341d2b48168cbb86f74879bf6c1c8e24b799c/src/install/PackageManager/PackageManagerDirectories.zig#L288)
-pub fn cached_npm_package_folder_print_basename(
+pub fn cachedNpmPackageFolderPrintBasename(
     allocator: mem.Allocator,
     pkg: []const u8,
 ) ![]u8 {
@@ -203,10 +213,39 @@ pub fn cached_npm_package_folder_print_basename(
     return allocator.dupe(u8, pkg);
 }
 
+/// Produce a correct bun cache folder name for a given tarball dependency
+///
+/// Adapted from [here](https://github.com/oven-sh/bun/blob/550522e99b303d8172b7b16c5750d458cb056434/src/install/PackageManager/PackageManagerDirectories.zig#L353)
+pub fn cachedTarballFolderPrintBasename(
+    allocator: mem.Allocator,
+    url: []const u8,
+) ![]u8 {
+    const pre = "tarball:";
+    const without_pre = url[pre.len..];
+
+    return std.fmt.allocPrint(allocator, "@T@{x:0>16}", .{
+        wyhash(wyhash_seed, without_pre),
+    });
+}
+
 const expectEqualSlices = std.testing.expectEqualSlices;
 const testing_allocator = std.testing.allocator;
 
-test "cached_npm_package_folder_print_basename function" {
+fn testBaseNameFn(
+    tests: []const struct { []const u8, []const u8 },
+    func: anytype,
+) !void {
+    for (tests) |case| {
+        const input, const output = case;
+
+        const res = try func(testing_allocator, input);
+        defer testing_allocator.free(res);
+
+        try expectEqualSlices(u8, output, res);
+    }
+}
+
+test "cachedNpmPackageFolderPrintBasename function" {
     const tests = &[_]struct { []const u8, []const u8 }{
         .{ "react@1.2.3-beta.1+build.123", "react@1.2.3-c0734e9369ab610d+F48F05ED5AABC3A0" },
         .{ "tailwindcss@4.0.0-beta.9", "tailwindcss@4.0.0-73c5c46324e78b9b" },
@@ -215,14 +254,16 @@ test "cached_npm_package_folder_print_basename function" {
         .{ "undici-types@6.20.0", "undici-types@6.20.0" },
         .{ "@types/react-dom@19.0.4", "@types/react-dom@19.0.4" },
         .{ "react-compiler-runtime@19.0.0-beta-e552027-20250112", "react-compiler-runtime@19.0.0-0f3fc645a5103715" },
+        .{ "react-compiler-runtime@19.0.0-beta-e552027-20250112", "react-compiler-runtime@19.0.0-0f3fc645a5103715" },
     };
 
-    for (tests) |case| {
-        const input, const output = case;
+    try testBaseNameFn(tests, cachedNpmPackageFolderPrintBasename);
+}
 
-        const res = try cached_npm_package_folder_print_basename(testing_allocator, input);
-        defer testing_allocator.free(res);
+test "cachedTarballFolderPrintBasename function" {
+    const tests = &[_]struct { []const u8, []const u8 }{
+        .{ "tarball:https://registry.npmjs.org/zod/-/zod-3.21.4.tgz", "@T@3be02e19198e30ee" },
+    };
 
-        try expectEqualSlices(u8, output, res);
-    }
+    try testBaseNameFn(tests, cachedTarballFolderPrintBasename);
 }

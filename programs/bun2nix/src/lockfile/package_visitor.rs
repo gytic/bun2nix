@@ -1,6 +1,9 @@
-use std::fmt;
+use std::{fmt, process::Command};
 
-use serde::de::{self, MapAccess, Visitor};
+use serde::{
+    Deserialize, Serialize,
+    de::{self, MapAccess, Visitor},
+};
 
 use crate::{Package, package::Fetcher};
 
@@ -26,7 +29,7 @@ impl<'de> Visitor<'de> for PackageVisitor {
         while let Some((name, values)) = map.next_entry::<String, Vec<serde_json::Value>>()? {
             match values.len() {
                 1 => deserialize_workspace_package(name, values, &mut packages)?,
-                2 => deserialize_file_package(name, values, &mut packages)?,
+                2 => deserialize_tarball_or_file_package(name, values, &mut packages)?,
                 4 => deserialize_npm_package(values, &mut packages)?,
                 _ => {
                     return Err(de::Error::custom(format!(
@@ -38,6 +41,29 @@ impl<'de> Visitor<'de> for PackageVisitor {
         }
 
         Ok(packages)
+    }
+}
+
+fn deserialize_tarball_or_file_package<E>(
+    name: String,
+    values: Vec<serde_json::Value>,
+    packages: &mut Vec<Package>,
+) -> Result<(), E>
+where
+    E: de::Error,
+{
+    let Some(id) = values[0].as_str() else {
+        return Ok(());
+    };
+
+    let Some(path) = drain_after_substring(id.to_string(), "@") else {
+        return Ok(());
+    };
+
+    if path.starts_with("http") {
+        deserialize_tarball_package(name, path, packages)
+    } else {
+        deserialize_file_package(name, path, packages)
     }
 }
 
@@ -74,21 +100,55 @@ where
 
 fn deserialize_file_package<E>(
     name: String,
-    values: Vec<serde_json::Value>,
+    path: String,
     packages: &mut Vec<Package>,
 ) -> Result<(), E>
 where
     E: de::Error,
 {
-    let Some(id) = values[0].as_str() else {
-        return Ok(());
-    };
-
-    let Some(path) = drain_after_substring(id.to_string(), "@") else {
-        return Ok(());
-    };
-
     let pkg = Package::new(name, Fetcher::CopyToStore { path });
+
+    packages.push(pkg);
+
+    Ok(())
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct Prefetch {
+    hash: String,
+}
+
+fn deserialize_tarball_package<E>(
+    _: String,
+    url: String,
+    packages: &mut Vec<Package>,
+) -> Result<(), E>
+where
+    E: de::Error,
+{
+    let cmd_res = Command::new("nix")
+        .args(["flake", "prefetch", &url, "--json"])
+        .output()
+        .map_err(|_| {
+            de::Error::custom(
+                "Failed to fetch tarball contents for tarball package while deserializing",
+            )
+        })?;
+
+    let stdout = str::from_utf8(&cmd_res.stdout)
+        .map_err(|_| de::Error::custom("stdout was not valid utf8 while reading tarball hash"))?;
+
+    let prefetch: Prefetch = serde_json::from_str(stdout).map_err(|err| {
+        de::Error::custom(format!(
+            "Failed to deserialize command result after calculating tarball hash {}",
+            err
+        ))
+    })?;
+
+    let name = format!("tarball:{}", url);
+
+    let fetcher = Fetcher::new_tarball_package(url, prefetch.hash);
+    let pkg = Package::new(name, fetcher);
 
     packages.push(pkg);
 
