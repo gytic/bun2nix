@@ -52,7 +52,7 @@ in
           extractPhase = ''
             "${lib.getExe config.fetchBunDeps.extractPackage}" \
               ${pkg} \
-              "$out/share/bun-packages"
+              "$out/share/bun-packages/${name}"
           '';
 
           patchPhase = lib.optionalString patchShebangs ''
@@ -63,7 +63,7 @@ in
             "${lib.getExe self'.packages.cacheEntryCreator}" \
               --out "$out/share/bun-cache" \
               --name "${name}" \
-              --package "$bun_package_out"
+              --package "$out/share/bun-packages/${name}"
           '';
 
           preferLocalBuild = true;
