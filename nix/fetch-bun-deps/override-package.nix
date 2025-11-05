@@ -50,8 +50,8 @@ in
             name: pkg:
             pkgs.runCommandLocal "pre-extract-${name}" { } ''
               "${lib.getExe config.fetchBunDeps.extractPackage}" \
-                ${pkg} \
-                $out
+                --package "${pkg}" \
+                --out "$out"
             '';
 
           overridePkg = name: pkg: overrides.${name} (preExtractPackage name pkg);

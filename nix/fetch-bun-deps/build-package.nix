@@ -51,8 +51,8 @@ in
 
           extractPhase = ''
             "${lib.getExe config.fetchBunDeps.extractPackage}" \
-              ${pkg} \
-              "$out/share/bun-packages/${name}"
+              --package "${pkg}" \
+              --out "$out/share/bun-packages/${name}"
           '';
 
           patchPhase = lib.optionalString patchShebangs ''

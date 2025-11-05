@@ -29,17 +29,46 @@ in
         ];
         text = ''
           throw_usage () {
-              echo "Unexpected number of args"
-              echo "Usage <pkg> <out>"
+              echo "Missing required flags"
+              echo "Usage: --pkg <pkg> --out <out>"
               exit 1
           }
 
-          if [ "$#" -ne 2 ]; then
+          pkg=""
+          out=""
+
+          while [ "$#" -gt 0 ]; do
+            case "$1" in
+              --package)
+                shift
+                pkg="$1"
+                ;;
+              --out)
+                shift
+                out="$1"
+                ;;
+              --package=* )
+                pkg="''${1#--package=}"
+                ;;
+              --out=* )
+                out="''${1#--out=}"
+                ;;
+              -*)
+                echo "Unknown option: $1"
+                throw_usage
+                ;;
+              *)
+                # ignore stray positional args or treat as error:
+                echo "Unexpected positional arg: $1"
+                throw_usage
+                ;;
+            esac
+            shift
+          done
+
+          if [ -z "$pkg" ] || [ -z "$out" ]; then
             throw_usage
           fi
-
-          pkg="$1"
-          out="$2"
 
           mkdir -p "$out"
 
