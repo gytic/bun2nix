@@ -11,7 +11,9 @@ use crate::{
     error::{Error, Result},
 };
 
+mod package_deserializer;
 mod package_visitor;
+pub use package_deserializer::PackageDeserializer;
 pub use package_visitor::PackageVisitor;
 
 #[derive(Serialize, Deserialize, Debug)]
