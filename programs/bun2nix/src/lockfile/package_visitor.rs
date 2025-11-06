@@ -1,6 +1,6 @@
-use std::fmt;
+use std::{fmt, iter};
 
-use serde::de::{self, MapAccess, Visitor};
+use serde::de::{self, Deserialize, MapAccess, Visitor};
 
 use super::PackageDeserializer;
 use crate::Package;
@@ -22,27 +22,14 @@ impl<'de> Visitor<'de> for PackageVisitor {
     where
         M: MapAccess<'de>,
     {
-        let mut packages: Vec<Package> = Vec::new();
+        let mut packages = Vec::new();
 
         while let Some((name, values)) = map.next_entry::<String, Vec<serde_json::Value>>()? {
-            let arity = values.len();
+            let pkg = PackageDeserializer::deserialize_package(name, values).map_err(|err| {
+                de::Error::custom(format!("Failed to deserialize package: {}", err))
+            })?;
 
-            let deserializer = PackageDeserializer {
-                packages: &mut packages,
-                name,
-                values,
-            };
-
-            match arity {
-                1 => deserializer.deserialize_workspace_package()?,
-                2 => deserializer.deserialize_tarball_or_file_package()?,
-                4 => deserializer.deserialize_npm_package()?,
-                _ => {
-                    return Err(de::Error::custom(
-                        "Invalid package entry for expected at least 4 values",
-                    ));
-                }
-            };
+            packages.push(pkg);
         }
 
         Ok(packages)

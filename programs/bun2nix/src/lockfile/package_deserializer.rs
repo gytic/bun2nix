@@ -2,15 +2,22 @@ use crate::{Package, package::Fetcher};
 
 use std::process::Command;
 
-use serde::{
-    Deserialize, Serialize,
-    de::{self, MapAccess, Visitor},
-};
+use serde::{Deserialize, Serialize};
 
-pub struct PackageDeserializer<'a> {
+use crate::error::{Error, Result};
+
+type Values = Vec<serde_json::Value>;
+
+/// # Package Deserializer
+///
+/// Deserializes a given bun lockfile entry line into it's
+/// name and nix fetcher implementation
+pub struct PackageDeserializer {
+    /// The name for the package
     pub name: String,
-    pub values: Vec<serde_json::Value>,
-    pub packages: &'a mut Vec<Package>,
+
+    /// The list of serde json values for the tuple in question
+    pub values: Values,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -18,39 +25,39 @@ struct Prefetch {
     hash: String,
 }
 
-impl<'a> PackageDeserializer<'a> {
+impl PackageDeserializer {
+    /// # Deserialize package
+    ///
+    /// Deserialize a given package from it's lockfile representation
+    pub fn deserialize_package(name: String, values: Values) -> Result<Package> {
+        let arity = values.len();
+        let deserializer = Self { name, values };
+
+        match arity {
+            1 => deserializer.deserialize_workspace_package(),
+            2 => deserializer.deserialize_tarball_or_file_package(),
+            4 => deserializer.deserialize_npm_package(),
+            x => Err(Error::UnexpectedPackageEntryLength(x)),
+        }
+    }
+
     /// # Deserialize an NPM Package
     ///
     /// Deserialize an npm package from it's bun lockfile representation
     ///
     /// This is found in the source as a tuple of arity 4
-    pub fn deserialize_npm_package<E>(self) -> Result<(), E>
-    where
-        E: de::Error,
-    {
-        let npm_identifier_raw = self.values[0]
-            .as_str()
-            .ok_or_else(|| de::Error::custom("Invalid npm_identifier format"))?
-            .to_string();
-
-        let hash = self.values[3]
-            .as_str()
-            .ok_or_else(|| de::Error::custom("Invalid hash format"))?
-            .to_string();
+    pub fn deserialize_npm_package(mut self) -> Result<Package> {
+        let npm_identifier_raw = swap_remove_value(&mut self.values, 0);
+        let hash = swap_remove_value(&mut self.values, 0);
 
         assert!(
             hash.contains("sha512-"),
             "Expected hash to be in sri format and contain sha512"
         );
 
-        let fetcher = Fetcher::new_npm_package(&npm_identifier_raw, hash).map_err(|_| {
-            de::Error::custom("Failed to create npm url for npm package while deserializing")
-        })?;
+        let fetcher = Fetcher::new_npm_package(&npm_identifier_raw, hash)?;
 
-        let pkg = Package::new(npm_identifier_raw, fetcher);
-        self.packages.push(pkg);
-
-        Ok(())
+        Ok(Package::new(npm_identifier_raw, fetcher))
     }
 
     /// # Deserialize a tarball or file package
@@ -62,22 +69,16 @@ impl<'a> PackageDeserializer<'a> {
     /// representations are a tupe of arity 2, hence
     /// paths starting with `http` are considered
     /// tarballs
-    pub fn deserialize_tarball_or_file_package<E>(self) -> Result<(), E>
-    where
-        E: de::Error,
-    {
-        let Some(id) = self.values[0].as_str() else {
-            return Ok(());
-        };
-
+    pub fn deserialize_tarball_or_file_package(mut self) -> Result<Package> {
+        let id = swap_remove_value(&mut self.values, 0);
         let Some(path) = Self::drain_after_substring(id.to_string(), "@") else {
-            return Ok(());
+            return Err(Error::NoAtInPackageIdentifier);
         };
 
         if path.starts_with("http") {
-            Self::deserialize_tarball_package(self.name, path, self.packages)
+            Self::deserialize_tarball_package(path)
         } else {
-            Self::deserialize_file_package(self.name, path, self.packages)
+            Self::deserialize_file_package(self.name, path)
         }
     }
 
@@ -86,19 +87,13 @@ impl<'a> PackageDeserializer<'a> {
     /// Deserialize a file package from it's bun lockfile representation
     ///
     /// This is found in the source as a tuple of arity 2
-    pub fn deserialize_file_package<E>(
-        name: String,
-        path: String,
-        packages: &mut Vec<Package>,
-    ) -> Result<(), E>
-    where
-        E: de::Error,
-    {
-        let pkg = Package::new(name, Fetcher::CopyToStore { path });
+    pub fn deserialize_file_package(name: String, path: String) -> Result<Package> {
+        assert!(
+            !path.contains("http"),
+            "File path can never contain http, because then it would be a tarball"
+        );
 
-        packages.push(pkg);
-
-        Ok(())
+        Ok(Package::new(name, Fetcher::CopyToStore { path }))
     }
 
     /// # Deserialize a tarball package
@@ -106,42 +101,25 @@ impl<'a> PackageDeserializer<'a> {
     /// Deserialize a tarball package from it's bun lockfile representation
     ///
     /// This is found in the source as a tuple of arity 2
-    pub fn deserialize_tarball_package<E>(
-        _: String,
-        url: String,
-        packages: &mut Vec<Package>,
-    ) -> Result<(), E>
-    where
-        E: de::Error,
-    {
+    pub fn deserialize_tarball_package(url: String) -> Result<Package> {
+        assert!(url.contains("http"), "Expected tarball url to contain http");
+
         let cmd_res = Command::new("nix")
             .args(["flake", "prefetch", &url, "--json"])
             .output()
-            .map_err(|_| {
-                de::Error::custom(
-                    "Failed to fetch tarball contents for tarball package while deserializing",
-                )
-            })?;
+            .map_err(|err| Error::FetchingFailed(err.to_string()))?;
 
-        let stdout = str::from_utf8(&cmd_res.stdout).map_err(|_| {
-            de::Error::custom("stdout was not valid utf8 while reading tarball hash")
-        })?;
+        dbg!(&cmd_res);
+        let stdout = str::from_utf8(&cmd_res.stdout)
+            .map_err(|err| Error::InvalidUtf8String(err.to_string()))?;
 
-        let prefetch: Prefetch = serde_json::from_str(stdout).map_err(|err| {
-            de::Error::custom(format!(
-                "Failed to deserialize command result after calculating tarball hash {}",
-                err
-            ))
-        })?;
+        dbg!(stdout);
+        let prefetch: Prefetch = serde_json::from_str(stdout)?;
 
         let name = format!("tarball:{}", url);
-
         let fetcher = Fetcher::new_tarball_package(url, prefetch.hash);
-        let pkg = Package::new(name, fetcher);
 
-        packages.push(pkg);
-
-        Ok(())
+        Ok(Package::new(name, fetcher))
     }
 
     /// # Deserialize a workspace package
@@ -149,30 +127,33 @@ impl<'a> PackageDeserializer<'a> {
     /// Deserialize a workspace package from it's bun lockfile representation
     ///
     /// This is found in the source as a tuple of arity 2
-    pub fn deserialize_workspace_package<E>(self) -> Result<(), E>
-    where
-        E: de::Error,
-    {
-        let Some(id) = self.values[0].as_str() else {
-            return Ok(());
-        };
-
+    pub fn deserialize_workspace_package(mut self) -> Result<Package> {
+        let id = swap_remove_value(&mut self.values, 0);
         let Some(path) = Self::drain_after_substring(id.to_string(), "workspace:") else {
-            return Ok(());
+            return Err(Error::MissingWorkspaceSpecifier);
         };
 
-        let pkg = Package::new(self.name, Fetcher::CopyToStore { path });
-
-        self.packages.push(pkg);
-
-        Ok(())
+        Ok(Package::new(self.name, Fetcher::CopyToStore { path }))
     }
 
     fn drain_after_substring(mut input: String, sub: &str) -> Option<String> {
-        let sub_start = input.find(sub)?;
+        let pos = input.rfind(sub)? + sub.len();
 
-        let sub_end = sub_start + sub.len();
-
-        Some(input.drain(sub_end..).collect())
+        Some(input.drain(pos..).collect())
     }
+}
+
+fn swap_remove_value(values: &mut Values, index: usize) -> String {
+    let mut value = values.swap_remove(index).to_string();
+
+    assert!(
+        value.chars().nth(0).unwrap() == '"',
+        "Value should start with a quote"
+    );
+    assert!(
+        value.chars().nth(value.len() - 1).unwrap() == '"',
+        "Value should end with a quote"
+    );
+
+    value.drain(1..value.len() - 1).collect()
 }
