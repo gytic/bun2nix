@@ -6,6 +6,9 @@
 - Faster incremental builds via better caching
 - Rewritten nix API designed to be both more idiomatic and flexible
 - New NPM packaged web assembly CLI - run the `bun2nix` CLI with nothing but `bunx bun2nix` - see the [NPM page](https://www.npmjs.com/package/bun2nix).
+- Now supports more of bun's dependency types, including:
+  - Files and symlinks
+  - Tarballs
 
 ## Updating
 
