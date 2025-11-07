@@ -1,4 +1,4 @@
-use crate::{package::Fetcher, Package};
+use crate::{Package, package::Fetcher};
 
 use std::process::Command;
 
@@ -143,17 +143,8 @@ impl PackageDeserializer {
 fn swap_remove_value(values: &mut Values, index: usize) -> String {
     let mut value = values.swap_remove(index).to_string();
 
-    #[cfg(debug_assertions)]
-    let mut chars = value.chars();
-
-    debug_assert!(
-        chars.next().unwrap() == '"',
-        "Value should start with a quote"
-    );
-    debug_assert!(
-        chars.last().unwrap() == '"',
-        "Value should end with a quote"
-    );
+    debug_assert!(value.starts_with('"'), "Value should start with a quote");
+    debug_assert!(value.ends_with('"'), "Value should end with a quote");
 
     value.drain(1..value.len() - 1).collect()
 }
