@@ -1,4 +1,4 @@
-use crate::{Package, package::Fetcher};
+use crate::{package::Fetcher, Package};
 
 use std::process::Command;
 
@@ -109,11 +109,9 @@ impl PackageDeserializer {
             .output()
             .map_err(|err| Error::FetchingFailed(err.to_string()))?;
 
-        dbg!(&cmd_res);
         let stdout = str::from_utf8(&cmd_res.stdout)
             .map_err(|err| Error::InvalidUtf8String(err.to_string()))?;
 
-        dbg!(stdout);
         let prefetch: Prefetch = serde_json::from_str(stdout)?;
 
         let name = format!("tarball:{}", url);
