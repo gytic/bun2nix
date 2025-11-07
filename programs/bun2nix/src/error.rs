@@ -4,6 +4,7 @@
 //! - A giant unified error type `Error`
 //! - An alias for `std::result::Result<T, E>` with that error for convenience
 
+use std::{io, str::Utf8Error};
 use thiserror::Error;
 
 /// Result alias for Errors which occur in `bun2nix`
@@ -32,9 +33,9 @@ pub enum Error {
     )]
     UnsupportedLockfileVersion(u8),
     #[error("Error while fetching package from it's source: {0}")]
-    FetchingFailed(String),
+    FetchingFailed(io::Error),
     #[error("An invalid utf8 string was returned from stdin while fetching a package: {0}")]
-    InvalidUtf8String(String),
+    InvalidUtf8String(Utf8Error),
     #[error("A workspace package was missing the `workspace:` specifier")]
     MissingWorkspaceSpecifier,
     #[error("Unexpected package entry length: {0}")]

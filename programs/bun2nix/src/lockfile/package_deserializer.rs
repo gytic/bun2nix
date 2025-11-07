@@ -71,7 +71,7 @@ impl PackageDeserializer {
     /// tarballs
     pub fn deserialize_tarball_or_file_package(mut self) -> Result<Package> {
         let id = swap_remove_value(&mut self.values, 0);
-        let Some(path) = Self::drain_after_substring(id.to_string(), "@") else {
+        let Some(path) = Self::drain_after_substring(id, "@") else {
             return Err(Error::NoAtInPackageIdentifier);
         };
 
@@ -107,10 +107,9 @@ impl PackageDeserializer {
         let cmd_res = Command::new("nix")
             .args(["flake", "prefetch", &url, "--json"])
             .output()
-            .map_err(|err| Error::FetchingFailed(err.to_string()))?;
+            .map_err(Error::FetchingFailed)?;
 
-        let stdout = str::from_utf8(&cmd_res.stdout)
-            .map_err(|err| Error::InvalidUtf8String(err.to_string()))?;
+        let stdout = str::from_utf8(&cmd_res.stdout).map_err(Error::InvalidUtf8String)?;
 
         let prefetch: Prefetch = serde_json::from_str(stdout)?;
 
@@ -127,7 +126,7 @@ impl PackageDeserializer {
     /// This is found in the source as a tuple of arity 2
     pub fn deserialize_workspace_package(mut self) -> Result<Package> {
         let id = swap_remove_value(&mut self.values, 0);
-        let Some(path) = Self::drain_after_substring(id.to_string(), "workspace:") else {
+        let Some(path) = Self::drain_after_substring(id, "workspace:") else {
             return Err(Error::MissingWorkspaceSpecifier);
         };
 
