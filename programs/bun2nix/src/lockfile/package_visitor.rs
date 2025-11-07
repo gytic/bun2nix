@@ -1,6 +1,6 @@
-use std::{fmt, iter};
+use std::fmt;
 
-use serde::de::{self, Deserialize, MapAccess, Visitor};
+use serde::de::{self, MapAccess, Visitor};
 
 use super::PackageDeserializer;
 use crate::Package;

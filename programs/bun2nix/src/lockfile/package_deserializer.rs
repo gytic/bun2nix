@@ -50,7 +50,7 @@ impl PackageDeserializer {
         let npm_identifier_raw = swap_remove_value(&mut self.values, 0);
         let hash = swap_remove_value(&mut self.values, 0);
 
-        assert!(
+        debug_assert!(
             hash.contains("sha512-"),
             "Expected hash to be in sri format and contain sha512"
         );
@@ -88,7 +88,7 @@ impl PackageDeserializer {
     ///
     /// This is found in the source as a tuple of arity 2
     pub fn deserialize_file_package(name: String, path: String) -> Result<Package> {
-        assert!(
+        debug_assert!(
             !path.contains("http"),
             "File path can never contain http, because then it would be a tarball"
         );
@@ -102,7 +102,7 @@ impl PackageDeserializer {
     ///
     /// This is found in the source as a tuple of arity 2
     pub fn deserialize_tarball_package(url: String) -> Result<Package> {
-        assert!(url.contains("http"), "Expected tarball url to contain http");
+        debug_assert!(url.contains("http"), "Expected tarball url to contain http");
 
         let cmd_res = Command::new("nix")
             .args(["flake", "prefetch", &url, "--json"])
@@ -146,12 +146,15 @@ impl PackageDeserializer {
 fn swap_remove_value(values: &mut Values, index: usize) -> String {
     let mut value = values.swap_remove(index).to_string();
 
-    assert!(
-        value.chars().nth(0).unwrap() == '"',
+    #[cfg(debug_assertions)]
+    let mut chars = value.chars();
+
+    debug_assert!(
+        chars.next().unwrap() == '"',
         "Value should start with a quote"
     );
-    assert!(
-        value.chars().nth(value.len() - 1).unwrap() == '"',
+    debug_assert!(
+        chars.last().unwrap() == '"',
         "Value should end with a quote"
     );
 
