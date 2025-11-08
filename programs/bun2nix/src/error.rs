@@ -4,7 +4,7 @@
 //! - A giant unified error type `Error`
 //! - An alias for `std::result::Result<T, E>` with that error for convenience
 
-use std::{io, str::Utf8Error};
+use std::{fs, io, str::Utf8Error};
 use thiserror::Error;
 
 /// Result alias for Errors which occur in `bun2nix`
@@ -34,6 +34,8 @@ pub enum Error {
     UnsupportedLockfileVersion(u8),
     #[error("Error while fetching package from it's source: {0}")]
     FetchingFailed(io::Error),
+    #[error("Console error while fetching package from it's source: {0}")]
+    FetchingError(String),
     #[error("An invalid utf8 string was returned from stdin while fetching a package: {0}")]
     InvalidUtf8String(Utf8Error),
     #[error("A workspace package was missing the `workspace:` specifier")]
@@ -46,6 +48,18 @@ pub enum Error {
     UnexpectedPackageEntryLength(usize),
     #[error("Failed to render template: '{0}'")]
     TemplateError(#[from] askama::Error),
+    #[error("
+IO Error Occurred: `{0}`.
+
+Make sure that the bun lockfile path you gave points to a valid path.
+
+Try changing the file path to point to one, or create one with `bun install` on a version of bun above v1.2.
+
+See https://bun.sh/docs/install/lockfile to find out more information about the textual lockfile.
+
+Try `bun2nix -h` for help.
+    ")]
+    ReadLockfileError(#[from] io::Error),
 }
 
 #[cfg(target_arch = "wasm32")]

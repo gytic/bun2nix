@@ -3,7 +3,8 @@
 
 #![warn(missing_docs)]
 
-use bun2nix::convert_lockfile_to_nix_expression;
+use bun2nix::{Result, convert_lockfile_to_nix_expression};
+use log::error;
 
 use std::{
     fs::{self, File},
@@ -32,18 +33,29 @@ fn main() {
     let log_env = Env::default().default_filter_or("warn");
     env_logger::Builder::from_env(log_env).init();
 
+    match run() {
+        Ok(()) => (),
+        Err(err) => {
+            error!("{err}");
+
+            std::process::exit(1)
+        }
+    }
+}
+
+fn run() -> Result<()> {
     let cli = Cli::parse();
 
-    let lockfile = fs::read_to_string(&cli.lock_file)
-        .unwrap_or_else(|_| panic!("\nCould not find lockfile at {}.\nTry changing the file path to point to one, or create one with `bun install` on a version of bun above v1.2.\nSee https://bun.sh/docs/install/lockfile to find out more information about the textual lockfile.\n\nTry `bun2nix -h` for help.\n", cli.lock_file.to_str().unwrap()));
+    let lockfile = fs::read_to_string(&cli.lock_file)?;
 
-    let nix = convert_lockfile_to_nix_expression(lockfile).unwrap();
+    let nix = convert_lockfile_to_nix_expression(lockfile)?;
 
-    match cli.output_file {
-        Some(output_file) => {
-            let mut output = File::create(output_file).unwrap();
-            write!(output, "{}", nix).unwrap();
-        }
-        None => println!("{}", nix),
-    };
+    if let Some(output_file) = cli.output_file {
+        let mut output = File::create(output_file)?;
+        write!(output, "{nix}")?;
+    } else {
+        println!("{nix}");
+    }
+
+    Ok(())
 }
