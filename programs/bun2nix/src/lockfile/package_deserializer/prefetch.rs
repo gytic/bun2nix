@@ -1,5 +1,6 @@
 use crate::error::{Error, Result};
 
+use log::warn;
 use serde::{Deserialize, Serialize};
 use std::process::Command;
 
@@ -18,6 +19,23 @@ impl Prefetch {
     /// Prefetch a package as a url and calculate it's
     /// sha256
     pub fn prefetch_package(url: &str) -> Result<Self> {
+        warn!(
+            "
+Hash was not already known for `{url}`.
+
+This must be prefetched and hashed by `bun2nix` via
+`nix flake prefetch`. While this does have some caching
+if you care about install speed, try looking for an alternative
+install for this package from npm.
+
+See:
+- https://nix.dev/manual/nix/2.28/command-ref/new-cli/nix3-flake-prefetch.html
+- https://github.com/oven-sh/bun/issues/19519
+
+Disable these warnings with `RUST_LOG=error` or `RUST_LOG=off`
+        "
+        );
+
         let cmd_res = Command::new("nix")
             .args(["flake", "prefetch", url, "--json"])
             .output()

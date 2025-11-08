@@ -12,6 +12,7 @@ use std::{
 };
 
 use clap::Parser;
+use env_logger::Env;
 
 /// Convert Bun (v1.2+) packages to Nix expressions
 #[derive(Debug, Parser)]
@@ -28,6 +29,9 @@ pub struct Cli {
 }
 
 fn main() {
+    let log_env = Env::default().default_filter_or("warn");
+    env_logger::Builder::from_env(log_env).init();
+
     let cli = Cli::parse();
 
     let lockfile = fs::read_to_string(&cli.lock_file)
