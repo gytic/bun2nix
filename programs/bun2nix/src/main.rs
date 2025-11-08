@@ -36,7 +36,7 @@ fn main() {
     match run() {
         Ok(()) => (),
         Err(err) => {
-            error!("{err}");
+            error!("\n{err}\n");
 
             std::process::exit(1)
         }

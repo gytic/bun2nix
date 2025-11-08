@@ -15,26 +15,30 @@ pub type Result<T> = std::result::Result<T, Error>;
 /// Errors which occur in `bun2nix`
 pub enum Error {
     #[error(
-        "Failed to parse lockfile as JSONC (specified here: https://github.com/oven-sh/bun/issues/11863): {0}. Please make sure your bun lockfile is formatted correctly, try deleting it and running `bun install` again to produce a fresh one"
+        "Failed to parse lockfile as JSONC (specified here: https://github.com/oven-sh/bun/issues/11863): \n{0}.
+
+Please make sure your bun lockfile is formatted correctly, try deleting it and running `bun install` again to produce a fresh one"
     )]
     ParseJsonc(#[from] jsonc_parser::errors::ParseError),
-    #[error("Failed to parse lockfile related JSON as rust type: {0}")]
+    #[error("Failed to parse lockfile related JSON as rust type: \n{0}")]
     ParseRustType(#[from] serde_json::Error),
     #[error(
         "Failed to parse empty lockfile, make sure you are providing a file with text contents"
     )]
     NoJsoncValue,
-    #[error(
-        "Missing @ for package name and version declaration. Make sure all versions in your bun lockfile are formatted properly or try deleting it and running `bun install` to produce a fresh one"
+    #[error("Missing @ for package name and version declaration.
+
+Make sure all versions in your bun lockfile are formatted properly or try deleting it and running `bun install` to produce a fresh one"
     )]
     NoAtInPackageIdentifier,
-    #[error(
-        "Unsupported lockfile version: '{0}'. Consider updating your local package or contributing to `bun2nix` if this version hasn't been supported yet"
+    #[error( "Unsupported lockfile version: '{0}'.
+
+Consider updating your local package or contributing to `bun2nix` if this version hasn't been supported yet"
     )]
     UnsupportedLockfileVersion(u8),
-    #[error("Error while fetching package from it's source: {0}")]
+    #[error("Error while fetching package from it's source: \n{0}")]
     FetchingFailed(io::Error),
-    #[error("Console error while fetching package from it's source: {0}")]
+    #[error("\nConsole error while fetching package from it's source: \n\n{0}")]
     FetchingError(String),
     #[error("An invalid utf8 string was returned from stdin while fetching a package: {0}")]
     InvalidUtf8String(Utf8Error),
@@ -44,12 +48,11 @@ pub enum Error {
     MissingGitRef,
     #[error("A github url was formatted incorrectly")]
     ImproperGithubUrl,
-    #[error("Unexpected package entry length: {0}")]
+    #[error("Unexpected package entry length: \n{0}")]
     UnexpectedPackageEntryLength(usize),
-    #[error("Failed to render template: '{0}'")]
+    #[error("Failed to render template: '\n{0}'")]
     TemplateError(#[from] askama::Error),
-    #[error("
-IO Error Occurred: `{0}`.
+    #[error("IO Error Occurred: `\n{0}`.
 
 Make sure that the bun lockfile path you gave points to a valid path.
 
