@@ -124,7 +124,7 @@ pub const PkgLinker = struct {
 
         const link_out_absolute = try std.fmt.allocPrint(
             allocator,
-            "{s}/{s}@@@1",
+            "{s}/{s}",
             .{ linker.out, cache_entry_location },
         );
         defer allocator.free(link_out_absolute);
@@ -161,6 +161,8 @@ pub fn cachedFolderPrintBasename(
         cachedTarballFolderPrintBasename(allocator, input)
     else if (mem.startsWith(u8, input, "github:"))
         cachedGithubFolderPrintBasename(allocator, input)
+    else if (mem.startsWith(u8, input, "git:"))
+        cachedGitFolderPrintBasename(allocator, input)
     else
         cachedNpmPackageFolderPrintBasename(allocator, input);
 }
@@ -186,7 +188,7 @@ pub fn cachedNpmPackageFolderPrintBasename(
             const pre = pre_and_build[0..buildIndex];
             const build = pre_and_build[buildIndex + 1 ..];
 
-            return std.fmt.allocPrint(allocator, "{s}{s}-{x:0>16}+{X:0>16}", .{
+            return std.fmt.allocPrint(allocator, "{s}{s}-{x:0>16}+{X:0>16}@@@1", .{
                 name,
                 version,
                 wyhash(wyhash_seed, pre),
@@ -194,7 +196,7 @@ pub fn cachedNpmPackageFolderPrintBasename(
             });
         }
 
-        return std.fmt.allocPrint(allocator, "{s}{s}-{x:0>16}", .{
+        return std.fmt.allocPrint(allocator, "{s}{s}-{x:0>16}@@@1", .{
             name,
             version,
             wyhash(wyhash_seed, pre_and_build),
@@ -205,14 +207,14 @@ pub fn cachedNpmPackageFolderPrintBasename(
         const version = ver[0..buildIndex];
         const build = ver[buildIndex + 1 ..];
 
-        return std.fmt.allocPrint(allocator, "{s}{s}+{X:0>16}", .{
+        return std.fmt.allocPrint(allocator, "{s}{s}+{X:0>16}@@@1", .{
             name,
             version,
             wyhash(wyhash_seed, build),
         });
     }
 
-    return allocator.dupe(u8, pkg);
+    return std.fmt.allocPrint(allocator, "{s}@@@1", .{pkg});
 }
 
 /// Produce a correct bun cache folder name for a given tarball dependency
@@ -225,7 +227,7 @@ pub fn cachedTarballFolderPrintBasename(
     const pre = "tarball:";
     const without_pre = url[pre.len..];
 
-    return std.fmt.allocPrint(allocator, "@T@{x:0>16}", .{
+    return std.fmt.allocPrint(allocator, "@T@{x:0>16}@@@1", .{
         wyhash(wyhash_seed, without_pre),
     });
 }
@@ -240,7 +242,22 @@ pub fn cachedGithubFolderPrintBasename(
     const pre = "github:";
     const without_pre = url[pre.len..];
 
-    return std.fmt.allocPrint(allocator, "@GH@{s}", .{
+    return std.fmt.allocPrint(allocator, "@GH@{s}@@@1", .{
+        without_pre,
+    });
+}
+
+/// Produce a correct bun cache folder name for a given git dependency
+///
+/// Adapted from [here](https://github.com/oven-sh/bun/blob/550522e99b303d8172b7b16c5750d458cb056434/src/install/PackageManager/PackageManagerDirectories.zig#L353)
+pub fn cachedGitFolderPrintBasename(
+    allocator: mem.Allocator,
+    url: []const u8,
+) ![]u8 {
+    const pre = "git:";
+    const without_pre = url[pre.len..];
+
+    return std.fmt.allocPrint(allocator, "@G@{s}", .{
         without_pre,
     });
 }
@@ -264,14 +281,14 @@ fn testBaseNameFn(
 
 test "cachedNpmPackageFolderPrintBasename function" {
     const tests = &[_]struct { []const u8, []const u8 }{
-        .{ "react@1.2.3-beta.1+build.123", "react@1.2.3-c0734e9369ab610d+F48F05ED5AABC3A0" },
-        .{ "tailwindcss@4.0.0-beta.9", "tailwindcss@4.0.0-73c5c46324e78b9b" },
-        .{ "react@1.2.3+build.123", "react@1.2.3+F48F05ED5AABC3A0" },
-        .{ "react@1.2.3", "react@1.2.3" },
-        .{ "undici-types@6.20.0", "undici-types@6.20.0" },
-        .{ "@types/react-dom@19.0.4", "@types/react-dom@19.0.4" },
-        .{ "react-compiler-runtime@19.0.0-beta-e552027-20250112", "react-compiler-runtime@19.0.0-0f3fc645a5103715" },
-        .{ "react-compiler-runtime@19.0.0-beta-e552027-20250112", "react-compiler-runtime@19.0.0-0f3fc645a5103715" },
+        .{ "react@1.2.3-beta.1+build.123", "react@1.2.3-c0734e9369ab610d+F48F05ED5AABC3A0@@@1" },
+        .{ "tailwindcss@4.0.0-beta.9", "tailwindcss@4.0.0-73c5c46324e78b9b@@@1" },
+        .{ "react@1.2.3+build.123", "react@1.2.3+F48F05ED5AABC3A0@@@1" },
+        .{ "react@1.2.3", "react@1.2.3@@@1" },
+        .{ "undici-types@6.20.0", "undici-types@6.20.0@@@1" },
+        .{ "@types/react-dom@19.0.4", "@types/react-dom@19.0.4@@@1" },
+        .{ "react-compiler-runtime@19.0.0-beta-e552027-20250112", "react-compiler-runtime@19.0.0-0f3fc645a5103715@@@1" },
+        .{ "react-compiler-runtime@19.0.0-beta-e552027-20250112", "react-compiler-runtime@19.0.0-0f3fc645a5103715@@@1" },
     };
 
     try testBaseNameFn(tests, cachedNpmPackageFolderPrintBasename);
@@ -279,7 +296,7 @@ test "cachedNpmPackageFolderPrintBasename function" {
 
 test "cachedTarballFolderPrintBasename function" {
     const tests = &[_]struct { []const u8, []const u8 }{
-        .{ "tarball:https://registry.npmjs.org/zod/-/zod-3.21.4.tgz", "@T@3be02e19198e30ee" },
+        .{ "tarball:https://registry.npmjs.org/zod/-/zod-3.21.4.tgz", "@T@3be02e19198e30ee@@@1" },
     };
 
     try testBaseNameFn(tests, cachedTarballFolderPrintBasename);
@@ -287,8 +304,16 @@ test "cachedTarballFolderPrintBasename function" {
 
 test "cachedGithubFolderPrintBasename function" {
     const tests = &[_]struct { []const u8, []const u8 }{
-        .{ "github:colinhacks-zod-f9bbb50", "@GH@colinhacks-zod-f9bbb50" },
+        .{ "github:colinhacks-zod-f9bbb50", "@GH@colinhacks-zod-f9bbb50@@@1" },
     };
 
     try testBaseNameFn(tests, cachedGithubFolderPrintBasename);
+}
+
+test "cachedGitFolderPrintBasename function" {
+    const tests = &[_]struct { []const u8, []const u8 }{
+        .{ "git:ee100d81f12ae315a81c2a664979a6cc1bce99a2", "@G@ee100d81f12ae315a81c2a664979a6cc1bce99a2" },
+    };
+
+    try testBaseNameFn(tests, cachedGitFolderPrintBasename);
 }

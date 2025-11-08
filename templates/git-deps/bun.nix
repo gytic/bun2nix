@@ -7,6 +7,7 @@
 # it manually.
 {
   fetchFromGitHub,
+  fetchgit,
   fetchurl,
   ...
 }:
@@ -31,11 +32,22 @@
     url = "https://registry.npmjs.org/bun2nix/-/bun2nix-2.0.0-beta-10.tgz";
     hash = "sha512-PL+DWxFozqDrZHNmtDoX2s13QgelMaZtp/PC8CmXpVr/9uUzEwySI8waONR1WEw88g6UAXYW8BYm0MQVceP9EQ==";
   };
+  "git:ee100d81f12ae315a81c2a664979a6cc1bce99a2" = fetchgit {
+    url = "https://gitlab.com/gitlab-examples/semantic-release-npm";
+    rev = "ee100d81f12ae315a81c2a664979a6cc1bce99a2";
+    hash = "sha256-jHz3ybhO4oQVk7sKkMpbKtanZnR3eetiUytARuy2mJM=";
+  };
   "github:colinhacks-zod-f9bbb50" = fetchFromGitHub {
     owner = "colinhacks";
     repo = "zod";
     rev = "f9bbb50";
     hash = "sha256-sHGyB7zgjMeiociOg4yoxEIUaZbVFZQnJwCxZ+RPGPw=";
+  };
+  "github:iamkun-dayjs-02b7a5c" = fetchFromGitHub {
+    owner = "iamkun";
+    repo = "dayjs";
+    rev = "02b7a5c";
+    hash = "sha256-zZHdduEmaHI+yvsiXnuzSAdSrgjlH//JWWTbBAitsxY=";
   };
   "mri@1.2.0" = fetchurl {
     url = "https://registry.npmjs.org/mri/-/mri-1.2.0.tgz";

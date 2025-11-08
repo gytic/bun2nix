@@ -4,6 +4,8 @@
     "": {
       "name": "examples",
       "dependencies": {
+        "dayjs": "git+https://github.com/iamkun/dayjs.git",
+        "@gitlab-examples/semantic-release-npm": "https://gitlab.com/gitlab-examples/semantic-release-npm",
         "zod": "github:colinhacks/zod",
       },
       "devDependencies": {
@@ -16,6 +18,8 @@
     },
   },
   "packages": {
+    "@gitlab-examples/semantic-release-npm": ["@gitlab-examples/semantic-release-npm@git+https://gitlab.com/gitlab-examples/semantic-release-npm#ee100d81f12ae315a81c2a664979a6cc1bce99a2", {}, "ee100d81f12ae315a81c2a664979a6cc1bce99a2"],
+
     "@types/bun": ["@types/bun@1.2.4", "", { "dependencies": { "bun-types": "1.2.4" } }, "sha512-QtuV5OMR8/rdKJs213iwXDpfVvnskPXY/S0ZiFbsTjQZycuqPbMW8Gf/XhLfwE5njW8sxI2WjISURXPlHypMFA=="],
 
     "@types/node": ["@types/node@22.13.5", "", { "dependencies": { "undici-types": "~6.20.0" } }, "sha512-+lTU0PxZXn0Dr1NBtC7Y8cR21AJr87dLLU953CWA6pMxxv/UDc7jYAY90upcrie1nRcD6XNG5HOYEDtgW5TxAg=="],
@@ -25,6 +29,8 @@
     "bun-types": ["bun-types@1.2.4", "", { "dependencies": { "@types/node": "*", "@types/ws": "~8.5.10" } }, "sha512-nDPymR207ZZEoWD4AavvEaa/KZe/qlrbMSchqpQwovPZCKc7pwMoENjEtHgMKaAjJhy+x6vfqSBA1QU3bJgs0Q=="],
 
     "bun2nix": ["bun2nix@2.0.0-beta-10", "", { "dependencies": { "sade": "^1.8.1" }, "bin": { "bun2nix": "index.ts" } }, "sha512-PL+DWxFozqDrZHNmtDoX2s13QgelMaZtp/PC8CmXpVr/9uUzEwySI8waONR1WEw88g6UAXYW8BYm0MQVceP9EQ=="],
+
+    "dayjs": ["dayjs@github:iamkun/dayjs#02b7a5c", {}, "iamkun-dayjs-02b7a5c"],
 
     "mri": ["mri@1.2.0", "", {}, "sha512-tzzskb3bG8LvYGFF/mDTpq3jpI6Q9wc3LEmBaghu+DdCssd1FakN7Bc0hVNmEyGq1bq3RgfkCb3cmQLpNPOroA=="],
 

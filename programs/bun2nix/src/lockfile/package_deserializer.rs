@@ -64,18 +64,17 @@ impl PackageDeserializer {
     /// This is found in the source as a tuple of arity 3
     pub fn deserialize_git_or_github_package(mut self) -> Result<Package> {
         let id = swap_remove_value(&mut self.values, 0);
-        let Some((name, git_url_and_ref)) = id.split_once("@") else {
+
+        let Some((_, pkg_id)) = id.split_once("@") else {
             return Err(Error::NoAtInPackageIdentifier);
         };
 
-        let Some((git_url, git_ref)) = git_url_and_ref.split_once("#") else {
-            return Err(Error::MissingGitRef);
-        };
+        let pkg_id_o = pkg_id.to_owned();
 
-        if git_url.starts_with("github:") {
-            Self::deserialize_github_package(name, git_url, git_ref)
+        if pkg_id_o.starts_with("github:") {
+            Self::deserialize_github_package(pkg_id_o)
         } else {
-            Self::deserialize_git_package(name, git_url, git_ref)
+            Self::deserialize_git_package(pkg_id_o)
         }
     }
 
@@ -84,16 +83,16 @@ impl PackageDeserializer {
     /// Deserialize a github package from it's bun lockfile representation
     ///
     /// This is found in the source as a tuple of arity 3
-    pub fn deserialize_github_package(
-        id: &str,
-        github_url: &str,
-        git_ref: &str,
-    ) -> Result<Package> {
-        let prefetch_url = format!("{github_url}?ref={git_ref}");
+    pub fn deserialize_github_package(id: String) -> Result<Package> {
+        let Some((git_url, git_ref)) = id.split_once("#") else {
+            return Err(Error::MissingGitRef);
+        };
+
+        let prefetch_url = format!("{git_url}?ref={git_ref}");
 
         let prefetch = Prefetch::prefetch_package(&prefetch_url)?;
 
-        let Some((owner_with_pre, repo)) = github_url.split_once("/") else {
+        let Some((owner_with_pre, repo)) = git_url.split_once("/") else {
             return Err(Error::ImproperGithubUrl);
         };
 
@@ -104,11 +103,11 @@ impl PackageDeserializer {
         let fetcher = Fetcher::FetchGitHub {
             owner: owner.to_owned(),
             repo: repo.to_owned(),
-            git_ref: git_ref.to_owned(),
+            rev: git_ref.to_owned(),
             hash: prefetch.hash,
         };
 
-        let id_with_ver = format!("github:{owner}-{id}-{git_ref}");
+        let id_with_ver = format!("github:{owner}-{repo}-{git_ref}");
 
         Ok(Package::new(id_with_ver, fetcher))
     }
@@ -118,18 +117,27 @@ impl PackageDeserializer {
     /// Deserialize a git package from it's bun lockfile representation
     ///
     /// This is found in the source as a tuple of arity 3
-    pub fn deserialize_git_package(id: &str, git_url: &str, git_ref: &str) -> Result<Package> {
-        let prefetch_url = format!("{git_url}?ref={git_ref}");
+    pub fn deserialize_git_package(id: String) -> Result<Package> {
+        let Some((_, git_url)) = id.split_once("git+") else {
+            return Err(Error::MissingGitRef);
+        };
+
+        let Some((source_url, git_rev)) = git_url.split_once("#") else {
+            return Err(Error::MissingGitRef);
+        };
+
+        let prefetch_url = format!("git+{source_url}?rev={git_rev}");
 
         let prefetch = Prefetch::prefetch_package(&prefetch_url)?;
 
         let fetcher = Fetcher::FetchGit {
-            url: prefetch_url,
-            git_ref: git_ref.to_owned(),
+            url: source_url.to_owned(),
+            rev: git_rev.to_owned(),
             hash: prefetch.hash,
         };
 
-        Ok(Package::new(id.to_owned(), fetcher))
+        let rev_id = format!("git:{git_rev}");
+        Ok(Package::new(rev_id, fetcher))
     }
 
     /// # Deserialize a tarball or file package

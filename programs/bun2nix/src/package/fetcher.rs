@@ -27,7 +27,7 @@ pub enum Fetcher {
         /// The url to fetch the package from
         url: String,
         /// The commit ref to fetch
-        git_ref: String,
+        rev: String,
         /// The hash of the downloaded results
         /// This must be calculated via nix-prefetch
         hash: String,
@@ -40,7 +40,7 @@ pub enum Fetcher {
         /// The repo to fetch
         repo: String,
         /// The git ref to fetch
-        git_ref: String,
+        rev: String,
         /// The hash of the downloaded results
         /// This must be calculated via nix-prefetch
         hash: String,
