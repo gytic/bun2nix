@@ -21,13 +21,37 @@ pub enum Fetcher {
         /// This can be derived from the bun lockfile
         hash: String,
     },
+    /// A package which must be retrieved with nix's `pkgs.fetchgit`
+    #[template(path = "fetchgit.nix_template")]
+    FetchGit {
+        /// The url to fetch the package from
+        url: String,
+        /// The commit ref to fetch
+        git_ref: String,
+        /// The hash of the downloaded results
+        /// This must be calculated via nix-prefetch
+        hash: String,
+    },
+    /// A package which must be retrieved with nix's `pkgs.fetchFromGitHub`
+    #[template(path = "fetchgithub.nix_template")]
+    FetchGitHub {
+        /// The owner of the repo to fetch from
+        owner: String,
+        /// The repo to fetch
+        repo: String,
+        /// The git ref to fetch
+        git_ref: String,
+        /// The hash of the downloaded results
+        /// This must be calculated via nix-prefetch
+        hash: String,
+    },
     /// A package which must be retrieved with nix's `pkgs.fetchtarball`
     #[template(path = "fetchtarball.nix_template")]
     FetchTarball {
         /// The url to fetch the package from
         url: String,
         /// The hash of the downloaded results
-        /// This can be derived from the bun lockfile
+        /// This must be calculated via nix-prefetch
         hash: String,
     },
     /// A package can be a path copied to the store directly
@@ -47,14 +71,6 @@ impl Fetcher {
         let url = Self::to_npm_url(ident)?;
 
         Ok(Self::FetchUrl { url, hash })
-    }
-
-    /// # From NPM Url
-    ///
-    /// Initialize a fetcher from an npm url and
-    /// it's hash
-    pub fn new_tarball_package(url: String, hash: String) -> Self {
-        Self::FetchTarball { url, hash }
     }
 
     /// # NPM url converter

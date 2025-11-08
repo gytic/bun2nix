@@ -38,6 +38,10 @@ pub enum Error {
     InvalidUtf8String(Utf8Error),
     #[error("A workspace package was missing the `workspace:` specifier")]
     MissingWorkspaceSpecifier,
+    #[error("A git url was missing it's ref")]
+    MissingGitRef,
+    #[error("A github url was formatted incorrectly")]
+    ImproperGithubUrl,
     #[error("Unexpected package entry length: {0}")]
     UnexpectedPackageEntryLength(usize),
     #[error("Failed to render template: '{0}'")]

@@ -5,7 +5,11 @@
 # Consume this with `fetchBunDeps` (recommended)
 # or `pkgs.callPackage` if you wish to handle
 # it manually.
-{ fetchurl, ... }:
+{
+  fetchFromGitHub,
+  fetchurl,
+  ...
+}:
 {
   "@types/bun@1.2.4" = fetchurl {
     url = "https://registry.npmjs.org/@types/bun/-/bun-1.2.4.tgz";
@@ -26,6 +30,12 @@
   "bun2nix@2.0.0-beta-10" = fetchurl {
     url = "https://registry.npmjs.org/bun2nix/-/bun2nix-2.0.0-beta-10.tgz";
     hash = "sha512-PL+DWxFozqDrZHNmtDoX2s13QgelMaZtp/PC8CmXpVr/9uUzEwySI8waONR1WEw88g6UAXYW8BYm0MQVceP9EQ==";
+  };
+  "github:colinhacks-zod-f9bbb50" = fetchFromGitHub {
+    owner = "colinhacks";
+    repo = "zod";
+    rev = "f9bbb50";
+    hash = "sha256-sHGyB7zgjMeiociOg4yoxEIUaZbVFZQnJwCxZ+RPGPw=";
   };
   "mri@1.2.0" = fetchurl {
     url = "https://registry.npmjs.org/mri/-/mri-1.2.0.tgz";

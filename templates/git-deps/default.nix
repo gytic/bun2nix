@@ -7,4 +7,6 @@ bun2nix.mkDerivation {
   bunDeps = bun2nix.fetchBunDeps {
     bunNix = ./bun.nix;
   };
+
+  dontRunLifecycleScripts = true;
 }

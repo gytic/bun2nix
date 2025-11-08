@@ -159,6 +159,8 @@ pub fn cachedFolderPrintBasename(
 ) ![]u8 {
     return if (mem.startsWith(u8, input, "tarball:"))
         cachedTarballFolderPrintBasename(allocator, input)
+    else if (mem.startsWith(u8, input, "github:"))
+        cachedGithubFolderPrintBasename(allocator, input)
     else
         cachedNpmPackageFolderPrintBasename(allocator, input);
 }
@@ -228,6 +230,21 @@ pub fn cachedTarballFolderPrintBasename(
     });
 }
 
+/// Produce a correct bun cache folder name for a given github dependency
+///
+/// Adapted from [here](https://github.com/oven-sh/bun/blob/550522e99b303d8172b7b16c5750d458cb056434/src/install/PackageManager/PackageManagerDirectories.zig#L353)
+pub fn cachedGithubFolderPrintBasename(
+    allocator: mem.Allocator,
+    url: []const u8,
+) ![]u8 {
+    const pre = "github:";
+    const without_pre = url[pre.len..];
+
+    return std.fmt.allocPrint(allocator, "@GH@{s}", .{
+        without_pre,
+    });
+}
+
 const expectEqualSlices = std.testing.expectEqualSlices;
 const testing_allocator = std.testing.allocator;
 
@@ -266,4 +283,12 @@ test "cachedTarballFolderPrintBasename function" {
     };
 
     try testBaseNameFn(tests, cachedTarballFolderPrintBasename);
+}
+
+test "cachedGithubFolderPrintBasename function" {
+    const tests = &[_]struct { []const u8, []const u8 }{
+        .{ "github:colinhacks-zod-f9bbb50", "@GH@colinhacks-zod-f9bbb50" },
+    };
+
+    try testBaseNameFn(tests, cachedGithubFolderPrintBasename);
 }

@@ -1,10 +1,11 @@
-use crate::{Package, package::Fetcher};
+use crate::{
+    Package,
+    error::{Error, Result},
+    package::Fetcher,
+};
 
-use std::process::Command;
-
-use serde::{Deserialize, Serialize};
-
-use crate::error::{Error, Result};
+mod prefetch;
+pub use prefetch::Prefetch;
 
 type Values = Vec<serde_json::Value>;
 
@@ -20,11 +21,6 @@ pub struct PackageDeserializer {
     pub values: Values,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
-struct Prefetch {
-    hash: String,
-}
-
 impl PackageDeserializer {
     /// # Deserialize package
     ///
@@ -36,6 +32,7 @@ impl PackageDeserializer {
         match arity {
             1 => deserializer.deserialize_workspace_package(),
             2 => deserializer.deserialize_tarball_or_file_package(),
+            3 => deserializer.deserialize_git_or_github_package(),
             4 => deserializer.deserialize_npm_package(),
             x => Err(Error::UnexpectedPackageEntryLength(x)),
         }
@@ -58,6 +55,81 @@ impl PackageDeserializer {
         let fetcher = Fetcher::new_npm_package(&npm_identifier_raw, hash)?;
 
         Ok(Package::new(npm_identifier_raw, fetcher))
+    }
+
+    /// # Deserialize a Git or Github Package
+    ///
+    /// Deserialize a git or github package from it's bun lockfile representation
+    ///
+    /// This is found in the source as a tuple of arity 3
+    pub fn deserialize_git_or_github_package(mut self) -> Result<Package> {
+        let id = swap_remove_value(&mut self.values, 0);
+        let Some((name, git_url_and_ref)) = id.split_once("@") else {
+            return Err(Error::NoAtInPackageIdentifier);
+        };
+
+        let Some((git_url, git_ref)) = git_url_and_ref.split_once("#") else {
+            return Err(Error::MissingGitRef);
+        };
+
+        if git_url.starts_with("github:") {
+            Self::deserialize_github_package(name, git_url, git_ref)
+        } else {
+            Self::deserialize_git_package(name, git_url, git_ref)
+        }
+    }
+
+    /// # Deserialize a Github Package
+    ///
+    /// Deserialize a github package from it's bun lockfile representation
+    ///
+    /// This is found in the source as a tuple of arity 3
+    pub fn deserialize_github_package(
+        id: &str,
+        github_url: &str,
+        git_ref: &str,
+    ) -> Result<Package> {
+        let prefetch_url = format!("{github_url}?ref={git_ref}");
+
+        let prefetch = Prefetch::prefetch_package(&prefetch_url)?;
+
+        let Some((owner_with_pre, repo)) = github_url.split_once("/") else {
+            return Err(Error::ImproperGithubUrl);
+        };
+
+        let Some(owner) = owner_with_pre.strip_prefix("github:") else {
+            return Err(Error::ImproperGithubUrl);
+        };
+
+        let fetcher = Fetcher::FetchGitHub {
+            owner: owner.to_owned(),
+            repo: repo.to_owned(),
+            git_ref: git_ref.to_owned(),
+            hash: prefetch.hash,
+        };
+
+        let id_with_ver = format!("github:{owner}-{id}-{git_ref}");
+
+        Ok(Package::new(id_with_ver, fetcher))
+    }
+
+    /// # Deserialize a Git Package
+    ///
+    /// Deserialize a git package from it's bun lockfile representation
+    ///
+    /// This is found in the source as a tuple of arity 3
+    pub fn deserialize_git_package(id: &str, git_url: &str, git_ref: &str) -> Result<Package> {
+        let prefetch_url = format!("{git_url}?ref={git_ref}");
+
+        let prefetch = Prefetch::prefetch_package(&prefetch_url)?;
+
+        let fetcher = Fetcher::FetchGit {
+            url: prefetch_url,
+            git_ref: git_ref.to_owned(),
+            hash: prefetch.hash,
+        };
+
+        Ok(Package::new(id.to_owned(), fetcher))
     }
 
     /// # Deserialize a tarball or file package
@@ -104,17 +176,13 @@ impl PackageDeserializer {
     pub fn deserialize_tarball_package(url: String) -> Result<Package> {
         debug_assert!(url.contains("http"), "Expected tarball url to contain http");
 
-        let cmd_res = Command::new("nix")
-            .args(["flake", "prefetch", &url, "--json"])
-            .output()
-            .map_err(Error::FetchingFailed)?;
-
-        let stdout = str::from_utf8(&cmd_res.stdout).map_err(Error::InvalidUtf8String)?;
-
-        let prefetch: Prefetch = serde_json::from_str(stdout)?;
+        let prefetch = Prefetch::prefetch_package(&url)?;
 
         let name = format!("tarball:{}", url);
-        let fetcher = Fetcher::new_tarball_package(url, prefetch.hash);
+        let fetcher = Fetcher::FetchTarball {
+            url: url,
+            hash: prefetch.hash,
+        };
 
         Ok(Package::new(name, fetcher))
     }
