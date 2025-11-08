@@ -1,7 +1,7 @@
 use crate::{
-    Package,
     error::{Error, Result},
     package::Fetcher,
+    Package,
 };
 
 mod prefetch;
@@ -188,7 +188,7 @@ impl PackageDeserializer {
 
         let name = format!("tarball:{}", url);
         let fetcher = Fetcher::FetchTarball {
-            url: url,
+            url,
             hash: prefetch.hash,
         };
 

@@ -4,7 +4,7 @@
 //! - A giant unified error type `Error`
 //! - An alias for `std::result::Result<T, E>` with that error for convenience
 
-use std::{fs, io, str::Utf8Error};
+use std::{io, str::Utf8Error};
 use thiserror::Error;
 
 /// Result alias for Errors which occur in `bun2nix`
