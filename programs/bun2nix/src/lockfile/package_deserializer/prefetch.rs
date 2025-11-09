@@ -37,7 +37,14 @@ Disable these warnings with `RUST_LOG=error` or `RUST_LOG=off`
         );
 
         let cmd_res = Command::new("nix")
-            .args(["flake", "prefetch", url, "--json"])
+            .args([
+                "--extra-experimental-features",
+                "nix-command flakes",
+                "flake",
+                "prefetch",
+                url,
+                "--json",
+            ])
             .output()
             .map_err(Error::FetchingFailed)?;
 
