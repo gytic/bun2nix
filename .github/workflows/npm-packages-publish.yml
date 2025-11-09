@@ -33,6 +33,6 @@ jobs:
         run: nix build .#bun2nix-js
 
       - name: NPM Publish js artifact
-        run: npm publish --provenance --access public ./result
+        run: npm publish --provenance ./result/dist
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
