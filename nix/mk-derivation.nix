@@ -26,24 +26,48 @@ in
     {
       mkDerivation.function = lib.extendMkDerivation {
         constructDrv = pkgs.stdenv.mkDerivation;
-        excludeDrvArgNames = [
-          "packageJson"
-          "index"
-          "bunNix"
-          "workspaceRoot"
-          "workspaces"
-        ];
+
         extendDrvArgs =
           _finalAttrs:
           {
             packageJson ? null,
-            bunDeps,
             dontPatchShebangs ? false,
             nativeBuildInputs ? [ ],
             # Bun binaries built by this derivation become broken by the default fixupPhase
             dontFixup ? !(args ? buildPhase),
             ...
           }@args:
+
+          assert lib.assertMsg (!(args ? bunNix)) ''
+            bun2nix.mkDerivation: `bunNix` cannot be passed to `bun2nix.mkDerivation` directly.
+            It should be wrapped in `bun2nix.fetchBunDeps` like follows:
+
+            # Example
+            ```nix
+            bunDeps = bun2nix.fetchBunDeps {
+              bunNix = ./bun.nix;
+            };
+            ```
+          '';
+
+          assert lib.assertMsg (args ? bunDeps || packageJson != null) ''
+            Please set `bunDeps` in order to use `bun2nix.mkDerivation`
+            to build your package.
+
+            # Example
+            ```nix
+            stdenv.mkDerivation {
+              <other inputs>
+
+              nativeBuildInputs = [
+                bun2nix.hook
+              ];
+
+              bunDeps = bun2nix.fetchBunDeps {
+                bunNix = ./bun.nix;
+              };
+            }
+          '';
 
           assert lib.assertMsg (args ? pname || packageJson != null)
             "bun2nix.mkDerivation: Either `pname` or `packageJson` must be set in order to assign a name to the package. It may be assigned manually with `pname` which always takes priority or read from the `name` field of `packageJson`.";
@@ -83,8 +107,9 @@ in
               version
               dontFixup
               dontPatchShebangs
-              bunDeps
               ;
+
+            inherit (args) bunDeps;
 
             bunBuildFlags = lib.optional (module != null) [
               "${module}"
