@@ -39,8 +39,8 @@ in
               homepage = "https://github.com/baileyluTCD/bun2nix";
               license = lib.licenses.mit;
               maintainers = [ lib.maintainers.baileylu ];
+              mainProgram = "bun2nix";
             };
-
           }
         );
         default = bun2nix;
