@@ -1,7 +1,7 @@
 use crate::{
+    Package,
     error::{Error, Result},
     package::Fetcher,
-    Package,
 };
 
 mod prefetch;
@@ -13,6 +13,7 @@ type Values = Vec<serde_json::Value>;
 ///
 /// Deserializes a given bun lockfile entry line into it's
 /// name and nix fetcher implementation
+#[derive(Debug)]
 pub struct PackageDeserializer {
     /// The name for the package
     pub name: String,
@@ -63,18 +64,15 @@ impl PackageDeserializer {
     ///
     /// This is found in the source as a tuple of arity 3
     pub fn deserialize_git_or_github_package(mut self) -> Result<Package> {
-        let id = swap_remove_value(&mut self.values, 0);
+        let mut id = swap_remove_value(&mut self.values, 0);
 
-        let Some((_, pkg_id)) = id.split_once("@") else {
-            return Err(Error::NoAtInPackageIdentifier);
-        };
+        let at_pos = id.rfind('@').ok_or(Error::NoAtInPackageIdentifier)?;
+        id.drain(..=at_pos);
 
-        let pkg_id_o = pkg_id.to_owned();
-
-        if pkg_id_o.starts_with("github:") {
-            Self::deserialize_github_package(pkg_id_o)
+        if id.starts_with("github:") {
+            Self::deserialize_github_package(id)
         } else {
-            Self::deserialize_git_package(pkg_id_o)
+            Self::deserialize_git_package(id)
         }
     }
 
@@ -84,30 +82,22 @@ impl PackageDeserializer {
     ///
     /// This is found in the source as a tuple of arity 3
     pub fn deserialize_github_package(id: String) -> Result<Package> {
-        let Some((git_url, git_ref)) = id.split_once("#") else {
-            return Err(Error::MissingGitRef);
-        };
+        let (url, rev) = split_once_owned(id, '#').ok_or(Error::MissingGitRef)?;
 
-        let prefetch_url = format!("{git_url}?ref={git_ref}");
-
+        let prefetch_url = format!("{}?ref={}", &url, &rev);
         let prefetch = Prefetch::prefetch_package(&prefetch_url)?;
 
-        let Some((owner_with_pre, repo)) = git_url.split_once("/") else {
-            return Err(Error::ImproperGithubUrl);
-        };
+        let (owner_with_pre, repo) = split_once_owned(url, '/').ok_or(Error::ImproperGithubUrl)?;
+        let owner = drop_prefix(owner_with_pre, "github:");
 
-        let Some(owner) = owner_with_pre.strip_prefix("github:") else {
-            return Err(Error::ImproperGithubUrl);
-        };
+        let id_with_ver = format!("github:{}-{}-{}", &owner, &repo, &rev);
 
         let fetcher = Fetcher::FetchGitHub {
-            owner: owner.to_owned(),
-            repo: repo.to_owned(),
-            rev: git_ref.to_owned(),
+            owner,
+            repo,
+            rev,
             hash: prefetch.hash,
         };
-
-        let id_with_ver = format!("github:{owner}-{repo}-{git_ref}");
 
         Ok(Package::new(id_with_ver, fetcher))
     }
@@ -118,26 +108,21 @@ impl PackageDeserializer {
     ///
     /// This is found in the source as a tuple of arity 3
     pub fn deserialize_git_package(id: String) -> Result<Package> {
-        let Some((_, git_url)) = id.split_once("git+") else {
-            return Err(Error::MissingGitRef);
-        };
+        let git_url = drop_prefix(id, "git+");
+        let (url, rev) = split_once_owned(git_url, '#').ok_or(Error::MissingGitRef)?;
 
-        let Some((source_url, git_rev)) = git_url.split_once("#") else {
-            return Err(Error::MissingGitRef);
-        };
-
-        let prefetch_url = format!("git+{source_url}?rev={git_rev}");
-
+        let prefetch_url = format!("git+{}?rev={}", &url, &rev);
         let prefetch = Prefetch::prefetch_package(&prefetch_url)?;
 
+        let id_with_rev = format!("git:{}", &rev);
+
         let fetcher = Fetcher::FetchGit {
-            url: source_url.to_owned(),
-            rev: git_rev.to_owned(),
+            url,
+            rev,
             hash: prefetch.hash,
         };
 
-        let rev_id = format!("git:{git_rev}");
-        Ok(Package::new(rev_id, fetcher))
+        Ok(Package::new(id_with_rev, fetcher))
     }
 
     /// # Deserialize a tarball or file package
@@ -151,9 +136,7 @@ impl PackageDeserializer {
     /// tarballs
     pub fn deserialize_tarball_or_file_package(mut self) -> Result<Package> {
         let id = swap_remove_value(&mut self.values, 0);
-        let Some(path) = Self::drain_after_substring(id, "@") else {
-            return Err(Error::NoAtInPackageIdentifier);
-        };
+        let path = Self::drain_after_substring(id, "@").ok_or(Error::NoAtInPackageIdentifier)?;
 
         if path.starts_with("http") {
             Self::deserialize_tarball_package(path)
@@ -202,9 +185,8 @@ impl PackageDeserializer {
     /// This is found in the source as a tuple of arity 2
     pub fn deserialize_workspace_package(mut self) -> Result<Package> {
         let id = swap_remove_value(&mut self.values, 0);
-        let Some(path) = Self::drain_after_substring(id, "workspace:") else {
-            return Err(Error::MissingWorkspaceSpecifier);
-        };
+        let path = Self::drain_after_substring(id, "workspace:")
+            .ok_or(Error::MissingWorkspaceSpecifier)?;
 
         Ok(Package::new(self.name, Fetcher::CopyToStore { path }))
     }
@@ -216,11 +198,83 @@ impl PackageDeserializer {
     }
 }
 
-fn swap_remove_value(values: &mut Values, index: usize) -> String {
+/// # Swap Remove `Value`
+///
+/// Remove a value from a serde_json `Values` array, and take ownership
+/// of it in a fast way by swapping in the final value of the array.
+///
+///```rust
+/// use bun2nix::lockfile::swap_remove_value;
+/// use serde_json::json;
+///
+/// let mut values = vec![
+///  json!("@types/bun@1.2.4"),
+///  json!({}),
+///  json!([]),
+///  json!("sha512-QtuV5OMR8/rdKJs213iwXDpfVvnskPXY/S0ZiFbsTjQZycuqPbMW8Gf/XhLfwE5njW8sxI2WjISURXPlHypMFA==")
+/// ];
+///
+/// assert_eq!(
+///     swap_remove_value(&mut values, 0),
+///     "@types/bun@1.2.4"
+/// );
+/// assert_eq!(
+///     swap_remove_value(&mut values, 0),
+///     "sha512-QtuV5OMR8/rdKJs213iwXDpfVvnskPXY/S0ZiFbsTjQZycuqPbMW8Gf/XhLfwE5njW8sxI2WjISURXPlHypMFA=="
+/// );
+/// ```
+pub fn swap_remove_value(values: &mut Values, index: usize) -> String {
     let mut value = values.swap_remove(index).to_string();
 
     debug_assert!(value.starts_with('"'), "Value should start with a quote");
     debug_assert!(value.ends_with('"'), "Value should end with a quote");
 
     value.drain(1..value.len() - 1).collect()
+}
+
+/// # Split Once (Owned)
+///
+/// Variant of `String::split_once` which consumes the original string and produces
+/// two owned values as an output (without a new allocation).
+///
+///```rust
+/// use bun2nix::lockfile::split_once_owned;
+///
+/// let input = "hello#world".to_owned();
+///
+/// assert_eq!(
+///     split_once_owned(input, '#'),
+///     Some(("hello".to_owned(), "world".to_owned()))
+/// );
+/// ```
+pub fn split_once_owned(mut input: String, char: char) -> Option<(String, String)> {
+    let split_pos = input.find(char)?;
+
+    let mut first: String = input.drain(..=split_pos).collect();
+    first.pop();
+
+    Some((first, input))
+}
+
+/// # Drop Prefix
+///
+/// Consumes an owned string with a known prefix and returns an owned
+/// value without that prefix (reuses the old allocation).
+///
+///```rust
+/// use bun2nix::lockfile::drop_prefix;
+///
+/// let input = "hello:world".to_owned();
+///
+/// assert_eq!(
+///     drop_prefix(input, "hello:"),
+///     "world"
+/// );
+/// ```
+pub fn drop_prefix(mut input: String, prefix: &str) -> String {
+    if input.starts_with(prefix) {
+        input.drain(..prefix.len());
+    }
+
+    input
 }
