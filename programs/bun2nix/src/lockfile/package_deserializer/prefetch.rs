@@ -19,6 +19,9 @@ impl Prefetch {
     /// Prefetch a package as a url and calculate it's
     /// sha256
     pub fn prefetch_package(url: &str) -> Result<Self> {
+        #[cfg(target_arch = "wasm32")]
+        return Err(Error::UnsupportedWASMCliAction(url.to_owned()));
+
         warn!(
             "
 Hash was not already known for `{url}`.

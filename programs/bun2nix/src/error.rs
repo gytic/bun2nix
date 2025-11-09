@@ -52,6 +52,18 @@ Consider updating your local package or contributing to `bun2nix` if this versio
     UnexpectedPackageEntryLength(usize),
     #[error("Failed to render template: '\n{0}'")]
     TemplateError(#[from] askama::Error),
+    #[error(
+        "Hash was not already known for `{0}`.
+
+This must be prefetched and hashed by `bun2nix` via
+`nix flake prefetch`. However, you are using the wasm
+cli, which does not support this as a child process
+needs to be spawned.
+
+Please switch to the native cli instead to use this dependency.
+"
+    )]
+    UnsupportedWASMCliAction(String),
     #[error("IO Error Occurred: `\n{0}`.
 
 Make sure that the bun lockfile path you gave points to a valid path.
