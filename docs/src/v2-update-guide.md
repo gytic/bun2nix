@@ -9,6 +9,9 @@
 - Now supports more of bun's dependency types, including:
   - Files and symlinks
   - Tarballs
+  - Git Dependencies
+
+> This work was done under [Fleek](https://fleek.xyz/). Please, check us out, especially if you are interested in Nix!
 
 ## Updating
 
@@ -25,3 +28,7 @@ Below is a guide to all the breaking changes:
 
 - `mkBunNodeModules` has been removed entirely in favor of [`fetchBunDeps`](./building-packages/fetchBunDeps.md) to build a [bun compatible cache](https://github.com/oven-sh/bun/blob/642d04b9f2296ae41d842acdf120382c765e632e/docs/install/cache.md#L24).
 - Still need to add `node_modules/` to an arbitrary derivation? Have a look at the new [`bun2nix` hook](./building-packages/hook.md), which provides a much nicer API.
+
+### `writeBunScriptBin`
+
+- This has been moved from `inputs.bun2nix.lib.${system}.writeBunScriptBin` to `inputs.bun2nix.packages.${system}.default.writeBunScriptBin`
