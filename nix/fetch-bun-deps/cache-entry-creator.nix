@@ -22,9 +22,9 @@
             ln -s ${pkgs.callPackage depsNix { }} $ZIG_GLOBAL_CACHE_DIR/p
           '';
 
-          buildPhase = ''
-            zig build --release=fast
-          '';
+          zigBuildFlags = [
+            "--release=fast"
+          ];
 
           doCheck = true;
 
