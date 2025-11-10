@@ -1,7 +1,7 @@
 # shellcheck shell=bash
 
 # shellcheck disable=SC2034
-readonly bunDefaultFlagsArray=(@bunDefaultFlags@)
+readonly bunDefaultInstallFlagsArray=(@bunDefaultInstallFlags@)
 
 function bunSetInstallCacheDir {
   if ! [ -v bunDeps ]; then
@@ -50,10 +50,20 @@ function bunPatchPhase {
 function bunNodeModulesInstallPhase {
   runHook preBunNodeModulesInstallPhase
 
-  concatTo flagsArray bunDefaultFlagsArray \
-    bunInstallFlags bunInstallFlagsArray
+  local flagsArray=()
+  if [ -z "${bunInstallFlags-}" ] && [ -z "${bunInstallFlagsArray-}" ]; then
+    concatTo flagsArray \
+      bunDefaultInstallFlagsArray
+  else
+    concatTo flagsArray \
+      bunInstallFlags bunInstallFlagsArray
+  fi
 
-  bun install --ignore-scripts "${flagsArray[@]}"
+  local ignoreFlagsArray=("--ignore-scripts")
+  concatTo flagsArray ignoreFlagsArray
+
+  echoCmd 'bun install flags' "${flagsArray[@]}"
+  bun install "${flagsArray[@]}"
 
   runHook postBunNodeModulesInstallPhase
 }
@@ -61,11 +71,18 @@ function bunNodeModulesInstallPhase {
 function bunLifecycleScriptsPhase {
   runHook preBunLifecycleScriptsPhase
 
-  local flagsArray=()
-  concatTo flagsArray bunDefaultFlagsArray \
-    bunInstallFlags bunInstallFlagsArray
-
   chmod -R u+rwx ./node_modules
+
+  local flagsArray=()
+  if [ -z "${bunInstallFlags-}" ] && [ -z "${bunInstallFlagsArray-}" ]; then
+    concatTo flagsArray \
+      bunDefaultInstallFlagsArray
+  else
+    concatTo flagsArray \
+      bunInstallFlags bunInstallFlagsArray
+  fi
+
+  echoCmd 'bun lifecycle install flags' "${flagsArray[@]}"
   bun install "${flagsArray[@]}"
 
   runHook postBunLifecycleScriptsPhase
@@ -75,7 +92,7 @@ function bunBuildPhase {
   runHook preBuild
 
   local flagsArray=()
-  concatTo flagsArray bunDefaultFlagsArray \
+  concatTo flagsArray \
     bunBuildFlags bunBuildFlagsArray
 
   echoCmd 'bun build flags' "${flagsArray[@]}"
@@ -88,7 +105,7 @@ function bunCheckPhase {
   runHook preCheck
 
   local flagsArray=()
-  concatTo flagsArray bunDefaultFlagsArray \
+  concatTo flagsArray \
     bunCheckFlags bunCheckFlagsArray
 
   echoCmd 'bun check flags' "${flagsArray[@]}"
