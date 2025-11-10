@@ -15,7 +15,7 @@
           src = ../../programs/cache-entry-creator;
 
           nativeBuildInputs = with pkgs; [
-            zig.hook
+            zig_0_15.hook
           ];
 
           postPatch = ''
