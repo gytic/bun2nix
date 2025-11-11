@@ -49,7 +49,7 @@ bun2nix.mkDerivation {
 
 The full list of accepted arguments is:
 
-> Additionally to this, the full range of config options from the [hook](./hook.md) is available too.
+> Additionally the full range of config options from the [hook](./hook.md) is available too.
 
 | Argument      | Purpose                                                                                                                                                                |
 | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

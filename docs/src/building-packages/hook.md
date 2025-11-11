@@ -1,4 +1,4 @@
-# Hook
+# Building with `bun2nix.hook`
 
 The `bun2nix` hook provides a simple way to extend an existing derivation with bun dependencies by way of a [setup hook](https://nixos.org/manual/nixpkgs/unstable/#sec-pkgs.makeSetupHook).
 

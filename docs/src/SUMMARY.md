@@ -9,5 +9,6 @@
   - [`mkDerivation`](./building-packages/mkDerivation.md)
   - [`hook`](./building-packages/hook.md)
   - [`fetchBunDeps`](./building-packages/fetchBunDeps.md)
+  - [`writeBunApplication`](./building-packages/writeBunApplication.md)
   - [`writeBunScriptBin`](./building-packages/writeBunScriptBin.md)
 - [V2 Update Guide](./v2-update-guide.md)

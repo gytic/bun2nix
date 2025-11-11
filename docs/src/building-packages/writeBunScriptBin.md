@@ -1,4 +1,4 @@
-# `writeBunScriptBin` - Create Bun $ Shell Scripts
+# Creating scripts with `bun2nix.writeBunScriptBin`
 
 `writeBunScriptBin` is useful for creating once off [$ Shell](https://bun.sh/docs/runtime/shell) scripts, similarly to [`writeShellScriptBin`](https://nixos.org/manual/nixpkgs/unstable/#trivial-builder-writeShellScriptBin) in `nixpkgs`.
 

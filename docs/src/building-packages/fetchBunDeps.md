@@ -1,4 +1,4 @@
-# Fetch Bun Deps
+# Fetching with `bun2nix.fetchBunDeps`
 
 `fetchBunDeps` is a handy function responsible for creating a [bun compatible cache](https://github.com/oven-sh/bun/blob/642d04b9f2296ae41d842acdf120382c765e632e/docs/install/cache.md#L24) for doing offline installs off of.
 
