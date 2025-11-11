@@ -28,7 +28,7 @@ in
 
             passthru = with config; {
               inherit (mkDerivation) hook;
-              inherit writeBunScriptBin;
+              inherit writeBunScriptBin writeBunApplication;
 
               fetchBunDeps = fetchBunDeps.function;
               mkDerivation = mkDerivation.function;
