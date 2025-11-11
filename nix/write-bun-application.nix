@@ -64,6 +64,8 @@ in
             ];
 
             installPhase = ''
+              runHook preInstall
+
               mkdir -p \
                 "$out/share/$pname" \
                 "$out/bin"
@@ -72,6 +74,8 @@ in
 
               makeWrapper ${lib.getExe script} $out/bin/$pname \
                 --chdir "$out/share/$pname"
+
+              runHook postInstall
             '';
           };
       };
