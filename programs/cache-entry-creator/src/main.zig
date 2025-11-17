@@ -150,9 +150,6 @@ pub const PkgLinker = struct {
     }
 };
 
-/// Error which can occur parsing a packaeg
-const PackageParseError = error{NoAtInPackageIdentifier};
-
 pub fn cachedFolderPrintBasename(
     allocator: mem.Allocator,
     input: []const u8,
@@ -175,7 +172,7 @@ pub fn cachedNpmPackageFolderPrintBasename(
     pkg: []const u8,
 ) ![]u8 {
     const version_start = mem.lastIndexOfScalar(u8, pkg, '@') orelse {
-        return PackageParseError.NoAtInPackageIdentifier;
+        return std.fmt.allocPrint(allocator, "{s}@@@1", .{pkg});
     };
     const name = pkg[0..version_start];
     const ver = pkg[version_start..];
