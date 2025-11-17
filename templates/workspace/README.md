@@ -20,9 +20,3 @@ nix build
 # Enter a development shell with bun available
 nix develop
 ```
-
-## How It Works
-
-This template demonstrates how to use the `workspaceRoot` parameter in `mkBunDerivation` to enable proper workspace package resolution when building with Nix. The `workspaceRoot` parameter tells bun2nix where to find the workspace packages so they can be properly linked into the node_modules directory.
-
-The template showcases workspace dependencies in Bun with the `workspace:*` syntax in package.json.

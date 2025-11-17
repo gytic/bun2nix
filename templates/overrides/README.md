@@ -2,7 +2,7 @@
 
 Example project created with `bun init` to show usage of `bun2nix`, a fast bun package to nix expression converter written in rust.
 
-This project builds a simple hello world binary that logs `Hello via Bun!` to the console.
+This project builds a simple hello world binary that logs `Hello via Bun!` to the console, but showcases how one may use the overrides function to inject nix specific patches into a bun package.
 
 To try it out use `nix run .`.
 
