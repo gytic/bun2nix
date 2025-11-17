@@ -32,3 +32,8 @@ Below is a guide to all the breaking changes:
 ### `writeBunScriptBin`
 
 - This has been moved from `inputs.bun2nix.lib.${system}.writeBunScriptBin` to `inputs.bun2nix.packages.${system}.default.writeBunScriptBin`
+
+### New `bun.nix` schema
+
+- Now consumable by `pkgs.callPackage` and [`bun2nix.fetchBunDeps`](./building-packages/fetchBunDeps.md).
+- Don't forget to rewrite your `bun.nix` file by running `bun2nix -o bun.nix` before use!
