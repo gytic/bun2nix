@@ -2,7 +2,9 @@
   "name": "bun2nix",
   "version": "2.0.0",
   "module": "index.ts",
-  "bin": "index.ts",
+  "bin": {
+    "bun2nix": "index.ts"
+  },
   "scripts": {
     "postinstall": "bun2nix -o bun.nix",
     "build:wasm": "RUSTFLAGS=\"\" wasm-pack build --target nodejs --out-dir ./dist --out-name bun2nix-wasm --no-pack",
