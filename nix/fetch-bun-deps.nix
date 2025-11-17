@@ -2,6 +2,20 @@
 let
   inherit (flake-parts-lib) mkPerSystemOption;
   inherit (lib) mkOption types;
+
+  invalidBunNixErr = ''
+    Your supplied `bun.nix` dependencies file failed to evaluate.
+
+    This is likely because the version of `bun2nix` you are using has changed and
+    the `bun.nix` file has no schema stability guarantees between versions, and
+    will simply change as needed since updating it is trivial.
+
+    As a result, you should try regenerating your `bun.nix` file:
+
+    ```sh
+    bun2nix -o bun.nix
+    ```
+  '';
 in
 {
   options.perSystem = mkPerSystemOption {
@@ -30,7 +44,9 @@ in
         let
           attrIsBunPkg = _: value: lib.isStorePath value;
 
-          packages = lib.filterAttrs attrIsBunPkg (pkgs.callPackage bunNix { });
+          withErrCtx = builtins.addErrorContext invalidBunNixErr (pkgs.callPackage bunNix { });
+
+          packages = lib.filterAttrs attrIsBunPkg withErrCtx;
 
           buildPackage = config.fetchBunDeps.buildPackage args;
           overridePackage = config.fetchBunDeps.overridePackage args;
