@@ -5,10 +5,14 @@
 # Consume this with `fetchBunDeps` (recommended)
 # or `pkgs.callPackage` if you wish to handle
 # it manually.
-{ fetchurl, ... }:
 {
-  "@workspace/app" = packages/app;
-  "@workspace/lib" = packages/lib;
+  copyPathToStore,
+  fetchurl,
+  ...
+}:
+{
+  "@workspace/app" = copyPathToStore ./packages/app;
+  "@workspace/lib" = copyPathToStore ./packages/lib;
   "bun2nix@2.0.0-beta-10" = fetchurl {
     url = "https://registry.npmjs.org/bun2nix/-/bun2nix-2.0.0-beta-10.tgz";
     hash = "sha512-PL+DWxFozqDrZHNmtDoX2s13QgelMaZtp/PC8CmXpVr/9uUzEwySI8waONR1WEw88g6UAXYW8BYm0MQVceP9EQ==";
