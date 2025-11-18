@@ -74,6 +74,51 @@ bun2nix.writeBunApplication {
 }
 ```
 
+Or, to package a simple web server that uses `cowsay` and a runtime environment variable:
+
+```nix
+# In your default.nix
+{ pkgs, bun2nix, ... }:
+bun2nix.writeBunApplication {
+  pname = "cowsay-server";
+  version = "1.0.0";
+
+  src = ./.;
+
+  startScript = ''
+    bun run index.ts
+  '';
+
+  runtimeInputs = [ pkgs.cowsay ];
+  runtimeEnv = {
+    USER = "Nix";
+  };
+
+  bunDeps = bun2nix.fetchBunDeps {
+    bunNix = ./bun.nix;
+  };
+}
+```
+
+And the corresponding `index.ts`:
+
+```typescript
+import { $ } from "bun";
+
+const user = process.env.USER || "World";
+
+const server = Bun.serve({
+  port: 3000,
+  async fetch(req) {
+    const message = `Hello, ${user}!`;
+    const cowsay = await $`cowsay ${message}`.text();
+    return new Response(cowsay);
+  },
+});
+
+console.log(`Listening on http://localhost:${server.port} ...`);
+```
+
 ## Arguments
 
 The full list of accepted arguments is:

@@ -53,3 +53,34 @@ pkgs.stdenv.mkDerivation {
   '';
 }
 ```
+
+Or, to add the `bun2nix` binary to your `devShell`:
+
+```nix
+# In your flake.nix
+{
+  inputs = {
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    bun2nix.url = "github:baileyluTCD/bun2nix";
+    flake-utils.url = "github:numtide/flake-utils";
+  };
+
+  outputs = { self, nixpkgs, bun2nix, flake-utils }:
+    flake-utils.lib.eachDefaultSystem (system:
+      let
+        pkgs = import nixpkgs {
+          inherit system;
+          overlays = [ bun2nix.overlays.default ];
+        };
+      in
+      {
+        devShells.default = pkgs.mkShell {
+          packages = with pkgs; [
+            bun
+            bun2nix
+          ];
+        };
+      }
+    );
+}
+```
