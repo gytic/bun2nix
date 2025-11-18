@@ -71,3 +71,61 @@ postBunNodeModulesInstallPhase = ''
   fi
 '';
 ```
+
+## Operating Details
+
+As mentioned above, the `bun2nix.fetchBunDeps` function produces a `bun` [compatible cache](https://bun.com/docs/pm/global-cache#minimizing-re-downloads), which allows `bun` to do offline installs through files available in the nix store.
+
+In general, for a given package, the installation process looks something like:
+
+```nix
+# bun.nix contents
+"@types/bun@1.2.4" = fetchurl {
+  url = "https://registry.npmjs.org/@types/bun/-/bun-1.2.4.tgz";
+  hash = "sha512-QtuV5OMR8/rdKJs213iwXDpfVvnskPXY/S0ZiFbsTjQZycuqPbMW8Gf/XhLfwE5njW8sxI2WjISURXPlHypMFA==";
+};
+```
+
+### 1. Download the package via a fetcher function
+
+First, `bun2nix` deps are downloaded via a nix [FOD](https://bmcgee.ie/posts/2023/02/nix-what-are-fixed-output-derivations-and-why-use-them/) fetching function.
+
+> For most packages this is [`pkgs.fetchurl`](https://noogle.dev/f/pkgs/fetchurl), and the hash can be taken directly from the `bun.lock` textual lock-file, meaning they don't need to be prefetched.
+
+### 2. Extract the package
+
+By default, fetching packages will produce either a tarball or a flat directory with the contents.
+
+If the package is a tarball, it should be extracted first. Then, both types have their permissions normalized to make sure that scripts are properly executable/readable by the `nixbld` users.
+
+Any references to `node` or `bun` binaries are also fixed up at this stage.
+
+> Unfortunately, NPM dependencies cannot use [`builtins.fetchTarball`](https://noogle.dev/f/builtins/fetchTarball), which would do the fetching and extraction in one build step because it would produce a hash which differs from the one in the bun lock-file.
+
+### 3. Creating a cache entry
+
+After this point, the packages are all the same shape (a patched flat directory). These are then passed into the `bun2nix.cache-entry-creator` binary, which creates symlinks to where bun expects to find its packages in its cache.
+
+> This binary is a Zig implemented command line util, because bun uses a very specific version of [Wyhash](https://github.com/oven-sh/bun/blob/755b41e85bec1744dc2f438f1dfd0e9152d7b62c/src/wyhash.zig), which is vendored into their project, to patch package names before putting them into their cache.
+
+If a package is in a sub-directory like `@types`, it must have appropriate parent directories created too.
+
+```
+# Input
+"@types/bun@1.2.4"
+
+# Output location
+$out/share/bun-cache/@types/bun@1.2.4@@@1
+```
+
+```
+# Input
+"tailwindcss@4.0.0-beta.9"
+
+# Output location
+$out/share/bun-cache/tailwindcss@4.0.0-73c5c46324e78b9b@@@1
+```
+
+### 4. Forcing use of the cache
+
+Our bun cache is then forced to be used in the build process by the [hook](./hook.md), which sets `$BUN_INSTALL_CACHE_DIR` to `$out/share/bun-cache`.
