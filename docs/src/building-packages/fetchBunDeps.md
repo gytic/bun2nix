@@ -1,10 +1,10 @@
 # Fetching with `bun2nix.fetchBunDeps`
 
-`fetchBunDeps` is a handy function responsible for creating a [bun compatible cache](https://github.com/oven-sh/bun/blob/642d04b9f2296ae41d842acdf120382c765e632e/docs/install/cache.md#L24) for doing offline installs off of.
+`fetchBunDeps` is a handy function responsible for creating a [bun compatible cache](https://github.com/oven-sh/bun/blob/642d04b9f2296ae41d842acdf120382c765e632e/docs/install/cache.md#L24) for doing offline installs.
 
 ## Example
 
-You should use `fetchBunDeps` in conjunction with the rest of `bun2nix` to build your bun packages like so:
+You should use `fetchBunDeps` in conjunction with the rest of `bun2nix` to build your Bun packages like so:
 
 ```nix
 {
@@ -27,24 +27,24 @@ bun2nix.mkDerivation {
 
 ## Arguments
 
-`fetchBunDeps` is designed to offer a number of flexible options for customizing your bun install process:
+`fetchBunDeps` is designed to offer a number of flexible options for customizing your Bun install process:
 
-| Argument        | Purpose                                                                                                                                                                                                                                                                                                  |
-| --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `bunNix`        | The `bun.nix` file as created by the [bun2nix cli](../using-the-command-line-tool.md)                                                                                                                                                                                                                    |
-| `overrides`     | Allows for modifying packages before install in the nix store to patch any broken dependencies. See the overriding section below                                                                                                                                                                         |
-| `useFakeNode`   | By default, `bun2nix` patches any scripts that use node in your dependencies to use `bun` as it's executable instead. Turning this off will patch them to use `node` instead. This might be useful, if, for example, you need to link to actual node v8 while building a native addon. Defaults to true. |
-| `patchShebangs` | If scripts in your dependencies should have their shebangs patched or not. Defaults to true.                                                                                                                                                                                                             |
+| Argument        | Purpose                                                                                                                                                                                                                                                                                                 |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `bunNix`        | The `bun.nix` file as created by the [bun2nix CLI](../using-the-command-line-tool.md)                                                                                                                                                                                                                   |
+| `overrides`     | Allows for modifying packages before install in the Nix store to patch any broken dependencies. See the overriding section below                                                                                                                                                                        |
+| `useFakeNode`   | By default, `bun2nix` patches any scripts that use Node in your dependencies to use `bun` as its executable instead. Turning this off will patch them to use `node` instead. This might be useful, if, for example, you need to link to actual Node v8 while building a native addon. Defaults to true. |
+| `patchShebangs` | If scripts in your dependencies should have their shebangs patched or not. Defaults to true.                                                                                                                                                                                                            |
 
 ## Overrides
 
-`fetchBunDeps` provides an overrides api for modifying packages in the nix store before they become a part of bun's install cache and ultimately your project's node modules.
+`fetchBunDeps` provides an overrides api for modifying packages in the Nix store before they become a part of Bun's install cache and ultimately your project's node_modules.
 
-You may want to use this to patch a dependency which, for example, makes a network request during install and fails because it's sandboxed by nix.
+You may want to use this to patch a dependency which, for example, makes a network request during install and fails because it's sandboxed by Nix.
 
 ### Type
 
-Each override attribute name must be a key which exists in your `bun.nix` file, and attribute value a function which takes a derivation and returns another one.
+Each override attribute name must be a key that exists in your `bun.nix` file, and the attribute value must be a function that takes a derivation and returns another one.
 
 ### Example
 
@@ -63,7 +63,7 @@ bunDeps = bun2nix.fetchBunDeps {
     };
 };
 
-# Assertation will not fail
+# Assertion will not fail
 postBunNodeModulesInstallPhase = ''
   if [ ! -f "node_modules/typescript/my-override.txt" ]; then
     echo "Text file created with override does not exist."
@@ -74,7 +74,7 @@ postBunNodeModulesInstallPhase = ''
 
 ## Operating Details
 
-As mentioned above, the `bun2nix.fetchBunDeps` function produces a `bun` [compatible cache](https://bun.com/docs/pm/global-cache#minimizing-re-downloads), which allows `bun` to do offline installs through files available in the nix store.
+As mentioned above, the `bun2nix.fetchBunDeps` function produces a `bun` [compatible cache](https://bun.sh/docs/install/cache#global-cache), which allows `bun` to do offline installs through files available in the Nix store.
 
 In general, for a given package, the installation process looks something like:
 
@@ -88,7 +88,7 @@ In general, for a given package, the installation process looks something like:
 
 ### 1. Download the package via a fetcher function
 
-First, `bun2nix` deps are downloaded via a nix [FOD](https://bmcgee.ie/posts/2023/02/nix-what-are-fixed-output-derivations-and-why-use-them/) fetching function.
+First, `bun2nix` deps are downloaded via a Nix [FOD](https://bmcgee.ie/posts/2023/02/nix-what-are-fixed-output-derivations-and-why-use-them/) fetching function.
 
 > For most packages this is [`pkgs.fetchurl`](https://noogle.dev/f/pkgs/fetchurl), and the hash can be taken directly from the `bun.lock` textual lock-file, meaning they don't need to be prefetched.
 
@@ -100,13 +100,13 @@ If the package is a tarball, it should be extracted first. Then, both types have
 
 Any references to `node` or `bun` binaries are also fixed up at this stage.
 
-> Unfortunately, NPM dependencies cannot use [`builtins.fetchTarball`](https://noogle.dev/f/builtins/fetchTarball), which would do the fetching and extraction in one build step because it would produce a hash which differs from the one in the bun lock-file.
+> Unfortunately, NPM dependencies cannot use [`builtins.fetchTarball`](https://noogle.dev/f/builtins/fetchTarball), which would do the fetching and extraction in one build step because it would produce a hash that differs from the one in the Bun lockfile.
 
 ### 3. Creating a cache entry
 
-After this point, the packages are all the same shape (a patched flat directory). These are then passed into the `bun2nix.cache-entry-creator` binary, which creates symlinks to where bun expects to find its packages in its cache.
+After this point, the packages are all the same shape (a patched flat directory). These are then passed into the `bun2nix.cache-entry-creator` binary, which creates symlinks to where Bun expects to find its packages in its cache.
 
-> This binary is a Zig implemented command line util, because bun uses a very specific version of [Wyhash](https://github.com/oven-sh/bun/blob/755b41e85bec1744dc2f438f1dfd0e9152d7b62c/src/wyhash.zig), which is vendored into their project, to patch package names before putting them into their cache.
+> This binary is a Zig-implemented command-line utility, because Bun uses a very specific version of [Wyhash](https://github.com/oven-sh/bun/blob/755b41e85bec1744dc2f438f1dfd0e9152d7b62c/src/wyhash.zig), which is vendored into their project, to patch package names before putting them into their cache.
 
 If a package is in a sub-directory like `@types`, it must have appropriate parent directories created too.
 
@@ -128,4 +128,4 @@ $out/share/bun-cache/tailwindcss@4.0.0-73c5c46324e78b9b@@@1
 
 ### 4. Forcing use of the cache
 
-Our bun cache is then forced to be used in the build process by the [hook](./hook.md), which sets `$BUN_INSTALL_CACHE_DIR` to `$out/share/bun-cache`.
+Our Bun cache is then forced to be used in the build process by the [hook](./hook.md), which sets `$BUN_INSTALL_CACHE_DIR` to `$out/share/bun-cache`.

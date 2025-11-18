@@ -10,18 +10,18 @@ The recommended way to use `bun2nix` is by adding it to your `package.json` to a
 }
 ```
 
-However, if you run without the `-o` flag it will produce a text output over stdout similar to other `lang2nix` tools, hence if you enforce formatting rules in your repository it is likely a good idea to pass it through a formatter before writing the file.
+However, if you run without the `-o` flag it will produce text output over stdout similar to other `lang2nix` tools. Hence, if you enforce formatting rules in your repository, it is likely a good idea to pass it through a formatter before writing the file.
 
 ## Choosing between the WASM CLI and the native CLI
 
 You should use the WASM CLI if you are:
 
-- On a team in environments where nix may not be installed (i.e. working with Windows users, etc.)
+- On a team in environments where Nix may not be installed (i.e. working with Windows users, etc.)
 - Not using any exotic dependency types (tarball, git, etc.)
 
 You should use the native CLI if you are:
 
-- All using nix anyway (less overhead because it is not ran in a JavaScript runtime)
+- All using Nix anyway (less overhead because it is not ran in a JavaScript runtime)
 - Using dependency types which require a prefetch (tarball, git, etc.)
 
 ## Options

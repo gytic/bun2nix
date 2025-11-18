@@ -1,8 +1,8 @@
 # In a pre-existing flake
 
-To install bun2nix in an already existing bun project with a `flake.nix`, the following steps are recommended:
+To install `bun2nix` in an already existing bun project with a `flake.nix`, the following steps are recommended:
 
-## 1. Source the bun2nix repo
+## 1. Source the `bun2nix` repo
 
 Add the `bun2nix` flake to your inputs as follows:
 
@@ -13,7 +13,7 @@ bun2nix.inputs.nixpkgs.follows = "nixpkgs";
 
 ## 1.5. (Optional) Use the binary cache
 
-The bun2nix executable typically takes a while to compile, which is typical for many rust programs, hence, because of the [garnix](https://garnix.io/) based CI/CD, a convenient binary cache is provided.
+The `bun2nix` executable typically takes a while to compile, which is typical for many Rust programs, hence, because of the [Garnix](https://garnix.io/) based CI/CD, a convenient binary cache is provided.
 
 To add it include the following in your `flake.nix`.
 
@@ -61,7 +61,7 @@ devShells.default = pkgs.mkShell {
 
 ## 3. Use the binary in a bun `postinstall` script
 
-To keep the generated `bun.nix` file produced by bun2nix up to date, add `bun2nix` as a postinstall script to run it after every bun operation that modifies the packages in some way.
+To keep the generated `bun.nix` file produced by `bun2nix` up to date, add `bun2nix` as a `postinstall` script to run it after every bun operation that modifies the packages in some way.
 
 Add the following to `package.json`:
 
@@ -71,7 +71,7 @@ Add the following to `package.json`:
 }
 ```
 
-## 4. Build your package with nix
+## 4. Build your package with Nix
 
 Finally, a convenient package builder is exposed inside `bun2nix` - `mkDerivation`.
 
