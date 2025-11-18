@@ -83,7 +83,7 @@ The full list of accepted arguments is:
 | Argument               | Purpose                                                                                                                                                      |
 | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `startScript`          | The script to start your application with.                                                                                                                   |
-| `runtimeInputs`        | Runtime nix dependencies your application required. Defaults to `[]`.                                                                                        |
+| `runtimeInputs`        | Runtime nix dependencies your application requires. Defaults to `[]`.                                                                                        |
 | `runtimeEnv`           | Runtime environment variables. Defaults to `{}`.                                                                                                             |
 | `excludeShellChecks`   | [`shellcheck`](https://www.shellcheck.net/) checks to exclude while checking your `startScript`. Defaults to `[]`.                                           |
 | `extraShellCheckFlags` | Extra [`shellcheck`](https://www.shellcheck.net/) flags to run when checking your `startScript`. Defaults to `[]`.                                           |
