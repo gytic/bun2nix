@@ -1,7 +1,0 @@
-{
-  "name": "test-workspace",
-  "workspaces": [
-    "packages/*"
-  ],
-  "dependencies": {}
-}

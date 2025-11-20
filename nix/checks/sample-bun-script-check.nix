@@ -1,42 +1,48 @@
 {
-  pkgs,
-  flake,
-  system,
-  ...
-}:
-let
-  writeBunScriptBin = flake.lib.${system}.writeBunScriptBin;
+  perSystem =
+    {
+      pkgs,
+      config,
+      ...
+    }:
+    {
+      checks.writeBunScriptBin =
 
-  script = writeBunScriptBin {
-    name = "hello-world-bun-script";
-    text =
-      # JS
-      ''
-        import { $ } from "bun";
+        let
+          inherit (config) writeBunScriptBin;
 
-        await $`echo "Hello World!"`;
-      '';
-  };
-in
-pkgs.stdenv.mkDerivation {
-  name = "sample-bun-script-check";
+          script = writeBunScriptBin {
+            name = "hello-world-bun-script";
+            text =
+              # JS
+              ''
+                import { $ } from "bun";
 
-  dontBuild = true;
+                await $`echo "Hello World!"`;
+              '';
+          };
+        in
+        pkgs.stdenv.mkDerivation {
+          name = "sample-bun-script-check";
 
-  src = ./.;
+          dontBuild = true;
 
-  doCheck = true;
+          src = ./.;
 
-  checkPhase = ''
-    output=$(${script}/bin/hello-world-bun-script)
+          doCheck = true;
 
-    if ! [[ $output == "Hello World!" ]]; then
-      echo "Sample bun script did not produce expected output"
-      exit 1
-    fi
-  '';
+          checkPhase = ''
+            output=$(${script}/bin/hello-world-bun-script)
 
-  installPhase = ''
-    mkdir "$out"
-  '';
+            if ! [[ "$output" == "Hello World!" ]]; then
+              echo "Sample bun script did not produce expected output"
+              exit 1
+            fi
+          '';
+
+          installPhase = ''
+            mkdir "$out"
+          '';
+        };
+    };
 }

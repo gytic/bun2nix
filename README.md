@@ -13,4 +13,4 @@ A fast rust based tool for converting [Bun](https://bun.sh/) (v1.2+) package loc
 
 ## Documentation
 
-Visit the [bun2nix documentation website](https://baileylutcd.github.io/bun2nix/) to find detailed installation and usage information.
+Visit the [`bun2nix` documentation website](https://baileylutcd.github.io/bun2nix/) to find detailed installation and usage information.

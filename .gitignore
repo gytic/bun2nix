@@ -1,4 +1,5 @@
-/target
+pkg
+target
 .direnv
 result
 .cache
@@ -6,3 +7,6 @@ result
 book
 node_modules
 dist
+
+.zig-cache
+zig-out

@@ -1,25 +1,27 @@
+{ lib, self, ... }:
 {
-  pkgs,
-  flake,
-  system,
-  ...
-}:
-let
-  lib = pkgs.lib;
-
-  templates = builtins.attrNames (
-    lib.filterAttrs (_n: v: v == "directory") (builtins.readDir ../templates)
-  );
-
-  evalTemplate =
-    template:
-    pkgs.callPackage (../templates/${template}/default.nix) {
-      inherit (flake.lib.${system}) mkBunDerivation;
+  perSystem =
+    {
+      final,
+      ...
+    }:
+    let
+      templates = "${self}/templates";
+      filterDirectories = builtins.filter ({ value, ... }: value == "directory");
+      evaluatePackages = builtins.map (
+        { name, ... }:
+        {
+          "${name}" = final.callPackage "${templates}/${name}/default.nix" { };
+        }
+      );
+    in
+    {
+      checks = lib.pipe templates [
+        builtins.readDir
+        lib.attrsToList
+        filterDirectories
+        evaluatePackages
+        lib.mergeAttrsList
+      ];
     };
-
-  templatesPkgs = lib.map evalTemplate templates;
-in
-pkgs.symlinkJoin {
-  name = "template-eval-check";
-  paths = templatesPkgs;
 }

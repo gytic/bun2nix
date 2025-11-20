@@ -1,8 +1,8 @@
 # In a pre-existing flake
 
-To install bun2nix in an already existing bun project with a `flake.nix`, the following steps are recommended:
+To install `bun2nix` in an already existing bun project with a `flake.nix`, the following steps are recommended:
 
-## 1. Source the bun2nix repo
+## 1. Source the `bun2nix` repo
 
 Add the `bun2nix` flake to your inputs as follows:
 
@@ -13,7 +13,7 @@ bun2nix.inputs.nixpkgs.follows = "nixpkgs";
 
 ## 1.5. (Optional) Use the binary cache
 
-The bun2nix executable typically takes a while to compile, which is typical for many rust programs, hence, because of the [garnix](https://garnix.io/) based CI/CD, a convenient binary cache is provided.
+The `bun2nix` executable typically takes a while to compile, which is typical for many Rust programs, hence, because of the [Garnix](https://garnix.io/) based CI/CD, a convenient binary cache is provided.
 
 To add it include the following in your `flake.nix`.
 
@@ -30,9 +30,23 @@ nixConfig = {
 };
 ```
 
-## 2. Add the binary to your environment
+## 2. Get a `bun2nix` binary
 
-Next, add the bun2nix program into your developer environment by adding it to your [devshell](https://fasterthanli.me/series/building-a-rust-service-with-nix/part-10).
+### Recommended: Use the NPM package
+
+`bun2nix` has a cross-platform web-assembly based NPM package available for usage. This should
+be the default choice as it allows those who do not have nix installed to work on your project
+and keep the generated `bun.nix` file up to date.
+Simply install and run it with:
+
+```
+bun install --dev bun2nix
+bunx bun2nix
+```
+
+### Add the binary to your environment with nix
+
+Alternatively, add the native `bun2nix` CLI program into your developer environment by adding it to your [dev-shell](https://fasterthanli.me/series/building-a-rust-service-with-nix/part-10).
 
 ```nix
 devShells.default = pkgs.mkShell {
@@ -47,7 +61,7 @@ devShells.default = pkgs.mkShell {
 
 ## 3. Use the binary in a bun `postinstall` script
 
-To keep the generated `bun.nix` file produced by bun2nix up to date, add `bun2nix` as a postinstall script to run it after every bun operation that modifies the packages in some way.
+To keep the generated `bun.nix` file produced by `bun2nix` up to date, add `bun2nix` as a `postinstall` script to run it after every bun operation that modifies the packages in some way.
 
 Add the following to `package.json`:
 
@@ -57,23 +71,25 @@ Add the following to `package.json`:
 }
 ```
 
-## 4. Build your package with nix
+## 4. Build your package with Nix
 
-Finally, a convenient package builder is exposed inside `bun2nix` - `mkBunDerivation`.
+Finally, a convenient package builder is exposed inside `bun2nix` - `mkDerivation`.
 
 Add the following to `flake.nix`:
 
+> A nice way to do this might be with the [overlay](./overlay.md)
+
 ```nix
 my-package = pkgs.callPackage ./default.nix {
-    inherit (bun2nix.lib.${system}) mkBunDerivation;
+    inherit bun2nix.packages.${system}.default;
 };
 ```
 
 And place this in a file called `default.nix`
 
 ```nix
-{ mkBunDerivation, ... }:
-mkBunDerivation {
+{ bun2nix, ... }:
+bun2nix.mkDerivation {
   pname = "bun2nix-example";
   version = "1.0.0";
 
@@ -81,8 +97,8 @@ mkBunDerivation {
 
   bunNix = ./bun.nix;
 
-  index = "index.ts";
+  module = "index.ts";
 }
 ```
 
-A list of available options for `mkBunDerivation` can be seen at [the building packages page](./building-packages.md).
+A list of available options for `mkDerivation` can be seen at [the building packages page](./building-packages.md), along with other useful things for building bun packages.
