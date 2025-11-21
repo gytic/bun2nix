@@ -6,7 +6,7 @@
       checks.arbitraryInstallCompletes = pkgs.stdenv.mkDerivation {
         name = "bun2nix-exec-test";
 
-        outputHash = "sha256-t0N5/GAmBWkZU7aa5XsHUTXbo3rdVpR1gFwRM+YBoVk=";
+        outputHash = "sha256-pQpattmS9VmO3ZIQUFn66az8GSmB4IvYhTTCFn6SUmo=";
         outputHashAlgo = "sha256";
         outputHashMode = "recursive";
 
@@ -29,7 +29,7 @@
           export HOME=$PWD/home
           mkdir -p $NIX_STATE_DIR $NIX_STORE_DIR $NIX_PROFILES_DIR $NIX_CONF_DIR $HOME
 
-          ${lib.getExe self'.packages.bun2nix} -o "$out/bun.nix"
+          ${lib.getExe self'.packages.bun2nix}
         '';
       };
     };
