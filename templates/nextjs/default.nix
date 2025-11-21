@@ -8,6 +8,9 @@ bun2nix.writeBunApplication {
     bun run build
   '';
 
+  # nextjs needs to bind to a port during the build process
+  __darwinAllowLocalNetworking = true;
+
   startScript = ''
     bun run start
   '';
