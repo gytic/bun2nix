@@ -54,7 +54,8 @@
             bun
 
             # Add the bun2nix binary to our devshell
-            # Optional now that we have a binary on npm
+            # You must use the binary from nix if
+            # you want to use tarball deps
             bun2nix
           ];
 

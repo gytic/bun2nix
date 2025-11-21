@@ -23,26 +23,21 @@
   };
 
   outputs =
-    {
-      nixpkgs,
-      systems,
-      bun2nix,
-      ...
-    }:
+    inputs:
     let
       # Read each system from the nix-systems input
-      eachSystem = nixpkgs.lib.genAttrs (import systems);
+      eachSystem = inputs.nixpkgs.lib.genAttrs (import inputs.systems);
 
       # Access the package set for a given system
       pkgsFor = eachSystem (
         system:
-        import nixpkgs {
+        import inputs.nixpkgs {
           inherit system;
           # Use the bun2nix overlay, which puts `bun2nix` in pkgs
           # You can, of course, still access
           # inputs.bun2nix.packages.${system}.default instead
           # and use that to build your package instead
-          overlays = [ bun2nix.overlays.default ];
+          overlays = [ inputs.bun2nix.overlays.default ];
         }
       );
     in
@@ -59,7 +54,8 @@
             bun
 
             # Add the bun2nix binary to our devshell
-            # Optional now that we have a binary on npm
+            # You must use the cli from nix if you
+            # want to use git deps
             bun2nix
           ];
 
