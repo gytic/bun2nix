@@ -1,8 +1,20 @@
-{ bun2nix, ... }:
+{
+  bun2nix,
+  stdenv,
+  lib,
+  ...
+}:
 bun2nix.writeBunApplication {
   packageJson = ./package.json;
 
   src = ./.;
+
+  # all cpus are needed for x86 darwin builds
+  bunInstallFlags = lib.optionals (stdenv.hostPlatform.system == "x86_64-darwin") [
+    "--linker=isolated"
+    "--backend=symlink"
+    "--cpu=*"
+  ];
 
   buildPhase = ''
     bun run build
