@@ -30,7 +30,7 @@ jobs:
         uses: DeterminateSystems/nix-installer-action@main
 
       - name: Build js artifact
-        run: nix build .#bun2nix-js
+        run: nix build .#bun2nix-js --accept-flake-config
 
       - name: NPM Publish js artifact
         run: npm publish --provenance ./result/dist
