@@ -5,43 +5,38 @@
 # Consume this with `fetchBunDeps` (recommended)
 # or `pkgs.callPackage` if you wish to handle
 # it manually.
-{ fetchurl, ... }:
 {
-  "@types/bun@1.2.4" = fetchurl {
-    url = "https://registry.npmjs.org/@types/bun/-/bun-1.2.4.tgz";
-    hash = "sha512-QtuV5OMR8/rdKJs213iwXDpfVvnskPXY/S0ZiFbsTjQZycuqPbMW8Gf/XhLfwE5njW8sxI2WjISURXPlHypMFA==";
+  fetchurl,
+  ...
+}:
+{
+  "@types/bun@1.3.2" = fetchurl {
+    url = "https://registry.npmjs.org/@types/bun/-/bun-1.3.2.tgz";
+    hash = "sha512-t15P7k5UIgHKkxwnMNkJbWlh/617rkDGEdSsDbu+qNHTaz9SKf7aC8fiIlUdD5RPpH6GEkP0cK7WlvmrEBRtWg==";
   };
   "@types/node@22.13.5" = fetchurl {
     url = "https://registry.npmjs.org/@types/node/-/node-22.13.5.tgz";
     hash = "sha512-+lTU0PxZXn0Dr1NBtC7Y8cR21AJr87dLLU953CWA6pMxxv/UDc7jYAY90upcrie1nRcD6XNG5HOYEDtgW5TxAg==";
   };
-  "@types/ws@8.5.14" = fetchurl {
-    url = "https://registry.npmjs.org/@types/ws/-/ws-8.5.14.tgz";
-    hash = "sha512-bd/YFLW+URhBzMXurx7lWByOu+xzU9+kb3RboOteXYDfW+tr+JZa99OyNmPINEGB/ahzKrEuc8rcv4gnpJmxTw==";
+  "@types/react@19.2.6" = fetchurl {
+    url = "https://registry.npmjs.org/@types/react/-/react-19.2.6.tgz";
+    hash = "sha512-p/jUvulfgU7oKtj6Xpk8cA2Y1xKTtICGpJYeJXz2YVO2UcvjQgeRMLDGfDeqeRW2Ta+0QNFwcc8X3GH8SxZz6w==";
   };
-  "bun-types@1.2.4" = fetchurl {
-    url = "https://registry.npmjs.org/bun-types/-/bun-types-1.2.4.tgz";
-    hash = "sha512-nDPymR207ZZEoWD4AavvEaa/KZe/qlrbMSchqpQwovPZCKc7pwMoENjEtHgMKaAjJhy+x6vfqSBA1QU3bJgs0Q==";
+  "bun-types@1.3.2" = fetchurl {
+    url = "https://registry.npmjs.org/bun-types/-/bun-types-1.3.2.tgz";
+    hash = "sha512-i/Gln4tbzKNuxP70OWhJRZz1MRfvqExowP7U6JKoI8cntFrtxg7RJK3jvz7wQW54UuvNC8tbKHHri5fy74FVqg==";
   };
-  "bun2nix@2.0.0-beta-10" = fetchurl {
-    url = "https://registry.npmjs.org/bun2nix/-/bun2nix-2.0.0-beta-10.tgz";
-    hash = "sha512-PL+DWxFozqDrZHNmtDoX2s13QgelMaZtp/PC8CmXpVr/9uUzEwySI8waONR1WEw88g6UAXYW8BYm0MQVceP9EQ==";
-  };
-  "mri@1.2.0" = fetchurl {
-    url = "https://registry.npmjs.org/mri/-/mri-1.2.0.tgz";
-    hash = "sha512-tzzskb3bG8LvYGFF/mDTpq3jpI6Q9wc3LEmBaghu+DdCssd1FakN7Bc0hVNmEyGq1bq3RgfkCb3cmQLpNPOroA==";
-  };
-  "sade@1.8.1" = fetchurl {
-    url = "https://registry.npmjs.org/sade/-/sade-1.8.1.tgz";
-    hash = "sha512-xal3CZX1Xlo/k4ApwCFrHVACi9fBqJ7V+mwhBsuf/1IOKbBy098Fex+Wa/5QMubw09pSZ/u8EY8PWgevJsXp1A==";
+  "csstype@3.2.3" = fetchurl {
+    url = "https://registry.npmjs.org/csstype/-/csstype-3.2.3.tgz";
+    hash = "sha512-z1HGKcYy2xA8AGQfwrn0PAy+PB7X/GSj3UVJW9qKyn43xWa+gl5nXmU4qqLMRzWVLFC8KusUX8T/0kCiOYpAIQ==";
   };
   "tarball:https://registry.npmjs.org/zod/-/zod-3.21.4.tgz" = builtins.fetchTarball {
     url = "https://registry.npmjs.org/zod/-/zod-3.21.4.tgz";
     sha256 = "sha256-xyP+/+1G4HB94Z6Hmcb/5MRRr9FmUzWRprObG5AJD6U=";
   };
-  "typescript@5.7.3" = fetchurl {
-    url = "https://registry.npmjs.org/typescript/-/typescript-5.7.3.tgz";
-    hash = "sha512-84MVSjMEHP+FQRPy3pX9sTVV/INIex71s9TL2Gm5FG/WG1SqXeKyZ0k7/blY/4FdOzI12CBy1vGc4og/eus0fw==";
+  "typescript@5.9.3" = fetchurl {
+    url = "https://registry.npmjs.org/typescript/-/typescript-5.9.3.tgz";
+    hash = "sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw==";
   };
   "undici-types@6.20.0" = fetchurl {
     url = "https://registry.npmjs.org/undici-types/-/undici-types-6.20.0.tgz";

@@ -8,8 +8,7 @@
   "type": "module",
   "private": true,
   "devDependencies": {
-    "@types/bun": "latest",
-    "bun2nix": "^2.0.0-beta-10"
+    "@types/bun": "latest"
   },
   "peerDependencies": {
     "typescript": "^5"
