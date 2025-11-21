@@ -24,6 +24,16 @@ in
       writeBunApplication = lib.extendMkDerivation {
         constructDrv = config.mkDerivation.function;
 
+        excludeDrvArgNames = [
+          "startScript"
+          "runtimeInputs"
+          "runtimeEnv"
+          "excludeShellChecks"
+          "extraShellCheckFlags"
+          "bashOptions"
+          "inheritPath"
+        ];
+
         extendDrvArgs =
           _finalAttrs:
           {
@@ -38,8 +48,9 @@ in
               "pipefail"
             ],
             inheritPath ? true,
+            nativeBuildInputs ? [ ],
             ...
-          }:
+          }@args:
           let
             script = pkgs.writeShellApplication {
               inherit
@@ -61,22 +72,24 @@ in
           {
             nativeBuildInputs = [
               pkgs.makeWrapper
-            ];
+            ]
+            ++ nativeBuildInputs;
 
-            installPhase = ''
-              runHook preInstall
+            installPhase =
+              args.installPhase or ''
+                runHook preInstall
 
-              mkdir -p \
-                "$out/share/$pname" \
-                "$out/bin"
+                mkdir -p \
+                  "$out/share/$pname" \
+                  "$out/bin"
 
-              cp -r ./. "$out/share/$pname"
+                cp -r ./. "$out/share/$pname"
 
-              makeWrapper ${lib.getExe script} $out/bin/$pname \
-                --chdir "$out/share/$pname"
+                makeWrapper ${lib.getExe script} $out/bin/$pname \
+                  --chdir "$out/share/$pname"
 
-              runHook postInstall
-            '';
+                runHook postInstall
+              '';
           };
       };
     };
