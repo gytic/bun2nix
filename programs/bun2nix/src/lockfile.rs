@@ -3,18 +3,19 @@
 
 use std::{collections::HashMap, str::FromStr};
 
-use serde::{de, Deserialize, Deserializer, Serialize};
+use log::warn;
+use serde::{Deserialize, Deserializer, Serialize, de};
 use serde_json::Value;
 
 use crate::{
-    error::{Error, Result},
     Package,
+    error::{Error, Result},
 };
 
 mod package_deserializer;
 mod package_visitor;
 pub use package_deserializer::{
-    drop_prefix, split_once_owned, swap_remove_value, PackageDeserializer,
+    PackageDeserializer, drop_prefix, split_once_owned, swap_remove_value,
 };
 pub use package_visitor::PackageVisitor;
 
@@ -158,11 +159,11 @@ impl Workspace {
     where
         D: Deserializer<'de>,
     {
-        Dependencies::deserialize(data)?
+        Ok(Dependencies::deserialize(data)?
             .into_iter()
             .map(|(name, version)| {
                 if version == "latest" {
-                    let err = format!(
+                    warn!(
                         "
 The provided bun lockfile contains an unlocked dependency.
 
@@ -172,7 +173,7 @@ dependencies: {{
     \"{name}\": \"latest\"
 }}
 ```
-As a result, this cannot be used as a base to do reproducible
+As a result, this may not be able to be used as a base to do reproducible
 installs off of.
 
 You may fix this by running `bun install` again and allowing
@@ -180,12 +181,10 @@ it to pin a specific version, manually inserting a version instead
 of \"latest\" or removing the dependency if it is unused.
                 "
                     );
-
-                    return Err(de::Error::custom(err));
                 };
 
-                Ok((name, version))
+                (name, version)
             })
-            .collect()
+            .collect())
     }
 }
