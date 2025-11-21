@@ -7,13 +7,13 @@ To install `bun2nix` in an already existing bun project with a `flake.nix`, the 
 Add the `bun2nix` flake to your inputs as follows:
 
 ```nix
-bun2nix.url = "github:baileyluTCD/bun2nix";
+bun2nix.url = "github:nix-community/bun2nix";
 bun2nix.inputs.nixpkgs.follows = "nixpkgs";
 ```
 
 ## 1.5. (Optional) Use the binary cache
 
-The `bun2nix` executable typically takes a while to compile, which is typical for many Rust programs, hence, because of the [Garnix](https://garnix.io/) based CI/CD, a convenient binary cache is provided.
+The `bun2nix` executable typically takes a while to compile, which is typical for many Rust programs, hence, hence, it may be a good idea to use the [nix-community](https://nix-community.org/cache/) cache.
 
 To add it include the following in your `flake.nix`.
 
@@ -21,11 +21,11 @@ To add it include the following in your `flake.nix`.
 nixConfig = {
     extra-substituters = [
       "https://cache.nixos.org"
-      "https://cache.garnix.io"
+      "https://nix-community.cachix.org"
     ];
     extra-trusted-public-keys = [
       "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
-      "cache.garnix.io:CTFPyKSLcx5RMJKfLo5EEPUObbA78b0YQ2DTCJXqr9g="
+      "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
     ];
 };
 ```

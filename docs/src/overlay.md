@@ -61,7 +61,7 @@ Or, to add the `bun2nix` binary to your `devShell`:
 {
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    bun2nix.url = "github:baileyluTCD/bun2nix";
+    bun2nix.url = "github:nix-community/bun2nix";
     flake-utils.url = "github:numtide/flake-utils";
   };
 

@@ -7,6 +7,6 @@ title = "Bun2Nix - Documentation"
 
 [output.html]
 additional-head = "head.html"
-git-repository-url = "https://github.com/baileyluTCD/bun2nix"
+git-repository-url = "https://github.com/nix-community/bun2nix"
 git-repository-icon = "fa-github"
 preferred-dark-theme = "ayu"

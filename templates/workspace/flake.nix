@@ -4,44 +4,41 @@
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
     flake-utils.url = "github:numtide/flake-utils";
+    systems.url = "github:nix-systems/default";
 
-    bun2nix.url = "github:baileyluTCD/bun2nix?tag=2.0.0";
+    bun2nix.url = "github:nix-community/bun2nix?tag=2.0.1";
     bun2nix.inputs.nixpkgs.follows = "nixpkgs";
+    bun2nix.inputs.systems.follows = "systems";
   };
 
-  # Use the cached version of bun2nix from the garnix cli
+  # Use the cached version of bun2nix from the nix-community cli
   nixConfig = {
     extra-substituters = [
       "https://cache.nixos.org"
-      "https://cache.garnix.io"
+      "https://nix-community.cachix.org"
     ];
     extra-trusted-public-keys = [
       "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
-      "cache.garnix.io:CTFPyKSLcx5RMJKfLo5EEPUObbA78b0YQ2DTCJXqr9g="
+      "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
     ];
   };
 
   outputs =
-    {
-      nixpkgs,
-      systems,
-      bun2nix,
-      ...
-    }:
+    inputs:
     let
       # Read each system from the nix-systems input
-      eachSystem = nixpkgs.lib.genAttrs (import systems);
+      eachSystem = inputs.nixpkgs.lib.genAttrs (import inputs.systems);
 
       # Access the package set for a given system
       pkgsFor = eachSystem (
         system:
-        import nixpkgs {
+        import inputs.nixpkgs {
           inherit system;
           # Use the bun2nix overlay, which puts `bun2nix` in pkgs
           # You can, of course, still access
           # inputs.bun2nix.packages.${system}.default instead
           # and use that to build your package instead
-          overlays = [ bun2nix.overlays.default ];
+          overlays = [ inputs.bun2nix.overlays.default ];
         }
       );
     in

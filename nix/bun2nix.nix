@@ -36,7 +36,7 @@ in
 
             meta = {
               description = "A fast rust based bun lockfile to nix expression converter.";
-              homepage = "https://github.com/baileyluTCD/bun2nix";
+              homepage = "https://github.com/nix-community/bun2nix";
               license = lib.licenses.mit;
               maintainers = [ lib.maintainers.baileylu ];
               mainProgram = "bun2nix";

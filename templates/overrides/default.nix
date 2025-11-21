@@ -11,7 +11,7 @@ bun2nix.mkDerivation {
   bunDeps = bun2nix.fetchBunDeps {
     bunNix = ./bun.nix;
     overrides = {
-      "typescript@5.7.3" =
+      "typescript@5.9.3" =
         pkg:
         runCommandLocal "override-example" { } ''
           mkdir $out

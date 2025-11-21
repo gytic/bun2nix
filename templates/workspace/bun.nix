@@ -13,9 +13,9 @@
 {
   "@workspace/app" = copyPathToStore ./packages/app;
   "@workspace/lib" = copyPathToStore ./packages/lib;
-  "bun2nix@2.0.0-beta-10" = fetchurl {
-    url = "https://registry.npmjs.org/bun2nix/-/bun2nix-2.0.0-beta-10.tgz";
-    hash = "sha512-PL+DWxFozqDrZHNmtDoX2s13QgelMaZtp/PC8CmXpVr/9uUzEwySI8waONR1WEw88g6UAXYW8BYm0MQVceP9EQ==";
+  "bun2nix@2.0.0" = fetchurl {
+    url = "https://registry.npmjs.org/bun2nix/-/bun2nix-2.0.0.tgz";
+    hash = "sha512-PCMrscGu/uEYQiG0jBZKf1ZM5nrpqYLjZNV+g4UQiGokakWsYrLaKRma4FqbxxwZ8s2VZXBkOyCn7U3Q/Bybjg==";
   };
   "is-number@6.0.0" = fetchurl {
     url = "https://registry.npmjs.org/is-number/-/is-number-6.0.0.tgz";
