@@ -20,7 +20,7 @@ The main files of note are:
 To produce the default minimal sample, run:
 
 ```bash
-nix flake init -t github:baileyluTCD/bun2nix
+nix flake init -t github:nix-community/bun2nix
 ```
 
 This is a bare-bones project created via `bun init` which produces a simple hello world binary packaged via bun2nix.
@@ -30,7 +30,7 @@ This is a bare-bones project created via `bun init` which produces a simple hell
 To start with the React website template run
 
 ```bash
-nix flake init -t github:baileyluTCD/bun2nix#react
+nix flake init -t github:nix-community/bun2nix#react
 ```
 
 This is a simple example of a basic React app built through bun2nix.

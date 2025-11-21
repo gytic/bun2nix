@@ -7,7 +7,7 @@ To install `bun2nix` in an already existing bun project with a `flake.nix`, the 
 Add the `bun2nix` flake to your inputs as follows:
 
 ```nix
-bun2nix.url = "github:baileyluTCD/bun2nix";
+bun2nix.url = "github:nix-community/bun2nix";
 bun2nix.inputs.nixpkgs.follows = "nixpkgs";
 ```
 

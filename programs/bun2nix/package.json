@@ -23,6 +23,6 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/baileyluTCD/bun2nix"
+    "url": "https://github.com/nix-community/bun2nix"
   }
 }
