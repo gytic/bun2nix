@@ -6,7 +6,7 @@ To help with that, here are some developer notes:
 
 ## Tests
 
-All tests for this project are ran through `nix flake check` and are a good way of checking if the whole project works. To ensure this remains the case automatically, [garnix](https://garnix.io/) has been setup for the repository to run automatically on pull requests.
+All tests for this project are ran through `nix flake check` and are a good way of checking if the whole project works. This project runs [CI provided by nix-community](https://nix-community.org/continuous-integration/).
 
 ## Documentation
 
