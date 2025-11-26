@@ -41,7 +41,16 @@ stdenv.mkDerivation {
 
 ## Troubleshooting
 
-The default behavior of `bun2nix` is to hard-link installs from the Nix store. Unfortunately, this is not guaranteed to work the same on all systems - if you see strange permissions errors from `bun install` try setting `bunInstallFlags` to `--backend=symlink`, which works but may be marginally slower.
+The default behavior of `bun2nix` is to use [isolated installs](https://bun.com/docs/pm/isolated-installs#backend-strategies) to install your packages. This may lead to some [strange bugs](https://bun.com/blog/bun-v1.3.2#hoisted-installs-restored-as-default) from time to time, especially if tools expect the hoisted linker. A known cross-platform way to use the hoisted linker instead is:
+
+```nix
+bunInstallFlags = if stdenv.hostPlatform.isDarwin [
+  "--linker=hoisted"
+  "--backend=copyfile" # Unfortunately `clonefile` (default) doesn't seem to work with the nix store's permissions, `hardlink` may work too (untested)
+] else [
+  "--linker=hoisted"
+];
+```
 
 ## Useful Functional Information
 
