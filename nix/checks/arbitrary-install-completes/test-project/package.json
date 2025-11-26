@@ -6,9 +6,10 @@
   "dependencies": {
     "@gitlab-examples/semantic-release-npm": "https://gitlab.com/gitlab-examples/semantic-release-npm",
     "dayjs": "git+https://github.com/iamkun/dayjs.git",
+    "react": "^19",
+    "test-project-file-dep": "./file-dep",
     "zod": "github:colinhacks/zod",
-    "zod-tarball": "https://registry.npmjs.org/zod/-/zod-3.21.4.tgz",
-    "react": "^19"
+    "zod-tarball": "https://registry.npmjs.org/zod/-/zod-3.21.4.tgz"
   },
   "devDependencies": {
     "@types/bun": "latest"
