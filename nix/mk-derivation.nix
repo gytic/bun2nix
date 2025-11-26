@@ -111,15 +111,19 @@ in
 
             inherit (args) bunDeps;
 
-            bunBuildFlags = lib.optional (module != null) [
-              "${module}"
-              "--outfile"
-              "${pname}"
-              "--compile"
-              "--minify"
-              "--sourcemap"
-              "--bytecode"
-            ];
+            bunBuildFlags =
+              if (args ? bunBuildFlags) then
+                args.bunBuildFlags
+              else
+                lib.optional (module != null) [
+                  "${module}"
+                  "--outfile"
+                  "${pname}"
+                  "--compile"
+                  "--minify"
+                  "--sourcemap"
+                  "--bytecode"
+                ];
 
             meta.mainProgram = pname;
 
