@@ -156,6 +156,8 @@ impl PackageDeserializer {
             "File path can never contain http, because then it would be a tarball"
         );
 
+        let path = Self::drain_after_substring(path, "file:").ok_or(Error::MissingFileSpecifier)?;
+
         Ok(Package::new(name, Fetcher::CopyToStore { path }))
     }
 
