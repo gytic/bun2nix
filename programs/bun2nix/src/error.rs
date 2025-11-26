@@ -44,6 +44,8 @@ Consider updating your local package or contributing to `bun2nix` if this versio
     InvalidUtf8String(Utf8Error),
     #[error("A workspace package was missing the `workspace:` specifier")]
     MissingWorkspaceSpecifier,
+    #[error("A file package was missing the `file:` specifier")]
+    MissingFileSpecifier,
     #[error("A git url was missing it's ref")]
     MissingGitRef,
     #[error("A github url was formatted incorrectly")]
@@ -64,7 +66,7 @@ Please switch to the native cli instead to use this dependency.
 "
     )]
     UnsupportedWASMCliAction(String),
-    #[error("IO Error Occurred: `\n{0}`.
+    #[error("IO Error Occurred: \n{0}
 
 Make sure that the bun lockfile path you gave points to a valid path.
 
