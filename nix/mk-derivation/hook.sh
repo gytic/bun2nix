@@ -7,7 +7,7 @@ function bunSetInstallCacheDirPhase {
   runHook preBunSetInstallCacheDirPhase
 
   if ! [ -v bunDeps ]; then
-    printf '\n\033[31mError:\033[0m %s.\n\n' "$(
+    printf '\n\033[31mError:\033[0m %s\n\n' "$(
       cat <<'EOF'
 Please set `bunDeps` in order to use `bun2nix.hook` or
 `bun2nix.mkDerivation` to build your package.
@@ -39,6 +39,31 @@ EOF
 
   if ! [ -v bunRoot ]; then
     bunRoot=$(pwd)
+  else
+    local subDir
+    subDir="$(pwd)/$bunRoot"
+
+    if ! [ -d "$subDir" ]; then
+      printf '\n\033[31mError:\033[0m %s\n\n' "$(
+        cat <<'EOF'
+`bunRoot` should be a sub directory of the current working directory.
+
+An easy mistake to make is accidentally passing a nix path literal,
+which gets copied to the nix store separately:
+
+```nix
+bunRoot = ./assets; # (incorrect)
+```
+
+You may fix this by simply passing a string instead:
+
+```nix
+bunRoot = "assets"; # (correct)
+```
+EOF
+      )" >&2
+      exit 1
+    fi
   fi
 
   echo "Using bun root: \"$bunRoot\""
