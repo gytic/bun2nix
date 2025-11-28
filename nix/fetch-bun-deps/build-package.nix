@@ -30,18 +30,29 @@ in
       fetchBunDeps.buildPackage =
         {
           patchShebangs ? true,
+          autoPatchElf ? true,
+          nativeBuildInputs ? [ ],
           ...
         }@args:
         let
           bunWithNode = config.fetchBunDeps.bunWithNode args;
         in
         name: pkg:
-        pkgs.stdenvNoCC.mkDerivation {
+        pkgs.stdenv.mkDerivation {
           name = "bun-pkg-${name}";
 
           nativeBuildInputs = [
             bunWithNode
-          ];
+          ]
+          ++ lib.optionals autoPatchElf (
+            with pkgs;
+            [
+              autoPatchelfHook
+              stdenv.cc.cc.lib
+              musl
+            ]
+          )
+          ++ nativeBuildInputs;
 
           phases = [
             "extractPhase"
@@ -63,6 +74,7 @@ in
             runHook prePatch
 
             ${lib.optionalString patchShebangs ''patchShebangs "$out/share/bun-packages"''}
+            ${lib.optionalString autoPatchElf ''runHook autoPatchelfPostFixup''}
 
             runHook postPatch
           '';
