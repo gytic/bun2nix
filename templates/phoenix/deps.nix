@@ -188,6 +188,23 @@ let
         in
         drv;
 
+      bun =
+        let
+          version = "1.5.1";
+          drv = buildMix {
+            inherit version;
+            name = "bun";
+            appConfigPath = ./config;
+
+            src = fetchHex {
+              inherit version;
+              pkg = "bun";
+              sha256 = "dd838885426db8a1e541406dd7875b58c5eff9a950e63e02e6cb3763741d313f";
+            };
+          };
+        in
+        drv;
+
       db_connection =
         let
           version = "2.8.1";
@@ -285,27 +302,6 @@ let
               ecto
               postgrex
               telemetry
-            ];
-          };
-        in
-        drv;
-
-      esbuild =
-        let
-          version = "0.10.0";
-          drv = buildMix {
-            inherit version;
-            name = "esbuild";
-            appConfigPath = ./config;
-
-            src = fetchHex {
-              inherit version;
-              pkg = "esbuild";
-              sha256 = "468489cda427b974a7cc9f03ace55368a83e1a7be12fba7e30969af78e5f8c70";
-            };
-
-            beamDeps = [
-              jason
             ];
           };
         in
@@ -779,23 +775,6 @@ let
               req
               telemetry
             ];
-          };
-        in
-        drv;
-
-      tailwind =
-        let
-          version = "0.4.1";
-          drv = buildMix {
-            inherit version;
-            name = "tailwind";
-            appConfigPath = ./config;
-
-            src = fetchHex {
-              inherit version;
-              pkg = "tailwind";
-              sha256 = "6249d4f9819052911120dbdbe9e532e6bd64ea23476056adb7f730aa25c220d1";
-            };
           };
         in
         drv;

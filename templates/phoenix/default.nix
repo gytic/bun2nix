@@ -1,13 +1,14 @@
 {
-  beamPackages,
   callPackages,
 
-  tailwindcss_4,
-  esbuild,
+  beamPackages,
+
+  bun,
+  bun2nix,
 
   ...
 }:
-beamPackages.mixRelease rec {
+beamPackages.mixRelease {
   pname = "bun2nix_phoenix";
   version = "0.1.0";
 
@@ -15,20 +16,27 @@ beamPackages.mixRelease rec {
 
   mixNixDeps = callPackages ./deps.nix { };
 
+  nativeBuildInputs = [
+    bun2nix.hook
+  ];
+
+  bunDeps = bun2nix.fetchBunDeps {
+    bunNix = ./assets/bun.nix;
+  };
+
+  bunRoot = "assets";
+
   DATABASE_URL = "";
   SECRET_KEY_BASE = "";
 
-  postBuild = ''
-    tailwind_path="$(mix do \
-      app.config --no-deps-check --no-compile, \
-      eval 'Tailwind.bin_path() |> IO.puts()')"
-    esbuild_path="$(mix do \
-      app.config --no-deps-check --no-compile, \
-      eval 'Esbuild.bin_path() |> IO.puts()')"
+  removeCookie = false;
 
-    ln -sfv ${tailwindcss_4}/bin/tailwindcss "$tailwind_path"
-    ln -sfv ${esbuild}/bin/esbuild "$esbuild_path"
-    ln -sfv ${mixNixDeps.heroicons} deps/heroicons
+  postBuild = ''
+    bun_path="$(mix do \
+      app.config --no-deps-check --no-compile, \
+      eval 'Bun.bin_path() |> IO.puts()')"
+
+    ln -sfv ${bun}/bin/bun "$bun_path"
 
     mix do \
       app.config --no-deps-check --no-compile, \

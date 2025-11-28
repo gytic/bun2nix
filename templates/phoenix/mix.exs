@@ -41,10 +41,10 @@ defmodule Bun2nixPhoenix.MixProject do
   defp deps do
     [
       {:bandit, "~> 1.5"},
+      {:bun, "~> 1.5", runtime: Mix.env() == :dev},
       {:deps_nix, "~> 2.0", only: :dev},
       {:dns_cluster, "~> 0.2.0"},
       {:ecto_sql, "~> 3.13"},
-      {:esbuild, "~> 0.10", runtime: Mix.env() == :dev},
       {:gettext, "~> 1.0"},
       {:heroicons,
        github: "tailwindlabs/heroicons",
@@ -64,7 +64,6 @@ defmodule Bun2nixPhoenix.MixProject do
       {:postgrex, ">= 0.0.0"},
       {:req, "~> 0.5"},
       {:swoosh, "~> 1.16"},
-      {:tailwind, "~> 0.3", runtime: Mix.env() == :dev},
       {:telemetry_metrics, "~> 1.0"},
       {:telemetry_poller, "~> 1.0"}
     ]
@@ -82,11 +81,11 @@ defmodule Bun2nixPhoenix.MixProject do
       "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
       "ecto.reset": ["ecto.drop", "ecto.setup"],
       test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"],
-      "assets.setup": ["tailwind.install --if-missing", "esbuild.install --if-missing"],
-      "assets.build": ["compile", "tailwind bun2nix_phoenix", "esbuild bun2nix_phoenix"],
+      "assets.setup": ["bun.install --if-missing", "bun assets install"],
+      "assets.build": ["compile", "bun js", "bun css"],
       "assets.deploy": [
-        "tailwind bun2nix_phoenix --minify",
-        "esbuild bun2nix_phoenix --minify",
+        "bun css --minify",
+        "bun js --minify",
         "phx.digest"
       ],
       precommit: ["compile --warnings-as-errors", "deps.unlock --unused", "format", "test"],

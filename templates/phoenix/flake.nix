@@ -48,21 +48,36 @@
         default = pkgsFor.${system}.callPackage ./default.nix { };
       });
 
-      devShells = eachSystem (system: {
-        default = pkgsFor.${system}.mkShell {
-          packages = with pkgsFor.${system}; [
-            elixir_1_19
-            bun
+      devShells = eachSystem (
+        system:
+        let
+          pkgs = pkgsFor.${system};
+        in
+        {
+          default = pkgs.mkShellNoCC {
+            packages = with pkgs; [
+              elixir_1_19
+              watchman
+              bun
 
-            # Add the bun2nix binary to our devshell
-            # Optional now that we have a binary on npm
-            bun2nix
-          ];
+              # Add the bun2nix binary to our devshell
+              # Optional now that we have a binary on npm
+              bun2nix
+            ];
 
-          shellHook = ''
-            bun install --frozen-lockfile
-          '';
-        };
-      });
+            shellHook = ''
+              sh -c "cd assets && bun install --frozen-lockfile"
+
+              bun_path="$(mix do \
+                app.config --no-deps-check --no-compile + \
+                eval 'Bun.bin_path() |> IO.puts()')"
+
+              ln -sfv ${pkgs.bun}/bin/bun "$bun_path"
+
+              ln -sfv ${pkgs.tailwindcss_4}/bin/tailwindcss "assets/node_modules/.bin/tailwindcss"
+            '';
+          };
+        }
+      );
     };
 }

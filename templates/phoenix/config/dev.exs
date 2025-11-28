@@ -25,8 +25,8 @@ config :bun2nix_phoenix, Bun2nixPhoenixWeb.Endpoint,
   debug_errors: true,
   secret_key_base: "NJPzpU7AJm4Q1gaqoxLE8qoAIalz5OFReUXxxcaLBMCKbqxTkd6MiJYfT07yk57Q",
   watchers: [
-    esbuild: {Esbuild, :install_and_run, [:bun2nix_phoenix, ~w(--sourcemap=inline --watch)]},
-    tailwind: {Tailwind, :install_and_run, [:bun2nix_phoenix, ~w(--watch)]}
+    bun_js: {Bun, :install_and_run, [:js, ~w(--sourcemap=inline --watch)]},
+    bun_css: {Bun, :install_and_run, [:css, ~w(--watch)]}
   ]
 
 # ## SSL Support
