@@ -37,6 +37,12 @@ EOF
 
   cp -r "$bunDeps"/share/bun-cache/. "$BUN_INSTALL_CACHE_DIR"
 
+  if ! [ -v bunRoot ]; then
+    bunRoot=$(pwd)
+  fi
+
+  echo "Using bun root: \"$bunRoot\""
+
   runHook postBunSetInstallCacheDirPhase
 }
 
@@ -52,6 +58,7 @@ function bunPatchPhase {
 }
 
 function bunNodeModulesInstallPhase {
+  pushd "$bunRoot" || exit 1
   runHook preBunNodeModulesInstallPhase
 
   local flagsArray=()
@@ -70,9 +77,11 @@ function bunNodeModulesInstallPhase {
   bun install "${flagsArray[@]}"
 
   runHook postBunNodeModulesInstallPhase
+  popd || exit 1
 }
 
 function bunLifecycleScriptsPhase {
+  pushd "$bunRoot" || exit 1
   runHook preBunLifecycleScriptsPhase
 
   chmod -R u+rwx ./node_modules
@@ -90,9 +99,11 @@ function bunLifecycleScriptsPhase {
   bun install "${flagsArray[@]}"
 
   runHook postBunLifecycleScriptsPhase
+  popd || exit 1
 }
 
 function bunBuildPhase {
+  pushd "$bunRoot" || exit 1
   runHook preBuild
 
   local flagsArray=()
@@ -103,9 +114,11 @@ function bunBuildPhase {
   bun build "${flagsArray[@]}"
 
   runHook postBuild
+  popd || exit 1
 }
 
 function bunCheckPhase {
+  pushd "$bunRoot" || exit 1
   runHook preCheck
 
   local flagsArray=()
@@ -116,9 +129,11 @@ function bunCheckPhase {
   bun test "${flagsArray[@]}"
 
   runHook postCheck
+  popd || exit 1
 }
 
 function bunInstallPhase {
+  pushd "$bunRoot" || exit 1
   runHook preInstall
 
   if ! [ -v pname ]; then
@@ -133,6 +148,7 @@ function bunInstallPhase {
   install -Dm755 "$pname" "$out/bin/$pname"
 
   runHook postInstall
+  popd || exit 1
 }
 
 appendToVar preConfigurePhases bunSetInstallCacheDirPhase
