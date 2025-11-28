@@ -48,8 +48,6 @@ beamPackages.mixRelease {
 
   removeCookie = false;
 
-  __darwinAllowLocalNetworking = true;
-
   postBuild = ''
     bun_path="$(mix do \
       app.config --no-deps-check --no-compile, \
