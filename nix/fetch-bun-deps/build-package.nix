@@ -49,7 +49,6 @@ in
             [
               autoPatchelfHook
               stdenv.cc.cc.lib
-              musl
             ]
           )
           ++ nativeBuildInputs;

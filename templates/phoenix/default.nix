@@ -1,11 +1,13 @@
 {
+  lib,
+  stdenv,
   callPackages,
+  musl,
 
   beamPackages,
 
   bun,
   bun2nix,
-
   ...
 }:
 beamPackages.mixRelease {
@@ -23,6 +25,7 @@ beamPackages.mixRelease {
   bunDeps = bun2nix.fetchBunDeps {
     bunNix = ./assets/bun.nix;
     autoPatchElf = true;
+    nativeBuildInputs = lib.optional stdenv.hostPlatform.isLinux musl;
   };
 
   bunRoot = "assets";
