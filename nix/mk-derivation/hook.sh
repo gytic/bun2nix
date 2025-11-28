@@ -3,7 +3,9 @@
 # shellcheck disable=SC2034
 readonly bunDefaultInstallFlagsArray=(@bunDefaultInstallFlags@)
 
-function bunSetInstallCacheDir {
+function bunSetInstallCacheDirPhase {
+  runHook preBunSetInstallCacheDirPhase
+
   if ! [ -v bunDeps ]; then
     printf '\n\033[31mError:\033[0m %s.\n\n' "$(
       cat <<'EOF'
@@ -34,6 +36,8 @@ EOF
   export BUN_INSTALL_CACHE_DIR
 
   cp -r "$bunDeps"/share/bun-cache/. "$BUN_INSTALL_CACHE_DIR"
+
+  runHook postBunSetInstallCacheDirPhase
 }
 
 function bunPatchPhase {
@@ -131,7 +135,7 @@ function bunInstallPhase {
   runHook postInstall
 }
 
-appendToVar preConfigurePhases bunSetInstallCacheDir
+appendToVar preConfigurePhases bunSetInstallCacheDirPhase
 appendToVar preBuildPhases bunNodeModulesInstallPhase
 
 if [ -z "${dontRunLifecycleScripts-}" ]; then
