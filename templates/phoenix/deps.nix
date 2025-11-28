@@ -118,7 +118,8 @@ let
     };
   };
 
-  defaultOverrides = _final: prev:
+  defaultOverrides =
+    _final: prev:
 
     let
       apps = {

@@ -22,6 +22,7 @@ beamPackages.mixRelease {
 
   bunDeps = bun2nix.fetchBunDeps {
     bunNix = ./assets/bun.nix;
+    autoPatchElf = true;
   };
 
   bunRoot = "assets";

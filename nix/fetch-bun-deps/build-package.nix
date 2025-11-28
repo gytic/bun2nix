@@ -30,7 +30,7 @@ in
       fetchBunDeps.buildPackage =
         {
           patchShebangs ? true,
-          autoPatchElf ? true,
+          autoPatchElf ? false,
           nativeBuildInputs ? [ ],
           ...
         }@args:
