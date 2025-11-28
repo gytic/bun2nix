@@ -1,0 +1,22 @@
+{
+  "name": "assets",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "postinstall": "bun2nix -o bun.nix"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "bun2nix": "^2.0.3",
+    "daisyui": "^5.5.5",
+    "heroicons": "^2.2.0",
+    "tailwind": "^4.0.0",
+    "topbar": "^3.0.0"
+  }
+}
