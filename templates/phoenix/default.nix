@@ -8,8 +8,6 @@
 
   runCommandLocal,
   tailwindcss_4,
-
-  tree,
   ...
 }:
 beamPackages.mixRelease {
@@ -22,7 +20,6 @@ beamPackages.mixRelease {
 
   nativeBuildInputs = [
     bun2nix.hook
-    tree
   ];
 
   bunDeps = bun2nix.fetchBunDeps {
@@ -34,7 +31,7 @@ beamPackages.mixRelease {
           mkdir "$out"
           cp -r ${pkg}/. "$out"
 
-          chmod -R u+rwx $out
+          chmod -R u+w $out
 
           cp "${tailwindcss_4}/bin/tailwindcss" "$out/dist/index.mjs"
         '';
