@@ -1,13 +1,15 @@
 {
-  lib,
-  stdenv,
   callPackages,
-  musl,
 
   beamPackages,
 
   bun,
   bun2nix,
+
+  runCommandLocal,
+  tailwindcss_4,
+
+  tree,
   ...
 }:
 beamPackages.mixRelease {
@@ -20,12 +22,23 @@ beamPackages.mixRelease {
 
   nativeBuildInputs = [
     bun2nix.hook
+    tree
   ];
 
   bunDeps = bun2nix.fetchBunDeps {
     bunNix = ./assets/bun.nix;
-    autoPatchElf = true;
-    nativeBuildInputs = lib.optional stdenv.hostPlatform.isLinux musl;
+    overrides = {
+      "@tailwindcss/cli@4.1.17" =
+        pkg:
+        runCommandLocal "tailwind-cli" { } ''
+          mkdir "$out"
+          cp -r ${pkg}/. "$out"
+
+          chmod -R u+rwx $out
+
+          cp "${tailwindcss_4}/bin/tailwindcss" "$out/dist/index.mjs"
+        '';
+    };
   };
 
   bunRoot = "assets";
@@ -34,6 +47,8 @@ beamPackages.mixRelease {
   SECRET_KEY_BASE = "";
 
   removeCookie = false;
+
+  __darwinAllowLocalNetworking = true;
 
   postBuild = ''
     bun_path="$(mix do \
