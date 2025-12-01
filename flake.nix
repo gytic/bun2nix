@@ -2,8 +2,7 @@
   description = "Create nix expressions from bun lockfiles";
 
   inputs = {
-    # TODO: revert to vanilla nixpkgs
-    nixpkgs.url = "github:baileylutcd/nixpkgs/build-mix-darwin-networking";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     systems.url = "github:nix-systems/default";
 
     flake-parts.url = "github:hercules-ci/flake-parts";
