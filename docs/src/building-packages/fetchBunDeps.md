@@ -36,7 +36,7 @@ bun2nix.mkDerivation {
 | `useFakeNode`       | By default, `bun2nix` patches any scripts that use Node in your dependencies to use `bun` as its executable instead. Turning this off will patch them to use `node` instead. This might be useful, if, for example, you need to link to actual Node v8 while building a native addon. Defaults to true. |
 | `patchShebangs`     | If scripts in your dependencies should have their shebangs patched or not. Defaults to true.                                                                                                                                                                                                            |
 | `autoPatchElf`      | If any elf files that exist in your bun dependencies should be patched. See [`autoPatchelfHook`](https://ryantm.github.io/nixpkgs/hooks/autopatchelf/#setup-hook-autopatchelfhook). Off by default as most builds do not require this.                                                                  |
-| `nativeBuildInputs` | Extra native libraries that your NPM dependencies may need. Linked via `autoPatchElf`.                                                                                                                                                                                                                  |
+| `nativeBuildInputs` | Extra native libraries that your NPM dependencies may need. Linked via `autoPatchElf` and will not do anything if that option is not enabled.                                                                                                                                                           |
 
 ## Overrides
 
