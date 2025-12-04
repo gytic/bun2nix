@@ -40,6 +40,7 @@ Usage
 Options
   -l, --lock-file      The Bun (v1.2+) lockfile to use to produce the Nix expression  (default bun.lock)
   -o, --output-file    The output file to write to - if no file location is provided, print to stdout instead
+  -c, --copy-prefix    The prefix to use when copying workspace or file packages  (default ./)
   -v, --version        Displays current version
   -h, --help           Displays this message
 ```
@@ -56,6 +57,7 @@ Usage: bun2nix [OPTIONS]
 Options:
   -l, --lock-file <LOCK_FILE>      The Bun (v1.2+) lockfile to use to produce the Nix expression [default: ./bun.lock]
   -o, --output-file <OUTPUT_FILE>  The output file to write to - if no file location is provided, print to stdout instead
+  -c, --copy-prefix <COPY_PREFIX>  The prefix to use when copying workspace or file packages [default: ./]
   -h, --help                       Print help
   -V, --version                    Print version
 ```

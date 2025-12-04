@@ -1,4 +1,4 @@
 fetchurl {
-     url = "{{ url }}";
-     hash = "{{ hash }}";
+    url = "{{ url }}";
+    hash = "{{ hash }}";
   }
