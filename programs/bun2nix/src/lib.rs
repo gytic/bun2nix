@@ -6,20 +6,14 @@
 pub mod error;
 pub mod lockfile;
 pub mod nix_expression;
+pub mod options;
 pub mod package;
 
 pub use error::{Error, Result};
 pub use lockfile::Lockfile;
 use nix_expression::NixExpression;
+pub use options::Options;
 pub use package::Package;
-
-/// # Lockfile conversion options
-///
-/// Config options for generating a bun.nix file
-pub struct Options {
-    /// The prefix to use when copying workspace or file packages
-    pub copy_prefix: String,
-}
 
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;
