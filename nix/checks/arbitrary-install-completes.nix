@@ -6,7 +6,7 @@
       checks.arbitraryInstallCompletes = pkgs.stdenv.mkDerivation {
         name = "bun2nix-exec-test";
 
-        outputHash = "sha256-xOyFWDXEhcpw/36e888JC+1vwNm5o+O3JpZfTfSsg1I=";
+        outputHash = "sha256-ycMB89VT9xlq+4KwI3EE50BbO1/QL87vnl49/muR888=";
         outputHashAlgo = "sha256";
         outputHashMode = "recursive";
 
@@ -16,6 +16,7 @@
           nix
           cacert
           git
+          nixfmt
         ];
 
         installPhase = ''
@@ -28,11 +29,18 @@
           export HOME=$PWD/home
           mkdir -p $NIX_STATE_DIR $NIX_STORE_DIR $NIX_PROFILES_DIR $NIX_CONF_DIR $HOME
 
+          bun_nix=$(${lib.getExe self'.packages.bun2nix})
+
           nix eval \
             --extra-experimental-features nix-command \
-            --expr "$(${lib.getExe self'.packages.bun2nix})"
+            --expr "$bun_nix"
 
-          echo ${self'.packages.bun2nix.version} > $out
+          echo ${self'.packages.bun2nix.version} > "$out"
+
+          if [ "$bun_nix" != "$(echo "$bun_nix" | nixfmt)" ]; then
+            printf '\n\033[31mError:\033[0m %s\n\n' "bun2nix generated file should be nix formatted"
+            exit 1
+          fi
         '';
       };
     };
