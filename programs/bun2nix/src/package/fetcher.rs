@@ -5,7 +5,10 @@ use std::{fmt::Debug, hash::Hash};
 use askama::Template;
 use serde::{Deserialize, Serialize};
 
-use crate::error::{Error, Result};
+use crate::{
+    Options,
+    error::{Error, Result},
+};
 
 #[derive(Template, Debug, Serialize, Deserialize, Clone, Eq, Ord, PartialEq, PartialOrd, Hash)]
 /// # Package Fetcher

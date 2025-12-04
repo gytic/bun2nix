@@ -4,8 +4,9 @@ mod nix_escaper;
 
 pub use nix_escaper::NixEscaper;
 
-use crate::error::Result;
+use crate::{Options, error::Result};
 use askama::Template;
+use std::{any::Any, collections::HashMap};
 
 use crate::Package;
 
@@ -24,5 +25,15 @@ impl NixExpression {
     /// Produce a new, ready to render, nix expression from a package list
     pub fn new(packages: Vec<Package>) -> Result<Self> {
         Ok(Self { packages })
+    }
+
+    /// # Render with options
+    ///
+    /// Renders a `NixExpression` with the supplied config options
+    pub fn render_with_options(self, options: Options) -> Result<String> {
+        let mut values: HashMap<&str, Box<dyn Any>> = HashMap::new();
+        values.insert("options", Box::new(options));
+
+        Ok(self.render_with_values(&values)?)
     }
 }

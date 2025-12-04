@@ -3,7 +3,7 @@
 
 #![warn(missing_docs)]
 
-use bun2nix::{Result, convert_lockfile_to_nix_expression};
+use bun2nix::{Options, Result, convert_lockfile_to_nix_expression};
 use log::error;
 
 use std::{
@@ -27,6 +27,10 @@ pub struct Cli {
     /// if no file location is provided, print to stdout instead.
     #[arg(short, long)]
     output_file: Option<PathBuf>,
+
+    /// The prefix to use when copying workspace or file packages
+    #[arg(short, long, default_value = "./")]
+    copy_prefix: String,
 }
 
 fn main() {
@@ -48,7 +52,12 @@ fn run() -> Result<()> {
 
     let lockfile = fs::read_to_string(&cli.lock_file)?;
 
-    let nix = convert_lockfile_to_nix_expression(lockfile)?;
+    let nix = convert_lockfile_to_nix_expression(
+        lockfile,
+        Options {
+            copy_prefix: cli.copy_prefix,
+        },
+    )?;
 
     if let Some(output_file) = cli.output_file {
         let mut output = File::create(output_file)?;

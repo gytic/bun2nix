@@ -8,11 +8,18 @@ pub mod lockfile;
 pub mod nix_expression;
 pub mod package;
 
-use askama::Template;
 pub use error::{Error, Result};
 pub use lockfile::Lockfile;
 use nix_expression::NixExpression;
 pub use package::Package;
+
+/// # Lockfile conversion options
+///
+/// Config options for generating a bun.nix file
+pub struct Options {
+    /// The prefix to use when copying workspace or file packages
+    pub copy_prefix: String,
+}
 
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;
@@ -22,7 +29,7 @@ use wasm_bindgen::prelude::*;
 /// Takes a string input of the contents of a bun lockfile and converts it into a ready to use Nix expression which fetches the packages
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 #[cfg_attr(target_arch = "wasm32", no_mangle)]
-pub fn convert_lockfile_to_nix_expression(contents: String) -> Result<String> {
+pub fn convert_lockfile_to_nix_expression(contents: String, options: Options) -> Result<String> {
     let lockfile = contents.parse::<Lockfile>()?;
 
     if lockfile.lockfile_version != 1 {
@@ -33,5 +40,5 @@ pub fn convert_lockfile_to_nix_expression(contents: String) -> Result<String> {
     packages.sort();
     packages.dedup_by(|a, b| a.name == b.name);
 
-    Ok(NixExpression::new(packages)?.render()?)
+    NixExpression::new(packages)?.render_with_options(options)
 }
