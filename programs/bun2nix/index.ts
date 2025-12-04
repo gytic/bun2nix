@@ -14,7 +14,7 @@ type CliOpts = {
   /** Output file to write to - writes to stdout if undefined. */
   "output-file": string | undefined;
   /** The prefix to use when copying workspace or file packages. */
-  "copy-prefix": string
+  "copy-prefix": string;
 };
 
 /**
@@ -63,6 +63,9 @@ prog.parse(process.argv);
  * @param {Options} options - Lockfile conversion options
  * @return {string} The generated nix expression
  */
-export function convertLockfileToNixExpression(contents: string, options: Options): string {
+export function convertLockfileToNixExpression(
+  contents: string,
+  options: Options,
+): string {
   return convert_lockfile_to_nix_expression(contents, options);
 }

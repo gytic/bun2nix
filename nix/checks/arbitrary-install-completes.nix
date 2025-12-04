@@ -6,7 +6,7 @@
       checks.arbitraryInstallCompletes = pkgs.stdenv.mkDerivation {
         name = "bun2nix-exec-test";
 
-        outputHash = "sha256-ycMB89VT9xlq+4KwI3EE50BbO1/QL87vnl49/muR888=";
+        outputHash = "sha256-rMTHsppsDkgog5w8dJ5w51vU1F8XvdzAbtXXacK4Rx4=";
         outputHashAlgo = "sha256";
         outputHashMode = "recursive";
 
